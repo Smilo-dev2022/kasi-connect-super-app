@@ -27,6 +27,10 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        community: {
+          DEFAULT: "hsl(var(--community))",
+          foreground: "hsl(var(--community-foreground))",
+        },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",

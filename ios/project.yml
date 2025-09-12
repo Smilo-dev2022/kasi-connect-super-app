@@ -1,0 +1,27 @@
+name: ChatApp
+options:
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.example.ChatApp
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: 5.9
+targets:
+  ChatApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    resources:
+      - path: Resources
+    settings:
+      base:
+        INFOPLIST_FILE: Resources/Info.plist
+        DEVELOPMENT_TEAM: ""
+schemes:
+  ChatApp:
+    build:
+      targets:
+        ChatApp: all

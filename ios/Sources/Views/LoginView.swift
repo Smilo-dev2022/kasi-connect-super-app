@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @ObservedObject var viewModel: AuthViewModel
+    @State private var showOTP: Bool = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -59,8 +60,22 @@ struct LoginView: View {
                 }
             }
             .buttonStyle(.bordered)
+
+            Button {
+                showOTP = true
+            } label: {
+                HStack {
+                    Image(systemName: "number.circle")
+                    Text("Login with OTP").frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
+        .sheet(isPresented: $showOTP) {
+            OTPLoginView()
+                .environmentObject(viewModel)
+        }
     }
 }
 

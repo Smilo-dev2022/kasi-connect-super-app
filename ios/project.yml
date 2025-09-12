@@ -1,5 +1,6 @@
 name: ChatApp
 options:
+  minimumXcodeGenVersion: 2.30.0
   deploymentTarget:
     iOS: "16.0"
 settings:
@@ -8,18 +9,31 @@ settings:
     MARKETING_VERSION: 0.1.0
     CURRENT_PROJECT_VERSION: 1
     SWIFT_VERSION: 5.9
+packages:
+  LibSignalClient:
+    url: https://github.com/signalapp/libsignal.git
+    branch: main
+
 targets:
   ChatApp:
     type: application
     platform: iOS
     sources:
       - path: Sources
+        excludes:
+          - Sources/App/App.swift
+          - Sources/App/RootView.swift
+          - Sources/Features/Chats/**
     resources:
       - path: Resources
     settings:
       base:
         INFOPLIST_FILE: Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Sources/Support/App.entitlements
         DEVELOPMENT_TEAM: ""
+    dependencies:
+      - package: LibSignalClient
+        product: LibSignalClient
 schemes:
   ChatApp:
     build:

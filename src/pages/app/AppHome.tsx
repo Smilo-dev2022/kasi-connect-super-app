@@ -15,6 +15,8 @@ import {
   Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useWalletSummary } from "@/hooks/useWallet";
 
 const AppHome = () => {
   const quickActions = [
@@ -25,6 +27,8 @@ const AppHome = () => {
     { icon: Calendar, label: "Events", path: "/app/events", color: "primary" },
     { icon: Store, label: "Business", path: "/app/business", color: "community" }
   ];
+
+  const { data: summary, isLoading: isSummaryLoading } = useWalletSummary();
 
   const notifications = [
     {
@@ -81,7 +85,13 @@ const AppHome = () => {
             </div>
             <div className="text-right">
               <div className="text-sm text-muted-foreground">Balance</div>
-              <div className="text-2xl font-bold text-community">R1,250</div>
+              {isSummaryLoading ? (
+                <Skeleton className="h-6 w-20" />
+              ) : (
+                <div className="text-2xl font-bold text-community">
+                  {`R${(summary?.totalBalance ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                </div>
+              )}
             </div>
           </div>
         </Card>

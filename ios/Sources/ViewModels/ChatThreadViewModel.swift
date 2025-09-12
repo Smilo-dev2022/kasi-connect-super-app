@@ -26,5 +26,11 @@ final class ChatThreadViewModel: ObservableObject {
         composerText = ""
         try? await service.sendMessage(threadId: threadId, text: text, from: user)
     }
+
+    func sendMediaPlaceholder(filename: String, mediaId: String, from user: AppUser) async {
+        let shortId = String(mediaId.prefix(8))
+        let text = "Sent media: \(filename) [\(shortId)]"
+        try? await service.sendMessage(threadId: threadId, text: text, from: user)
+    }
 }
 

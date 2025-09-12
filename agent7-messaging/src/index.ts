@@ -9,6 +9,8 @@ import { authRouter, requireJwt } from './auth';
 import { keysRouter } from './keys';
 import { groupsRouter } from './groups';
 import { getMissedMessagesRouter } from './messages_http';
+import { mediaRouter } from './media';
+import { pushRouter } from './push';
 
 dotenv.config();
 
@@ -25,6 +27,8 @@ app.use('/auth', authRouter);
 app.use('/keys', requireJwt, keysRouter);
 app.use('/groups', requireJwt, groupsRouter);
 app.use('/messages', requireJwt, getMissedMessagesRouter);
+app.use('/media', requireJwt, mediaRouter);
+app.use('/push', requireJwt, pushRouter);
 
 const server = http.createServer(app);
 attachWebSocketServer(server);

@@ -11,6 +11,9 @@ import Chats from "./pages/app/Chats";
 import Wallet from "./pages/app/Wallet";
 import Rooms from "./pages/app/Rooms";
 import Events from "./pages/app/Events";
+import EventDetails from "./pages/app/EventDetails";
+import Tickets from "./pages/app/Tickets";
+import TicketView from "./pages/app/TicketView";
 import Business from "./pages/app/Business";
 import Navigation from "./components/Navigation";
 
@@ -30,6 +33,9 @@ const App = () => (
             <Route path="wallet" element={<Wallet />} />
             <Route path="rooms" element={<Rooms />} />
             <Route path="events" element={<Events />} />
+            <Route path="events/:eventId" element={<EventDetails />} />
+            <Route path="tickets" element={<Tickets />} />
+            <Route path="tickets/:ticketId" element={<TicketView />} />
             <Route path="business" element={<Business />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -17,74 +17,13 @@ import {
   Heart,
   Bell
 } from "lucide-react";
+import { listEvents, toggleRsvp, EnrichedEvent } from "@/services/events";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Events = () => {
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: "Ward 12 Community Meeting",
-      description: "Monthly community meeting to discuss local issues and developments",
-      date: "Dec 15, 2024",
-      time: "18:00",
-      location: "Community Hall, Main Road",
-      organizer: "Ward Councillor",
-      attendees: 45,
-      capacity: 100,
-      price: 0,
-      category: "community",
-      icon: Megaphone,
-      verified: true,
-      rsvp: false
-    },
-    {
-      id: 2,
-      title: "Youth Soccer Tournament",
-      description: "Annual inter-township soccer competition for ages 16-25",
-      date: "Dec 18, 2024",
-      time: "09:00",
-      location: "Sports Ground, 5th Avenue",
-      organizer: "Soweto Youth FC",
-      attendees: 120,
-      capacity: 200,
-      price: 20,
-      category: "sports",
-      icon: Trophy,
-      verified: true,
-      rsvp: true
-    },
-    {
-      id: 3,
-      title: "Sunday Service",
-      description: "Weekly community worship service with special guest speaker",
-      date: "Dec 17, 2024",
-      time: "09:00",
-      location: "Methodist Church",
-      organizer: "Pastor Mthembu",
-      attendees: 85,
-      capacity: 150,
-      price: 0,
-      category: "religious",
-      icon: Church,
-      verified: true,
-      rsvp: false
-    },
-    {
-      id: 4,
-      title: "Jazz & Braai Festival",
-      description: "Live music, local food vendors, and community celebration",
-      date: "Dec 22, 2024",
-      time: "15:00",
-      location: "Park Amphitheater",
-      organizer: "Township Cultural Committee",
-      attendees: 78,
-      capacity: 300,
-      price: 50,
-      category: "entertainment",
-      icon: Music,
-      verified: true,
-      rsvp: false
-    }
-  ];
+  const navigate = useNavigate();
+  const [events, setEvents] = useState<EnrichedEvent[]>(() => listEvents());
 
   const categories = [
     { name: "All", count: 12, active: true },
@@ -164,7 +103,7 @@ const Events = () => {
         <div>
           <h3 className="text-lg font-semibold text-foreground mb-4">Upcoming Events</h3>
           <div className="space-y-4">
-            {upcomingEvents.map((event) => {
+            {events.map((event) => {
               const eventColor = getEventColor(event.category);
               const colorClasses = getColorClasses(eventColor);
               
@@ -173,7 +112,10 @@ const Events = () => {
                   <div className="flex gap-4">
                     {/* Event Icon */}
                     <div className={`w-16 h-16 rounded-2xl ${colorClasses} flex items-center justify-center border-2 flex-shrink-0`}>
-                      <event.icon className="w-8 h-8" />
+                      {event.category === 'community' && <Megaphone className="w-8 h-8" />}
+                      {event.category === 'sports' && <Trophy className="w-8 h-8" />}
+                      {event.category === 'religious' && <Church className="w-8 h-8" />}
+                      {event.category === 'entertainment' && <Music className="w-8 h-8" />}
                     </div>
 
                     {/* Event Details */}
@@ -201,7 +143,7 @@ const Events = () => {
                       <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground mb-3">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {event.date} at {event.time}
+                          {event.dateLabel} at {event.timeLabel}
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
@@ -219,15 +161,23 @@ const Events = () => {
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
-                        <Button 
-                          variant={event.rsvp ? "outline" : "community"} 
-                          size="sm" 
+                        <Button
+                          variant={event.rsvp ? "outline" : "community"}
+                          size="sm"
                           className="flex-1"
+                          onClick={() => {
+                            const next = toggleRsvp(event.id);
+                            setEvents((prev) => prev.map((e) => (e.id === event.id ? { ...e, rsvp: next } : e)));
+                          }}
                         >
                           {event.rsvp ? "Cancel RSVP" : "RSVP"}
                         </Button>
                         {event.price > 0 && (
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/app/events/${event.id}`)}
+                          >
                             <Ticket className="w-4 h-4 mr-2" />
                             Buy Ticket
                           </Button>

@@ -18,6 +18,8 @@ import {
   Filter,
   TrendingUp
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { getCurrentUserId } from "@/lib/devAuth";
 
 const Business = () => {
   const businessCategories = [
@@ -127,6 +129,15 @@ const Business = () => {
       default: return 'text-primary bg-primary/10 border-primary/20';
     }
   };
+
+  const navigate = useNavigate();
+  const selfId = getCurrentUserId();
+
+  function startOrderWith(businessId: number) {
+    // For demo, map business to a static peer id string
+    const peerId = `business-${businessId}`;
+    navigate(`/app/chat/${peerId}?ord=1`);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
@@ -268,7 +279,7 @@ const Business = () => {
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
-                        <Button variant="community" size="sm" className="flex-1">
+                        <Button variant="community" size="sm" className="flex-1" onClick={() => startOrderWith(business.id)}>
                           <ShoppingBag className="w-4 h-4 mr-2" />
                           Order Now
                         </Button>

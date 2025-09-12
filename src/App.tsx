@@ -15,6 +15,7 @@ import Media from "./pages/app/Media";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
 import Search from "./pages/app/Search";
+import ChatThread from "./pages/app/ChatThread";
 import Navigation from "./components/Navigation";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<AppHome />} />
             <Route path="chats" element={<Chats />} />
+            <Route path="chat/:threadId" element={<ChatThread />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="rooms" element={<Rooms />} />
             <Route path="groups" element={<Groups />} />

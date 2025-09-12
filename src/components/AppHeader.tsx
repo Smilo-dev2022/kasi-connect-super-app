@@ -7,9 +7,10 @@ interface AppHeaderProps {
   title: string;
   showNotifications?: boolean;
   showSearch?: boolean;
+  onBack?: () => void;
 }
 
-const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppHeaderProps) => {
+const AppHeader = ({ title, showNotifications = true, showSearch = false, onBack }: AppHeaderProps) => {
   const { i18n } = useTranslation();
 
   const toggleLanguage = () => {
@@ -20,7 +21,7 @@ const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppH
   return (
     <header className="bg-white border-b border-border px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
           <Menu className="w-5 h-5" />
         </Button>
         <h1 className="text-xl font-bold text-foreground">{title}</h1>

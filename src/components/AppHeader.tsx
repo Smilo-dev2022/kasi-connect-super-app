@@ -1,6 +1,8 @@
-import { Bell, Search, Menu } from "lucide-react";
+import React from "react";
+import { Bell, Search, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/AuthProvider";
 
 interface AppHeaderProps {
   title: string;
@@ -9,6 +11,7 @@ interface AppHeaderProps {
 }
 
 const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppHeaderProps) => {
+  const { logout } = useAuth();
   return (
     <header className="bg-white border-b border-border px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -33,6 +36,9 @@ const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppH
             </Badge>
           </Button>
         )}
+        <Button variant="ghost" size="icon" onClick={logout}>
+          <LogOut className="w-5 h-5" />
+        </Button>
       </div>
     </header>
   );

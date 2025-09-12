@@ -10,6 +10,8 @@ import AppHome from "./pages/app/AppHome";
 import Chats from "./pages/app/Chats";
 import Wallet from "./pages/app/Wallet";
 import Rooms from "./pages/app/Rooms";
+import Groups from "./pages/app/Groups";
+import Media from "./pages/app/Media";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
 import Navigation from "./components/Navigation";
@@ -29,6 +31,8 @@ const App = () => (
             <Route path="chats" element={<Chats />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="rooms" element={<Rooms />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="media" element={<Media />} />
             <Route path="events" element={<Events />} />
             <Route path="business" element={<Business />} />
           </Route>

@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AppHeader from "@/components/AppHeader";
+import { EVENTS_BASE } from "@/lib/api";
 import { 
   Calendar, 
   MapPin, 
@@ -34,7 +35,8 @@ const Events = () => {
       category: "community",
       icon: Megaphone,
       verified: true,
-      rsvp: false
+      rsvp: false,
+      slug: "ward-12-meeting"
     },
     {
       id: 2,
@@ -50,7 +52,8 @@ const Events = () => {
       category: "sports",
       icon: Trophy,
       verified: true,
-      rsvp: true
+      rsvp: true,
+      slug: "launch-party"
     },
     {
       id: 3,
@@ -66,7 +69,8 @@ const Events = () => {
       category: "religious",
       icon: Church,
       verified: true,
-      rsvp: false
+      rsvp: false,
+      slug: "sunday-service"
     },
     {
       id: 4,
@@ -82,7 +86,8 @@ const Events = () => {
       category: "entertainment",
       icon: Music,
       verified: true,
-      rsvp: false
+      rsvp: false,
+      slug: "jazz-braai"
     }
   ];
 
@@ -223,6 +228,11 @@ const Events = () => {
                           variant={event.rsvp ? "outline" : "community"} 
                           size="sm" 
                           className="flex-1"
+                          onClick={() => {
+                            if (event.slug) {
+                              window.open(`${EVENTS_BASE}/events/${event.slug}`, '_blank');
+                            }
+                          }}
                         >
                           {event.rsvp ? "Cancel RSVP" : "RSVP"}
                         </Button>

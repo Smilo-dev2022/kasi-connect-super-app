@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const groupsRouter = Router();
 
-const CreateGroupBody = z.object({ name: z.string().optional(), members: z.array(z.string()).default([]) });
+const CreateGroupBody = z.object({ name: z.string().optional(), members: z.array(z.string()).default([]), tags: z.array(z.string()).optional() });
 
 groupsRouter.post('/', (req: Request, res: Response) => {
 	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
@@ -18,6 +18,7 @@ groupsRouter.post('/', (req: Request, res: Response) => {
 		ownerId: req.user.userId,
 		memberIds: new Set([req.user.userId, ...parsed.data.members]),
 		createdAt: Date.now(),
+		tags: parsed.data.tags,
 	};
 	groupIdToGroup.set(groupId, group);
 	res.json({ groupId });

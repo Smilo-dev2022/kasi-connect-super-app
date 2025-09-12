@@ -3,6 +3,8 @@ import { WebSocket } from 'ws';
 export type UserId = string;
 export type GroupId = string;
 
+export type Role = 'owner' | 'admin' | 'member';
+
 export type IdentityRecord = {
 	userId: UserId;
 	identityKey: string; // base64 or hex public key
@@ -22,6 +24,7 @@ export type Group = {
 	name?: string;
 	ownerId: UserId;
 	memberIds: Set<UserId>;
+	roles?: Map<UserId, Role>;
 	createdAt: number;
 	// Safety room metadata (optional)
 	isSafetyRoom?: boolean;
@@ -57,3 +60,18 @@ export type MessageEvent =
 	| { type: 'delete'; id: string; messageId: string; userId: UserId; timestamp: number };
 
 export const eventLog: MessageEvent[] = [];
+
+// Device registration records (push notifications)
+export type DevicePlatform = 'ios' | 'android' | 'web';
+
+export type Device = {
+	id: string;
+	userId: UserId;
+	platform: DevicePlatform;
+	token: string;
+	createdAt: number;
+	lastSeenAt?: number;
+};
+
+export const deviceIdToDevice = new Map<string, Device>();
+export const userIdToDevices = new Map<UserId, Device[]>();

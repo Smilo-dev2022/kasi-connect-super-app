@@ -4,6 +4,7 @@ import url from 'url';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, eventLog } from './state';
+import { pushNotifyUser } from './push';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -147,6 +148,7 @@ function deliver(envelope: CipherMessage) {
 	if (envelope.scope === 'direct') {
 		const recipient = userIdToSocket.get(envelope.to);
 		if (recipient) send(recipient, { type: 'msg', ...envelope });
+		else void pushNotifyUser(String(envelope.to), { title: 'New message', body: 'You have a new message', collapseId: String(envelope.to) });
 		const sender = userIdToSocket.get(envelope.from);
 		if (sender) send(sender, { type: 'msg', ...envelope });
 		return;
@@ -157,6 +159,7 @@ function deliver(envelope: CipherMessage) {
 		for (const memberId of group.memberIds) {
 			const ws = userIdToSocket.get(memberId);
 			if (ws) send(ws, { type: 'msg', ...envelope });
+			else if (memberId !== envelope.from) void pushNotifyUser(memberId, { title: 'New group message', body: `New message in ${group.name || 'a group'}` , collapseId: String(envelope.to)});
 		}
 	}
 }

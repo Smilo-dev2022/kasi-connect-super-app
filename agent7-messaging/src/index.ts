@@ -10,6 +10,8 @@ import { keysRouter } from './keys';
 import { groupsRouter } from './groups';
 import { getMissedMessagesRouter } from './messages_http';
 import { safetyRouter } from './safety';
+import { devicesRouter } from './devices';
+import { searchRouter } from './search';
 
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use('/keys', requireJwt, keysRouter);
 app.use('/groups', requireJwt, groupsRouter);
 app.use('/messages', requireJwt, getMissedMessagesRouter);
 app.use('/safety', requireJwt, safetyRouter);
+app.use('/devices', requireJwt, devicesRouter);
+app.use('/search', requireJwt, searchRouter);
 
 const server = http.createServer(app);
 attachWebSocketServer(server);

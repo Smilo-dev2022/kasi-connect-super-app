@@ -1,15 +1,22 @@
 package com.example.androidcore.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.androidcore.data.AuthRepository
 import com.example.androidcore.data.Chat
 import com.example.androidcore.data.ChatRepository
@@ -72,9 +80,18 @@ fun LoginScreen(authRepository: AuthRepository, onLoggedIn: () -> Unit) {
 }
 
 @Composable
-fun ChatsScreen(chatRepository: ChatRepository, onOpenChat: (String) -> Unit) {
+fun ChatsScreen(chatRepository: ChatRepository, onOpenChat: (String) -> Unit, onCreateGroup: () -> Unit) {
 	val chats by chatRepository.getChats().collectAsState(initial = emptyList())
-	Scaffold(topBar = { TopAppBar(title = { Text("Chats") }) }) { inner ->
+	Scaffold(topBar = {
+		TopAppBar(
+			title = { Text("Chats") },
+			actions = {
+				IconButton(onClick = onCreateGroup) {
+					Icon(imageVector = Icons.Filled.Add, contentDescription = "New group")
+				}
+			}
+		)
+	}) { inner ->
 		LazyColumn(
 			modifier = Modifier
 				.fillMaxSize()
@@ -108,6 +125,15 @@ fun ChatDetailScreen(chatId: String, chatRepository: ChatRepository, onBack: () 
 	val scope = rememberCoroutineScope()
 	val messages by chatRepository.getMessages(chatId).collectAsState(initial = emptyList())
 	val (input, setInput) = remember { mutableStateOf("") }
+	val mediaPicker = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.PickVisualMedia()
+	) { uri ->
+		if (uri != null) {
+			scope.launch {
+				chatRepository.sendMediaMessage(chatId, uri.toString())
+			}
+		}
+	}
 	Scaffold(topBar = { TopAppBar(title = { Text(chatId) }) }) { inner ->
 		Column(
 			modifier = Modifier
@@ -132,6 +158,11 @@ fun ChatDetailScreen(chatId: String, chatRepository: ChatRepository, onBack: () 
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 				verticalAlignment = Alignment.CenterVertically
 			) {
+				IconButton(onClick = {
+					mediaPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+				}) {
+					Icon(imageVector = Icons.Filled.AttachFile, contentDescription = "Attach media")
+				}
 				OutlinedTextField(
 					value = input,
 					onValueChange = setInput,
@@ -171,7 +202,90 @@ fun MessageBubble(message: Message) {
 					)
 					.padding(12.dp)
 			) {
-				Text(text = message.text)
+				if (message.mediaUri != null) {
+					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+						AsyncImage(model = message.mediaUri, contentDescription = "media", modifier = Modifier
+							.fillMaxWidth(0.7f))
+						if (message.text.isNotBlank()) {
+							Text(text = message.text)
+						}
+					}
+				} else {
+					Text(text = message.text)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+fun CreateGroupScreen(
+	chatRepository: ChatRepository,
+	onBack: () -> Unit,
+	onGroupCreated: (String) -> Unit
+) {
+	val scope = rememberCoroutineScope()
+	val contacts = remember { chatRepository.getContacts() }
+	val (groupName, setGroupName) = remember { mutableStateOf("") }
+	val selected = remember { mutableStateListOf<String>() }
+	val canAddMore = selected.size < 256
+
+	Scaffold(topBar = {
+		TopAppBar(
+			title = { Text("New Group") },
+			actions = {
+				Button(onClick = {
+					scope.launch {
+						val chatId = chatRepository.createGroupChat(groupName.trim(), selected.toList())
+						onGroupCreated(chatId)
+					}
+				}, enabled = selected.isNotEmpty()) {
+					Text("Create (${selected.size}/256)")
+				}
+			}
+		)
+	}) { inner ->
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(inner)
+		) {
+			OutlinedTextField(
+				value = groupName,
+				onValueChange = setGroupName,
+				label = { Text("Group name") },
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(16.dp),
+				singleLine = true
+			)
+			LazyColumn(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(16.dp),
+				verticalArrangement = Arrangement.spacedBy(8.dp)
+			) {
+				items(contacts) { name ->
+					val isChecked = name in selected
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.clickable {
+								if (isChecked) {
+									selected.remove(name)
+								} else if (canAddMore) {
+									selected.add(name)
+								}
+							},
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(12.dp)
+					) {
+						Checkbox(checked = isChecked, onCheckedChange = { checked ->
+							if (checked && canAddMore) selected.add(name) else if (!checked) selected.remove(name)
+						})
+						Text(text = name)
+					}
+				}
 			}
 		}
 	}

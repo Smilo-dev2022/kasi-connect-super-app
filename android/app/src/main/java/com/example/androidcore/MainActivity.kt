@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.androidcore.data.AuthRepository
 import com.example.androidcore.data.ChatRepository
 import com.example.androidcore.ui.ChatDetailScreen
+import com.example.androidcore.ui.CreateGroupScreen
 import com.example.androidcore.ui.ChatsScreen
 import com.example.androidcore.ui.LoginScreen
 import com.example.androidcore.ui.SplashScreen
@@ -36,6 +37,7 @@ sealed class Screen(val route: String) {
 	data object ChatDetail : Screen("chat/{chatId}") {
 		fun route(chatId: String) = "chat/$chatId"
 	}
+	data object CreateGroup : Screen("create_group")
 }
 
 @Composable
@@ -75,13 +77,30 @@ fun AppNavHost(navController: NavHostController, authRepository: AuthRepository,
 			})
 		}
 		composable(Screen.Chats.route) {
-			ChatsScreen(chatRepository = chatRepository, onOpenChat = { chatId ->
-				navController.navigate(Screen.ChatDetail.route(chatId))
-			})
+			ChatsScreen(
+				chatRepository = chatRepository,
+				onOpenChat = { chatId ->
+					navController.navigate(Screen.ChatDetail.route(chatId))
+				},
+				onCreateGroup = {
+					navController.navigate(Screen.CreateGroup.route)
+				}
+			)
 		}
 		composable(Screen.ChatDetail.route) {
 			val chatId = it.arguments?.getString("chatId") ?: ""
 			ChatDetailScreen(chatId = chatId, chatRepository = chatRepository, onBack = { navController.popBackStack() })
+		}
+		composable(Screen.CreateGroup.route) {
+			CreateGroupScreen(
+				chatRepository = chatRepository,
+				onBack = { navController.popBackStack() },
+				onGroupCreated = { newChatId ->
+					navController.navigate(Screen.ChatDetail.route(newChatId)) {
+						popUpTo(Screen.Chats.route) { inclusive = false }
+					}
+				}
+			)
 		}
 	}
 }

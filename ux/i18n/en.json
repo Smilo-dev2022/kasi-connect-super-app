@@ -1,0 +1,22 @@
+{
+  "app.name": "Ward Connect",
+  "auth.language.select": "Select Language",
+  "auth.phone.title": "Enter your phone number",
+  "auth.otp.title": "Verify code",
+  "auth.otp.resend": "Resend code",
+  "ward.find.title": "Find your ward",
+  "consent.title": "Consent",
+  "profile.create.title": "Create your profile",
+  "role.resident": "Resident",
+  "role.cpf": "CPF Member",
+  "role.official": "Ward Official",
+  "dashboard.title": "Ward Dashboard",
+  "chat.placeholder": "Type a message",
+  "cta.continue": "Continue",
+  "cta.accept": "Accept & Continue",
+  "cta.allow_location": "Allow Location",
+  "cta.not_now": "Not now",
+  "groups.title": "Groups",
+  "cpf.rooms": "CPF Safety Rooms",
+  "media.attach": "Attach"
+}

@@ -1,0 +1,22 @@
+{
+  "app.name": "Ward Connect",
+  "auth.language.select": "Khetha uLimi",
+  "auth.phone.title": "Faka inombolo yakho yefoni",
+  "auth.otp.title": "Qinisekisa ikhodi",
+  "auth.otp.resend": "Thumela ikhodi futhi",
+  "ward.find.title": "Thola i-ward yakho",
+  "consent.title": "Imvume",
+  "profile.create.title": "Yakha iphrofayili yakho",
+  "role.resident": "Umhlali",
+  "role.cpf": "Ilungu le-CPF",
+  "role.official": "Isikhulu se-Ward",
+  "dashboard.title": "I-Dashboard ye-Ward",
+  "chat.placeholder": "Bhala umyalezo",
+  "cta.continue": "Qhubeka",
+  "cta.accept": "Vuma & Qhubeka",
+  "cta.allow_location": "Vumela Indawo",
+  "cta.not_now": "Hhayi manje",
+  "groups.title": "Amaqembu",
+  "cpf.rooms": "Amakamelo e-CPF",
+  "media.attach": "Namathisela"
+}

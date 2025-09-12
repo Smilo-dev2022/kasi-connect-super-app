@@ -50,3 +50,22 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+
+## Search service (Agent 9)
+
+The app includes a simple web search page at \/app\/search with tabs for Text, Media, and Links.
+
+### Providers
+
+- Primary: SerpAPI (Google \/ Google Images)
+- Fallback: DuckDuckGo redirect links (client-side friendly)
+
+### Environment
+
+To enable SerpAPI, set the following in your environment:
+
+\u0060\u0060\u0060sh
+VITE_SERPAPI_KEY=your_serpapi_key
+\u0060\u0060\u0060
+
+When the key is not set, the search will fall back to DuckDuckGo links. Image searches without SerpAPI show an external link to DDG Images.

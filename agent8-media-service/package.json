@@ -1,0 +1,26 @@
+{
+  "name": "agent8-media-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.887.0",
+    "@aws-sdk/s3-request-presigner": "^3.887.0",
+    "@fastify/cors": "^11.1.0",
+    "@fastify/under-pressure": "^9.0.3",
+    "dotenv": "^17.2.2",
+    "fastify": "^5.6.0",
+    "sharp": "^0.34.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.8.3"
+  }
+}

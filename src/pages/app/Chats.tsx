@@ -11,8 +11,11 @@ import {
   Check,
   CheckCheck,
   Clock,
-  Star
+  Star,
+  Flag
 } from "lucide-react";
+import ReportDialog from "@/components/ReportDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Chats = () => {
   const chatGroups = [
@@ -131,7 +134,7 @@ const Chats = () => {
             const TypeIcon = getTypeIcon(chat.type);
             
             return (
-              <Card key={chat.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <Card key={chat.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
                   <div className="relative">
@@ -163,7 +166,7 @@ const Chats = () => {
                     </div>
                   </div>
 
-                  {/* Time & Status */}
+                  {/* Time, Status & Actions */}
                   <div className="text-right flex flex-col items-end gap-1">
                     <span className="text-xs text-muted-foreground">{chat.time}</span>
                     <div className="flex items-center gap-1">
@@ -175,6 +178,21 @@ const Chats = () => {
                       {chat.id <= 2 && (
                         <CheckCheck className="w-4 h-4 text-community" />
                       )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Flag className="w-4 h-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <div>
+                              <ReportDialog targetId={String(chat.id)} targetType={chat.type === 'personal' ? 'user' : 'room'} trigger={<button className="w-full text-left">Report</button>} />
+                            </div>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>

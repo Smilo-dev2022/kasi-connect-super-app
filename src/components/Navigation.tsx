@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, MessageCircle, Wallet, Users, Calendar, Store } from "lucide-react";
+import { Home, MessageCircle, Wallet, Users, Calendar, Store, ShieldAlert } from "lucide-react";
 
 const Navigation = () => {
   const navItems = [
@@ -8,7 +8,8 @@ const Navigation = () => {
     { icon: Wallet, label: "Wallet", path: "/app/wallet" },
     { icon: Users, label: "Rooms", path: "/app/rooms" },
     { icon: Calendar, label: "Events", path: "/app/events" },
-    { icon: Store, label: "Business", path: "/app/business" }
+    { icon: Store, label: "Business", path: "/app/business" },
+    { icon: ShieldAlert, label: "Moderation", path: "/app/moderation" }
   ];
 
   return (

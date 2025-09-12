@@ -1,0 +1,24 @@
+{
+    auto_https disable_redirects
+}
+
+https://app.localhost {
+    encode gzip
+    reverse_proxy 127.0.0.1:5173
+    tls internal
+}
+
+https://api.localhost {
+    encode gzip
+    reverse_proxy 127.0.0.1:4000
+    header {
+        X-Forwarded-Proto https
+    }
+    tls internal
+}
+
+https://events.localhost {
+    encode gzip
+    reverse_proxy 127.0.0.1:8000
+    tls internal
+}

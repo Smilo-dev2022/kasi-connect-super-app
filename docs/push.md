@@ -74,3 +74,8 @@ Platform mapping:
 
 - Do not put PII in payload body. Keep content minimal.
 - Localize `title` and `body` on the server using user locale if available.
+- Store device tokens encrypted at rest in production. Restrict access by role.
+- Scope service credentials (APNs/FCM) per environment; never reuse prod keys in dev.
+- Validate device ownership on registration (e.g., short-lived attestation or signed nonce).
+- Implement token hygiene: delete on logout, rotate on provider errors, backoff with jitter.
+- Prefer data-only pushes with client-side fetch when feasible to minimize payload exposure.

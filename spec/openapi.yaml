@@ -1,0 +1,548 @@
+openapi: 3.0.3
+info:
+  title: Week 2 API - Groups, Media, Push
+  version: 0.1.0
+  description: Core APIs for group chat, media uploads, search, safety, and push.
+servers:
+  - url: /api
+tags:
+  - name: Groups
+  - name: Members
+  - name: Messages
+  - name: Media
+  - name: Search
+  - name: Safety
+  - name: Push
+security:
+  - bearerAuth: []
+paths:
+  /groups:
+    post:
+      tags: [Groups]
+      summary: Create a group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 120
+                photo_url:
+                  type: string
+                  format: uri
+                is_safety_room:
+                  type: boolean
+      responses:
+        '201':
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /groups/{id}:
+    get:
+      tags: [Groups]
+      summary: Get a group by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Groups]
+      summary: Update group name/photo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, maxLength: 120 }
+                photo_url: { type: string, format: uri }
+      responses:
+        '200':
+          description: Updated group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /groups/{id}/members:
+    post:
+      tags: [Members]
+      summary: Add a member to a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: string }
+      responses:
+        '201':
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMember'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /groups/{id}/members/{userId}:
+    delete:
+      tags: [Members]
+      summary: Remove a member from a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Removed }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /groups/{id}/roles:
+    patch:
+      tags: [Members]
+      summary: Change a member's role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, role]
+              properties:
+                user_id: { type: string }
+                role:
+                  type: string
+                  enum: [owner, admin, member]
+      responses:
+        '200':
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMember'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /groups/{id}/messages:
+    get:
+      tags: [Messages]
+      summary: List messages in a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: before
+          in: query
+          schema: { type: string, description: Cursor or message id }
+        - name: after
+          in: query
+          schema: { type: string, description: Cursor or message id }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        '200':
+          description: Messages page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Message' }
+                  next_cursor: { type: string, nullable: true }
+                  prev_cursor: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Messages]
+      summary: Send a message to a group
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [text, image, video, audio, file, system]
+                text:
+                  type: string
+                media_id:
+                  type: string
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /media/upload-url:
+    post:
+      tags: [Media]
+      summary: Get pre-signed URL to upload media
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, mime, size]
+              properties:
+                kind: { type: string, enum: [image, video, audio, file] }
+                mime: { type: string }
+                size: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Upload info
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [upload_url, media_id]
+                properties:
+                  upload_url: { type: string, format: uri }
+                  media_id: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /media/complete:
+    post:
+      tags: [Media]
+      summary: Confirm upload completion and trigger processing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [media_id]
+              properties:
+                media_id: { type: string }
+      responses:
+        '202': { description: Processing started }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /media/{id}/thumb:
+    get:
+      tags: [Media]
+      summary: Get media thumbnail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: size
+          in: query
+          required: false
+          schema: { type: string, enum: [small, medium, large], default: small }
+      responses:
+        '302': { description: Redirect to thumbnail URL }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /media/{id}/stream.m3u8:
+    get:
+      tags: [Media]
+      summary: HLS playlist for video streaming
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '302': { description: Redirect to HLS manifest }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /search:
+    get:
+      tags: [Search]
+      summary: Search messages or groups
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+        - name: scope
+          in: query
+          required: true
+          schema: { type: string, enum: [messages, groups] }
+        - name: group_id
+          in: query
+          required: false
+          schema: { type: string }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/SearchResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /blocks/{userId}:
+    post:
+      tags: [Safety]
+      summary: Block a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '201':
+          description: Block created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Block' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [Safety]
+      summary: Unblock a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Unblocked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /reports:
+    post:
+      tags: [Safety]
+      summary: Report a message, user, or group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreateRequest'
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Report' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /devices:
+    post:
+      tags: [Push]
+      summary: Register a device for push
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [platform, token]
+              properties:
+                platform: { type: string, enum: [ios, android, web] }
+                token: { type: string }
+      responses:
+        '201':
+          description: Device registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Device' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /devices/{id}:
+    delete:
+      tags: [Push]
+      summary: Unregister a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Unregistered }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Unauthorized
+    Forbidden:
+      description: Forbidden
+    NotFound:
+      description: Not found
+    BadRequest:
+      description: Bad request
+  schemas:
+    Group:
+      type: object
+      required: [id, name, created_by, max_members]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        photo_url: { type: string, format: uri, nullable: true }
+        is_safety_room: { type: boolean, default: false }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        max_members: { type: integer, default: 256 }
+    GroupMember:
+      type: object
+      required: [group_id, user_id, role]
+      properties:
+        group_id: { type: string }
+        user_id: { type: string }
+        role: { type: string, enum: [owner, admin, member] }
+        joined_at: { type: string, format: date-time }
+        left_at: { type: string, format: date-time, nullable: true }
+        is_muted: { type: boolean, default: false }
+    Message:
+      type: object
+      required: [id, group_id, sender_id, type, created_at]
+      properties:
+        id: { type: string }
+        group_id: { type: string }
+        sender_id: { type: string }
+        type: { type: string, enum: [text, image, video, audio, file, system] }
+        text: { type: string, nullable: true }
+        media_id: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        deleted_at: { type: string, format: date-time, nullable: true }
+    Media:
+      type: object
+      required: [id, kind, original_url]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [image, video, audio, file] }
+        original_url: { type: string, format: uri }
+        sizes:
+          type: object
+          additionalProperties: true
+          nullable: true
+        thumb_url: { type: string, format: uri, nullable: true }
+        meta:
+          type: object
+          additionalProperties: true
+          nullable: true
+        status: { type: string, enum: [pending, ready, failed], default: pending }
+        created_at: { type: string, format: date-time }
+    Device:
+      type: object
+      required: [id, user_id, platform, token]
+      properties:
+        id: { type: string }
+        user_id: { type: string }
+        platform: { type: string, enum: [ios, android, web] }
+        token: { type: string }
+        last_seen_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+    Block:
+      type: object
+      required: [blocker_id, blocked_user_id, created_at]
+      properties:
+        blocker_id: { type: string }
+        blocked_user_id: { type: string }
+        created_at: { type: string, format: date-time }
+        reason: { type: string, nullable: true }
+    Report:
+      type: object
+      required: [id, reporter_id, target_type, target_id, reason_code, created_at, status]
+      properties:
+        id: { type: string }
+        reporter_id: { type: string }
+        target_type: { type: string, enum: [message, user, group] }
+        target_id: { type: string }
+        reason_code: { type: string }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        status: { type: string, enum: [open, triaged, closed], default: open }
+    ReportCreateRequest:
+      type: object
+      required: [target_type, target_id, reason_code]
+      properties:
+        target_type: { type: string, enum: [message, user, group] }
+        target_id: { type: string }
+        reason_code: { type: string }
+        notes: { type: string }
+    SearchResult:
+      type: object
+      properties:
+        type: { type: string, enum: [message, group] }
+        score: { type: number }
+        message: { $ref: '#/components/schemas/Message' }
+        group: { $ref: '#/components/schemas/Group' }
+

@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  title: Auth Service
+  version: 0.1.0
+servers:
+  - url: http://localhost:4001
+paths:
+  /.well-known/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /otp/request:
+    post:
+      summary: Request OTP (dev returns code)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: OTP created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  devCode:
+                    type: string
+  /otp/verify:
+    post:
+      summary: Verify OTP and receive JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: JWT issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      phone:
+                        type: string

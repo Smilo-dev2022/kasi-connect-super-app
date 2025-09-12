@@ -1,0 +1,22 @@
+{
+  "app.name": "Ward Connect",
+  "auth.language.select": "Kgetha Puo",
+  "auth.phone.title": "Kenya nomoro ya hao ya founu",
+  "auth.otp.title": "Netefatsa khoutu",
+  "auth.otp.resend": "Romela khoutu hape",
+  "ward.find.title": "Fumana ward ya hao",
+  "consent.title": "Tumello",
+  "profile.create.title": "Hlahisa profaele ya hao",
+  "role.resident": "Mohi",
+  "role.cpf": "Leloko la CPF",
+  "role.official": "Ofisiri ya Ward",
+  "dashboard.title": "Dashboard ya Ward",
+  "chat.placeholder": "Ngola molaetsa",
+  "cta.continue": "Tswella pele",
+  "cta.accept": "Amohela & Tswella",
+  "cta.allow_location": "Dumela Bohlella",
+  "cta.not_now": "Eseng jwale",
+  "groups.title": "Dihlopha",
+  "cpf.rooms": "Dikamore tsa CPF",
+  "media.attach": "Kgokaganya"
+}

@@ -35,3 +35,65 @@ export function formatRelativeTime(date: Date, base: Date = new Date(), locale: 
   const diffDays = Math.round(diffHours / 24);
   return rtf.format(-diffDays, "day");
 }
+
+export const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+export type WsClientOptions = {
+  url: string;
+  userId?: string;
+};
+
+export type OutgoingMessage = {
+  type: 'msg';
+  to: string;
+  scope: 'direct' | 'group';
+  ciphertext: string;
+  contentType?: string;
+  timestamp?: number;
+};
+
+export type IncomingMessage = {
+  type: 'msg';
+  id: string;
+  from: string;
+  to: string;
+  scope: 'direct' | 'group';
+  ciphertext: string;
+  contentType?: string;
+  timestamp: number;
+};
+
+export class SimpleWsClient {
+  private socket: WebSocket | null = null;
+  private options: WsClientOptions;
+  private listeners: Array<(m: IncomingMessage) => void> = [];
+
+  constructor(options: WsClientOptions) {
+    this.options = options;
+  }
+
+  connect() {
+    const u = new URL(this.options.url);
+    if (this.options.userId) {
+      u.searchParams.set('userId', this.options.userId);
+    }
+    this.socket = new WebSocket(u.toString());
+    this.socket.addEventListener('message', (ev) => {
+      try {
+        const data = JSON.parse(String(ev.data));
+        if (data && data.type === 'msg') {
+          this.listeners.forEach((l) => l(data as IncomingMessage));
+        }
+      } catch {}
+    });
+  }
+
+  onMessage(cb: (m: IncomingMessage) => void) {
+    this.listeners.push(cb);
+  }
+
+  send(message: OutgoingMessage) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+    this.socket.send(JSON.stringify(message));
+  }
+}

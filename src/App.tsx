@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
 import AppHome from "./pages/app/AppHome";
 import Chats from "./pages/app/Chats";
+import ChatThread from "./pages/app/ChatThread";
 import Wallet from "./pages/app/Wallet";
 import Rooms from "./pages/app/Rooms";
 import Groups from "./pages/app/Groups";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<AppHome />} />
             <Route path="chats" element={<Chats />} />
+            <Route path="chats/:toId" element={<ChatThread />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="rooms" element={<Rooms />} />
             <Route path="groups" element={<Groups />} />

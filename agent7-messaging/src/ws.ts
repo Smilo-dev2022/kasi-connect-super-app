@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket } from './state';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
+const allowAnon = process.env.ALLOW_ANON_WS === '1';
 
 type ClientInit = { type: 'hello'; userId: string };
 
@@ -25,23 +26,23 @@ export function attachWebSocketServer(server: import('http').Server) {
 	wss.on('connection', (socket: WebSocket, request: IncomingMessage) => {
 		const parsedUrl = url.parse(request.url || '', true);
 		const token = parsedUrl.query.token as string | undefined;
+		const userIdParam = parsedUrl.query.userId as string | undefined;
 		const authHeader = request.headers['authorization'] || request.headers['Authorization'];
 		const bearer = typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
 		const finalToken = bearer || token;
-		if (!finalToken) {
-			socket.close(1008, 'missing token');
-			return;
-		}
 		let userId: UserId | undefined;
-		try {
-			const payload = jwt.verify(finalToken, jwtSecret) as { userId?: string };
-			if (payload.userId) userId = payload.userId;
-		} catch (e) {
-			socket.close(1008, 'invalid token');
-			return;
-		}
-		if (!userId) {
-			socket.close(1008, 'invalid token payload');
+		if (finalToken) {
+			try {
+				const payload = jwt.verify(finalToken, jwtSecret) as { userId?: string };
+				if (payload.userId) userId = payload.userId as UserId;
+			} catch (e) {
+				socket.close(1008, 'invalid token');
+				return;
+			}
+		} else if (allowAnon && userIdParam) {
+			userId = userIdParam as UserId;
+		} else {
+			socket.close(1008, 'missing token');
 			return;
 		}
 

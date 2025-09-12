@@ -1,20 +1,36 @@
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Search, Menu, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface AppHeaderProps {
   title: string;
   showNotifications?: boolean;
   showSearch?: boolean;
+  showBack?: boolean;
+  onBack?: () => void;
 }
 
-const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppHeaderProps) => {
+const AppHeader = ({ title, showNotifications = true, showSearch = false, showBack = false, onBack }: AppHeaderProps) => {
+  const navigate = useNavigate();
+
   return (
     <header className="bg-white border-b border-border px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="w-5 h-5" />
-        </Button>
+        {showBack ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => (onBack ? onBack() : navigate(-1))}
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menu">
+            <Menu className="w-5 h-5" />
+          </Button>
+        )}
         <h1 className="text-xl font-bold text-foreground">{title}</h1>
       </div>
 

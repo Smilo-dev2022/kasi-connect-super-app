@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct ChatThreadView: View {
     @EnvironmentObject private var services: ServiceContainer
@@ -34,6 +35,10 @@ struct ChatThreadView: View {
                 .listStyle(.plain)
             }
             HStack(alignment: .bottom, spacing: 8) {
+                PhotosPicker(selection: $viewModel.selectedItem, matching: .images, photoLibrary: .shared()) {
+                    Image(systemName: "photo.fill.on.rectangle.fill")
+                        .padding(8)
+                }
                 TextField("Message", text: $viewModel.composerText, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                 Button {
@@ -50,6 +55,11 @@ struct ChatThreadView: View {
             .background(.ultraThinMaterial)
         }
         .navigationTitle("Thread")
+        .task(id: viewModel.selectedItem) {
+            if let user = authViewModel.currentUser {
+                await viewModel.handleSelectedPhoto(as: user)
+            }
+        }
     }
 }
 

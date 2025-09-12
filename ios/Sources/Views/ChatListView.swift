@@ -3,6 +3,7 @@ import SwiftUI
 struct ChatListView: View {
     let service: ChatService
     @StateObject private var viewModel: ChatListViewModel
+    @State private var isPresentingNewGroup: Bool = false
 
     init(service: ChatService) {
         self.service = service
@@ -10,29 +11,43 @@ struct ChatListView: View {
     }
 
     var body: some View {
-        List(viewModel.threads) { thread in
-            NavigationLink(value: thread.id) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(thread.title).font(.headline)
-                        if thread.unreadCount > 0 {
-                            Spacer()
-                            Text("\(thread.unreadCount)")
-                                .font(.caption2)
-                                .padding(4)
-                                .background(Color.blue.opacity(0.15))
-                                .clipShape(Capsule())
+        List {
+            Section {
+                Button {
+                    isPresentingNewGroup = true
+                } label: {
+                    Label("New Group", systemImage: "person.3.fill")
+                }
+            }
+            Section {
+                ForEach(viewModel.threads) { thread in
+                    NavigationLink(value: thread.id) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(thread.title).font(.headline)
+                                if thread.unreadCount > 0 {
+                                    Spacer()
+                                    Text("\(thread.unreadCount)")
+                                        .font(.caption2)
+                                        .padding(4)
+                                        .background(Color.blue.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            Text(thread.lastMessagePreview)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    Text(thread.lastMessagePreview)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
                 }
             }
         }
         .navigationTitle("Chats")
         .navigationDestination(for: String.self) { threadId in
             ChatThreadView(service: service, threadId: threadId)
+        }
+        .sheet(isPresented: $isPresentingNewGroup) {
+            GroupSetupView(service: service, isPresented: $isPresentingNewGroup)
         }
     }
 }

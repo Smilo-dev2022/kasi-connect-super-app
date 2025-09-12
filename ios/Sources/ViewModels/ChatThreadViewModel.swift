@@ -1,10 +1,12 @@
 import Foundation
 import Combine
+import PhotosUI
 
 @MainActor
 final class ChatThreadViewModel: ObservableObject {
     @Published private(set) var messages: [ChatMessage] = []
     @Published var composerText: String = ""
+    @Published var selectedItem: PhotosPickerItem?
 
     private let service: ChatService
     private let threadId: String
@@ -25,6 +27,19 @@ final class ChatThreadViewModel: ObservableObject {
         guard !text.isEmpty else { return }
         composerText = ""
         try? await service.sendMessage(threadId: threadId, text: text, from: user)
+    }
+
+    func handleSelectedPhoto(as user: AppUser) async {
+        guard selectedItem != nil else { return }
+        // For Day 1 stub: skip real data extraction and upload placeholder content
+        let placeholderData = Data()
+        do {
+            let url = try await service.uploadMedia(data: placeholderData, fileName: "photo.jpg", mimeType: "image/jpeg")
+            try? await service.sendMessage(threadId: threadId, text: "Shared media: \(url.absoluteString)", from: user)
+        } catch {
+            // Optionally, one could emit a system message or error state
+        }
+        selectedItem = nil
     }
 }
 

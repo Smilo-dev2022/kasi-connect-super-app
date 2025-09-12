@@ -5,6 +5,8 @@ public protocol ChatService {
     func threadsPublisher() -> AnyPublisher<[ChatThread], Never>
     func messagesPublisher(threadId: String) -> AnyPublisher<[ChatMessage], Never>
     func sendMessage(threadId: String, text: String, from user: AppUser) async throws
+    func createGroupThread(title: String, participants: [AppUser]) async throws -> ChatThread
+    func uploadMedia(data: Data, fileName: String, mimeType: String) async throws -> URL
 }
 
 public final class MockChatService: ChatService {
@@ -71,6 +73,38 @@ public final class MockChatService: ChatService {
             }
             threadsSubject.send(threads)
         }
+    }
+
+    public func createGroupThread(title: String, participants: [AppUser]) async throws -> ChatThread {
+        // Enforce up to 256 participants
+        guard participants.count <= 256 else {
+            throw NSError(domain: "MockChatService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Groups support up to 256 participants."])
+        }
+        let newThread = ChatThread(
+            id: "t_\(UUID().uuidString.prefix(8))",
+            title: title.isEmpty ? "New Group" : title,
+            lastMessagePreview: "Group created",
+            lastUpdatedAt: Date(),
+            unreadCount: 0,
+            participants: participants
+        )
+        await MainActor.run {
+            var threads = threadsSubject.value
+            threads.insert(newThread, at: 0)
+            threadsSubject.send(threads)
+            messagesSubjects[newThread.id] = CurrentValueSubject<[ChatMessage], Never>([])
+        }
+        return newThread
+    }
+
+    public func uploadMedia(data: Data, fileName: String, mimeType: String) async throws -> URL {
+        // Simulate upload delay and return a fake URL
+        try await Task.sleep(nanoseconds: 300_000_000)
+        let urlString = "https://example.com/uploads/\(UUID().uuidString)/\(fileName)"
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "MockChatService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to create media URL"])
+        }
+        return url
     }
 }
 

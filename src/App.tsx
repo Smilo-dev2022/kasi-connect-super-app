@@ -13,6 +13,11 @@ import Rooms from "./pages/app/Rooms";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
 import Navigation from "./components/Navigation";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Guidelines from "./pages/Guidelines";
+import ConsentBanner from "./components/ConsentBanner";
+import Security from "./pages/Security";
 
 const queryClient = new QueryClient();
 
@@ -32,9 +37,14 @@ const App = () => (
             <Route path="events" element={<Events />} />
             <Route path="business" element={<Business />} />
           </Route>
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/guidelines" element={<Guidelines />} />
+          <Route path="/security" element={<Security />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ConsentBanner />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

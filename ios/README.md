@@ -1,31 +1,18 @@
-# ChatApp iOS
+# Agent3 iOS
 
-SwiftUI iOS app shell with auth and chat UI, generated via XcodeGen.
-
-## Prerequisites
+Requirements:
 - Xcode 15+
-- XcodeGen installed (brew install xcodegen)
+- iOS 15+
+- XcodeGen (brew install xcodegen)
 
-## Generate Xcode project
-```bash
-cd ios
-xcodegen generate
-open ChatApp.xcodeproj
+Setup:
+1. Generate the project:
 ```
+cd ios && xcodegen generate --spec project.yml
+```
+2. Open `Agent3.xcodeproj` in Xcode and run on a device/simulator.
 
-## Run
-- Select a simulator with iOS 16+
-- Build and run
-
-## Structure
-- Sources/App: App entry and DI container
-- Sources/Models: Core data models
-- Sources/Services: Protocols and mock services (Auth, Chat)
-- Sources/ViewModels: ObservableObject VMs
-- Sources/Views: SwiftUI screens (Login, ChatList, ChatThread, Tabs)
-- Resources/Info.plist: App Info
-
-## Notes
-- Auth uses a mock with basic persistence via UserDefaults
-- OAuth buttons are stubbed and non-networked
-- Chat uses in-memory mock streams via Combine
+Notes:
+- Push notifications are enabled (development). Update `aps-environment` for release builds.
+- OTP is a scaffold; integrate your backend or Firebase as needed.
+- `libsignal` is declared via Swift Package Manager. Adjust version/branch if needed.

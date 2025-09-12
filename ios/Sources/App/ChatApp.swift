@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 final class ServiceContainer: ObservableObject {
     let authService: AuthService
@@ -14,6 +15,7 @@ final class ServiceContainer: ObservableObject {
 
 @main
 struct ChatApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var services: ServiceContainer
     @StateObject private var authViewModel: AuthViewModel
 

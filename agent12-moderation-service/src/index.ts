@@ -5,6 +5,7 @@ import { loadConfig } from "./config";
 import { logger } from "./logger";
 import { reportsRouter } from "./routes/reports";
 import { queueRouter } from "./routes/queue";
+import { docsRouter } from "./openapi";
 
 const app = express();
 const config = loadConfig();
@@ -21,6 +22,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 // API routes
 app.use("/api/reports", reportsRouter);
 app.use("/api/queue", queueRouter);
+app.use("/", docsRouter);
 
 // Health
 app.get("/healthz", (_req: Request, res: Response) => {

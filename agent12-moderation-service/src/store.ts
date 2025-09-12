@@ -1,9 +1,28 @@
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
 import { CreateReportInput, Report, ReviewReportInput } from "./types";
+import { loadConfig } from "./config";
+import { logger } from "./logger";
+
+type PersistedData = {
+  reports: Report[];
+  queueIds: string[];
+};
 
 class InMemoryStore {
   private reportsById: Map<string, Report> = new Map();
   private queueIds: string[] = [];
+  private dataFilePath?: string;
+  private persistTimer?: NodeJS.Timeout;
+
+  constructor() {
+    const config = loadConfig();
+    this.dataFilePath = config.dataFilePath;
+    if (this.dataFilePath) {
+      this.loadFromDiskSafe(this.dataFilePath);
+    }
+  }
 
   createReport(input: CreateReportInput): Report {
     const now = new Date().toISOString();
@@ -24,6 +43,7 @@ class InMemoryStore {
 
     this.reportsById.set(id, report);
     this.queueIds.push(id);
+    this.persistDebounced();
     return report;
   }
 
@@ -58,6 +78,7 @@ class InMemoryStore {
     this.reportsById.set(id, updated);
     // Remove from queue if present
     this.queueIds = this.queueIds.filter((qid) => qid !== id);
+    this.persistDebounced();
     return updated;
   }
 
@@ -86,9 +107,54 @@ class InMemoryStore {
         review: r.review ?? undefined
       };
       this.reportsById.set(id, updated);
+      this.persistDebounced();
       return updated;
     }
     return undefined;
+  }
+
+  private toPersistedData(): PersistedData {
+    return {
+      reports: Array.from(this.reportsById.values()),
+      queueIds: [...this.queueIds]
+    };
+  }
+
+  private loadFromDiskSafe(filePath: string) {
+    try {
+      const resolved = path.resolve(filePath);
+      if (!fs.existsSync(resolved)) return;
+      const raw = fs.readFileSync(resolved, "utf-8");
+      const data = JSON.parse(raw) as PersistedData;
+      this.reportsById.clear();
+      for (const r of data.reports || []) {
+        this.reportsById.set(r.id, r);
+      }
+      this.queueIds = Array.isArray(data.queueIds) ? data.queueIds : [];
+      logger.info({ filePath: resolved, count: this.reportsById.size }, "store_loaded_from_disk");
+    } catch (err) {
+      logger.warn({ err: String(err) }, "store_load_failed");
+    }
+  }
+
+  private persistDebounced() {
+    if (!this.dataFilePath) return;
+    if (this.persistTimer) clearTimeout(this.persistTimer);
+    this.persistTimer = setTimeout(() => this.persistNow(), 250);
+  }
+
+  private persistNow() {
+    if (!this.dataFilePath) return;
+    try {
+      const resolved = path.resolve(this.dataFilePath);
+      const dir = path.dirname(resolved);
+      fs.mkdirSync(dir, { recursive: true });
+      const tmp = `${resolved}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(this.toPersistedData(), null, 2), "utf-8");
+      fs.renameSync(tmp, resolved);
+    } catch (err) {
+      logger.warn({ err: String(err) }, "store_persist_failed");
+    }
   }
 }
 

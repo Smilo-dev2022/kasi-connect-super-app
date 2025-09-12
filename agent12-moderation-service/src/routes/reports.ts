@@ -4,10 +4,12 @@ import { CreateReportSchema, ReviewReportSchema } from "../types";
 import { store } from "../store";
 import { postReportToGroupChat } from "../integrations/groupChat";
 import { loadConfig } from "../config";
+import { adminAuth } from "../middleware/adminAuth";
+import { rateLimitReports } from "../middleware/rateLimit";
 
 export const reportsRouter = express.Router();
 
-reportsRouter.post("/", async (req: Request, res: Response) => {
+reportsRouter.post("/", rateLimitReports, async (req: Request, res: Response) => {
   const parsed = CreateReportSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: "invalid_request", details: parsed.error.issues });
@@ -33,7 +35,7 @@ reportsRouter.get("/:id", (req: Request, res: Response) => {
   return res.json(report);
 });
 
-reportsRouter.post("/:id/review", (req: Request, res: Response) => {
+reportsRouter.post("/:id/review", adminAuth, (req: Request, res: Response) => {
   const parsed = ReviewReportSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: "invalid_request", details: parsed.error.issues });

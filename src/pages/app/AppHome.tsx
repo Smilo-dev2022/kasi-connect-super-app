@@ -20,6 +20,7 @@ const AppHome = () => {
   const quickActions = [
     { icon: MessageCircle, label: "Chats", path: "/app/chats", color: "primary" },
     { icon: Wallet, label: "Wallet", path: "/app/wallet", color: "community" },
+    { icon: Users, label: "Groups", path: "/app/groups", color: "secondary" },
     { icon: Users, label: "Rooms", path: "/app/rooms", color: "secondary" },
     { icon: Shield, label: "Safety", path: "/app/rooms", color: "destructive" },
     { icon: Calendar, label: "Events", path: "/app/events", color: "primary" },

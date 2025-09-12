@@ -14,18 +14,27 @@ import {
   Plus,
   History,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  QrCode,
+  Copy
 } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
+  const [sendOpen, setSendOpen] = useState(false);
+  const [receiveOpen, setReceiveOpen] = useState(false);
+  const [billOpen, setBillOpen] = useState(false);
+  const [airtimeOpen, setAirtimeOpen] = useState(false);
 
   const quickActions = [
-    { icon: Send, label: "Send", color: "primary" },
-    { icon: ArrowDownLeft, label: "Receive", color: "community" },
-    { icon: CreditCard, label: "Pay Bill", color: "secondary" },
-    { icon: Smartphone, label: "Airtime", color: "primary" }
+    { icon: Send, label: "Send", color: "primary", onClick: () => setSendOpen(true) },
+    { icon: ArrowDownLeft, label: "Receive", color: "community", onClick: () => setReceiveOpen(true) },
+    { icon: CreditCard, label: "Pay Bill", color: "secondary", onClick: () => setBillOpen(true) },
+    { icon: Smartphone, label: "Airtime", color: "primary", onClick: () => setAirtimeOpen(true) }
   ];
 
   const stokvels = [
@@ -148,6 +157,7 @@ const Wallet = () => {
                 key={index}
                 variant="outline"
                 className="flex flex-col gap-2 h-auto py-3 bg-white/80 border-white/40 hover:bg-white/90"
+                onClick={action.onClick}
               >
                 <action.icon className="w-5 h-5" />
                 <span className="text-xs">{action.label}</span>
@@ -248,7 +258,101 @@ const Wallet = () => {
         </div>
       </div>
     </div>
+    {/* Send Dialog */}
+    <Dialog open={sendOpen} onOpenChange={setSendOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Send Money</DialogTitle>
+          <DialogDescription>Transfer funds to a contact or number</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Input placeholder="Recipient (phone or @username)" />
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Amount (R)" type="number" inputMode="decimal" />
+            <Input placeholder="Reference (optional)" />
+          </div>
+          <Textarea placeholder="Note (optional)" />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setSendOpen(false)}>Cancel</Button>
+            <Button variant="community" onClick={() => setSendOpen(false)}>Send</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Receive Dialog */}
+    <Dialog open={receiveOpen} onOpenChange={setReceiveOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Receive Money</DialogTitle>
+          <DialogDescription>Show your QR or share your code</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center justify-center">
+            <div className="w-48 h-48 rounded-lg border bg-white flex items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 opacity-20" style={{ backgroundSize: '12px 12px', backgroundImage: 'linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)' }} />
+              <QrCode className="w-16 h-16 text-foreground" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between bg-accent/40 border rounded px-3 py-2">
+            <span className="font-mono text-sm">KASI-123456</span>
+            <Button variant="outline" size="sm" className="gap-2"><Copy className="w-4 h-4" />Copy</Button>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="community" onClick={() => setReceiveOpen(false)}>Done</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Pay Bill Dialog */}
+    <Dialog open={billOpen} onOpenChange={setBillOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Pay a Bill</DialogTitle>
+          <DialogDescription>Enter biller details</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Input placeholder="Biller Name (e.g., City of Joburg)" />
+          <Input placeholder="Account Number" />
+          <div className="grid grid-cols-2 gap-2">
+            <Input placeholder="Reference" />
+            <Input placeholder="Amount (R)" type="number" inputMode="decimal" />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setBillOpen(false)}>Cancel</Button>
+            <Button variant="community" onClick={() => setBillOpen(false)}>Pay</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Airtime Dialog */}
+    <Dialog open={airtimeOpen} onOpenChange={setAirtimeOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Buy Airtime/Data</DialogTitle>
+          <DialogDescription>Top up your number</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Input placeholder="Mobile Number" inputMode="numeric" />
+          <div className="grid grid-cols-3 gap-2">
+            <Button variant="outline">R10</Button>
+            <Button variant="outline">R20</Button>
+            <Button variant="outline">R50</Button>
+          </div>
+          <Input placeholder="Custom Amount (R)" type="number" inputMode="decimal" />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setAirtimeOpen(false)}>Cancel</Button>
+            <Button variant="community" onClick={() => setAirtimeOpen(false)}>Buy</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 export default Wallet;
+
+// Dialogs below
+export const WalletDialogs = () => null;

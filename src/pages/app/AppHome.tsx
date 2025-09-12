@@ -12,7 +12,8 @@ import {
   ArrowRight,
   AlertTriangle,
   Coins,
-  Clock
+  Clock,
+  Image as ImageIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -20,8 +21,8 @@ const AppHome = () => {
   const quickActions = [
     { icon: MessageCircle, label: "Chats", path: "/app/chats", color: "primary" },
     { icon: Wallet, label: "Wallet", path: "/app/wallet", color: "community" },
-    { icon: Users, label: "Rooms", path: "/app/rooms", color: "secondary" },
-    { icon: Shield, label: "Safety", path: "/app/rooms", color: "destructive" },
+    { icon: Users, label: "Groups", path: "/app/groups", color: "secondary" },
+    { icon: ImageIcon, label: "Media", path: "/app/media", color: "primary" },
     { icon: Calendar, label: "Events", path: "/app/events", color: "primary" },
     { icon: Store, label: "Business", path: "/app/business", color: "community" }
   ];

@@ -2,6 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AppHeader from "@/components/AppHeader";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { 
   Send, 
   ArrowDownLeft, 
@@ -20,6 +22,11 @@ import { useState } from "react";
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
+  const cards = [
+    { brand: "KasiLink Debit", last4: "4821", balance: 1250.5, gradient: "from-community via-primary to-secondary" },
+    { brand: "Savings", last4: "9013", balance: 5600, gradient: "from-primary via-secondary to-community" },
+    { brand: "Stokvel Pool", last4: "2745", balance: 22500, gradient: "from-secondary via-primary to-community" }
+  ];
 
   const quickActions = [
     { icon: Send, label: "Send", color: "primary" },
@@ -113,6 +120,32 @@ const Wallet = () => {
       <AppHeader title="Wallet" />
       
       <div className="p-4 space-y-6">
+        {/* Cards Carousel */}
+        <Carousel className="w-full">
+          <CarouselContent>
+            {cards.map((card, idx) => (
+              <CarouselItem key={idx} className="md:basis-2/3 lg:basis-1/2">
+                <Card className={`p-5 bg-gradient-to-br ${card.gradient} text-white border-white/20 shadow-xl`}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-xs opacity-70">Current Balance</div>
+                      <div className="text-2xl font-bold">
+                        {showBalance ? `R${card.balance.toLocaleString()}` : "R****.**"}
+                      </div>
+                    </div>
+                    <CreditCard className="w-8 h-8 opacity-80" />
+                  </div>
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm">{card.brand}</div>
+                    <div className="text-sm tracking-widest">•••• {card.last4}</div>
+                  </div>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
         {/* Balance Card */}
         <Card className="p-6 bg-gradient-to-r from-community/20 via-primary/10 to-secondary/20 border-community/30">
           <div className="flex items-center justify-between mb-4">
@@ -156,96 +189,170 @@ const Wallet = () => {
           </div>
         </Card>
 
-        {/* Stokvels Section */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">My Stokvels</h3>
-            <Button variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Join Group
-            </Button>
-          </div>
-          
-          <div className="space-y-3">
-            {stokvels.map((stokvel, index) => (
-              <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-foreground">{stokvel.name}</h4>
-                    <p className="text-sm text-muted-foreground">{stokvel.members} members</p>
-                  </div>
-                  <Badge className={getStatusColor(stokvel.status)}>
-                    {stokvel.status}
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-lg font-bold text-community">
-                      R{stokvel.balance.toLocaleString()}
+        {/* Segmented Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="stokvels">Stokvels</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Stokvels Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">My Stokvels</h3>
+                <Button variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Join Group
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {stokvels.map((stokvel, index) => (
+                  <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold text-foreground">{stokvel.name}</h4>
+                        <p className="text-sm text-muted-foreground">{stokvel.members} members</p>
+                      </div>
+                      <Badge className={getStatusColor(stokvel.status)}>
+                        {stokvel.status}
+                      </Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground">Group Balance</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-primary">R{stokvel.contribution}</div>
-                    <div className="text-xs text-muted-foreground">My Contribution</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-secondary">{stokvel.nextPayout}</div>
-                    <div className="text-xs text-muted-foreground">Next Payout</div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Transaction History */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Recent Transactions</h3>
-            <Button variant="ghost" size="sm">
-              <History className="w-4 h-4 mr-2" />
-              View All
-            </Button>
-          </div>
-          
-          <div className="space-y-2">
-            {transactions.map((transaction, index) => {
-              const TransactionIcon = getTransactionIcon(transaction.type);
-              const isReceived = transaction.type === 'received';
-              
-              return (
-                <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isReceived ? 'bg-community/20 text-community' : 'bg-primary/20 text-primary'
-                    }`}>
-                      <TransactionIcon className="w-5 h-5" />
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-community">
+                          R{stokvel.balance.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Group Balance</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-primary">R{stokvel.contribution}</div>
+                        <div className="text-xs text-muted-foreground">My Contribution</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-secondary">{stokvel.nextPayout}</div>
+                        <div className="text-xs text-muted-foreground">Next Payout</div>
+                      </div>
                     </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-semibold text-foreground">
-                          {isReceived ? transaction.from : transaction.to}
-                        </h4>
-                        <span className={`font-bold ${
-                          isReceived ? 'text-community' : 'text-foreground'
+                  </Card>
+                ))}
+              </div>
+            </div>
+            {/* Transaction History */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Recent Transactions</h3>
+                <Button variant="ghost" size="sm">
+                  <History className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {transactions.map((transaction, index) => {
+                  const TransactionIcon = getTransactionIcon(transaction.type);
+                  const isReceived = transaction.type === 'received';
+                  return (
+                    <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          isReceived ? 'bg-community/20 text-community' : 'bg-primary/20 text-primary'
                         }`}>
-                          {isReceived ? '+' : '-'}R{transaction.amount}
-                        </span>
+                          <TransactionIcon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-semibold text-foreground">
+                              {isReceived ? transaction.from : transaction.to}
+                            </h4>
+                            <span className={`font-bold ${
+                              isReceived ? 'text-community' : 'text-foreground'
+                            }`}>
+                              {isReceived ? '+' : '-'}R{transaction.amount}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">{transaction.description}</p>
+                            <span className="text-xs text-muted-foreground">{transaction.time}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">{transaction.description}</p>
-                        <span className="text-xs text-muted-foreground">{transaction.time}</span>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          </TabsContent>
+          <TabsContent value="stokvels">
+            {/* Stokvels only */}
+            <div className="space-y-3">
+              {stokvels.map((stokvel, index) => (
+                <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h4 className="font-semibold text-foreground">{stokvel.name}</h4>
+                      <p className="text-sm text-muted-foreground">{stokvel.members} members</p>
+                    </div>
+                    <Badge className={getStatusColor(stokvel.status)}>
+                      {stokvel.status}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-lg font-bold text-community">
+                        R{stokvel.balance.toLocaleString()}
                       </div>
+                      <div className="text-xs text-muted-foreground">Group Balance</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-primary">R{stokvel.contribution}</div>
+                      <div className="text-xs text-muted-foreground">My Contribution</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-secondary">{stokvel.nextPayout}</div>
+                      <div className="text-xs text-muted-foreground">Next Payout</div>
                     </div>
                   </div>
                 </Card>
-              );
-            })}
-          </div>
-        </div>
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="history">
+            {/* Transactions only */}
+            <div className="space-y-2">
+              {transactions.map((transaction, index) => {
+                const TransactionIcon = getTransactionIcon(transaction.type);
+                const isReceived = transaction.type === 'received';
+                return (
+                  <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        isReceived ? 'bg-community/20 text-community' : 'bg-primary/20 text-primary'
+                      }`}>
+                        <TransactionIcon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-semibold text-foreground">
+                            {isReceived ? transaction.from : transaction.to}
+                          </h4>
+                          <span className={`font-bold ${
+                            isReceived ? 'text-community' : 'text-foreground'
+                          }`}>
+                            {isReceived ? '+' : '-'}R{transaction.amount}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">{transaction.description}</p>
+                          <span className="text-xs text-muted-foreground">{transaction.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

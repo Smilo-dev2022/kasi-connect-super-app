@@ -18,6 +18,7 @@ import {
   Filter,
   TrendingUp
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Business = () => {
   const businessCategories = [
@@ -126,6 +127,22 @@ const Business = () => {
       case 'destructive': return 'text-destructive bg-destructive/10 border-destructive/20';
       default: return 'text-primary bg-primary/10 border-primary/20';
     }
+  };
+
+  const navigate = useNavigate();
+
+  const startOrder = (businessId: number, businessName: string) => {
+    const to = `biz-${businessId}`;
+    const offer = {
+      kind: 'order_offer',
+      title: `New order for ${businessName}`,
+      items: [
+        { name: 'Custom item', qty: 1, price: 50 },
+      ],
+      currency: 'ZAR',
+    };
+    const payload = encodeURIComponent(JSON.stringify(offer));
+    navigate(`/app/chats/${to}?prefill=${payload}`);
   };
 
   return (
@@ -268,7 +285,7 @@ const Business = () => {
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
-                        <Button variant="community" size="sm" className="flex-1">
+                        <Button variant="community" size="sm" className="flex-1" onClick={() => startOrder(business.id, business.name)}>
                           <ShoppingBag className="w-4 h-4 mr-2" />
                           Order Now
                         </Button>

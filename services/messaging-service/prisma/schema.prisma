@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DeviceKey {
+  deviceId               String   @id
+  userId                 String
+  identityKeyPublic      String
+  signedPreKeyPublic     String
+  signedPreKeySignature  String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  oneTimePreKeys         OneTimePreKey[]
+
+  @@index([userId])
+}
+
+model OneTimePreKey {
+  id         String    @id @default(cuid())
+  deviceId   String
+  device     DeviceKey @relation(fields: [deviceId], references: [deviceId], onDelete: Cascade)
+  key        String
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([deviceId, key])
+  @@index([deviceId, consumedAt])
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  toUserId      String
+  toDeviceId    String
+  fromUserId    String
+  fromDeviceId  String
+  ciphertext    String
+  createdAt     DateTime @default(now())
+
+  @@index([toUserId, toDeviceId, createdAt])
+}

@@ -17,8 +17,22 @@ import {
   Heart,
   Bell
 } from "lucide-react";
+import { useEffect, useState } from 'react';
+
+type ApiEvent = { id: number; slug: string; title: string; description: string; location: string; start_at: string; end_at?: string | null; capacity?: number | null; is_published: boolean };
 
 const Events = () => {
+  const [apiEvents, setApiEvents] = useState<ApiEvent[]>([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch((import.meta as any)?.env?.VITE_EVENTS_API || 'http://localhost:8081/api/events');
+        const json = await res.json();
+        if (json?.ok && Array.isArray(json.events)) setApiEvents(json.events);
+      } catch {}
+    })();
+  }, []);
+
   const upcomingEvents = [
     {
       id: 1,
@@ -239,6 +253,24 @@ const Events = () => {
               );
             })}
           </div>
+          {!!apiEvents.length && (
+            <>
+              <h3 className="text-lg font-semibold text-foreground my-4">From Events Service</h3>
+              <div className="space-y-4">
+                {apiEvents.map((e) => (
+                  <Card key={e.id} className="p-4 bg-card/80 backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-foreground">{e.title}</div>
+                        <div className="text-sm text-muted-foreground line-clamp-2">{e.description}</div>
+                      </div>
+                      <Button size="sm" variant="community">RSVP</Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Community Calendar CTA */}

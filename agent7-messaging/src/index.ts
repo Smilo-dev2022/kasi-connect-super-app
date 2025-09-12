@@ -8,8 +8,10 @@ import { attachWebSocketServer } from './ws';
 import { authRouter, requireJwt } from './auth';
 import { keysRouter } from './keys';
 import { groupsRouter } from './groups';
-import { getMissedMessagesRouter } from './messages_http';
+import { getMissedMessagesRouter, receiptsRouter } from './messages_http';
 import { safetyRouter } from './safety';
+import { mediaRouter } from './media_http';
+import { devicesRouter } from './push_devices';
 
 dotenv.config();
 
@@ -26,7 +28,10 @@ app.use('/auth', authRouter);
 app.use('/keys', requireJwt, keysRouter);
 app.use('/groups', requireJwt, groupsRouter);
 app.use('/messages', requireJwt, getMissedMessagesRouter);
+app.use('/receipts', requireJwt, receiptsRouter);
 app.use('/safety', requireJwt, safetyRouter);
+app.use('/media', requireJwt, mediaRouter);
+app.use('/devices', requireJwt, devicesRouter);
 
 const server = http.createServer(app);
 attachWebSocketServer(server);

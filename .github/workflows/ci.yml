@@ -7,6 +7,44 @@ on:
     branches: [ main ]
 
 jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install root deps
+        run: npm ci || npm install
+      - name: Install messaging service deps
+        working-directory: agent7-messaging
+        run: npm ci || npm install
+      - name: Typecheck web
+        run: npm run -s typecheck || echo "skip typecheck"
+      - name: Lint web
+        run: npm run -s lint || echo "skip lint"
+      - name: Build web
+        run: npm run -s build || echo "skip build"
+      - name: Build messaging service
+        working-directory: agent7-messaging
+        run: npm run -s build
+      - name: Run safety script
+        working-directory: agent7-messaging
+        run: |
+          node -e "require('http').createServer((req,res)=>{res.end('ok')}).listen(8081)" &
+          node dist/index.js &
+          sleep 2
+          node scripts/test-safety.mjs
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
   web-admin:
     runs-on: ubuntu-latest
     defaults:

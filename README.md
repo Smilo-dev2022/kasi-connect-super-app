@@ -69,3 +69,20 @@ VITE_SERPAPI_KEY=your_serpapi_key
 \u0060\u0060\u0060
 
 When the key is not set, the search will fall back to DuckDuckGo links. Image searches without SerpAPI show an external link to DDG Images.
+
+## Messaging and Push
+
+- Messaging backend runs from `agent7-messaging` on port :8080. Endpoints include `/auth`, `/keys`, `/groups`, `/messages`, `/receipts`, `/safety`, `/media`, `/devices`.
+- WebSocket endpoint: `/ws` with `?token=JWT`.
+- Client helpers:
+  - `src/lib/messagingClient.ts`: realtime send/receive, typing and receipts helpers.
+  - `src/lib/push.ts`: register/unregister device tokens to `/devices`.
+
+## Events service
+
+- Separate FastAPI service in `events_service` exposes `/api/events` and more. The mobile Events page fetches from `VITE_EVENTS_API` or defaults to `http://localhost:8081/api/events`.
+
+## TLS & Key Transparency
+
+- See `infra/README.md` for a Caddyfile to terminate TLS and proxy services.
+- Key registry endpoints are live (`/keys/*`). KT roadmap is documented in `infra/README.md`.

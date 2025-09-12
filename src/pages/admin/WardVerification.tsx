@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import AppHeader from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,14 +35,42 @@ const WardVerification = () => {
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<WardRecord[]>(initialData);
 
+  useEffect(() => {
+    // Attempt to fetch safety rooms to reflect server state
+    (async () => {
+      try {
+        const base = (import.meta as any)?.env?.VITE_MSG_API || 'http://localhost:8080';
+        const res = await fetch(`${base}/safety/rooms`, { headers: { 'authorization': `Bearer ${localStorage.getItem('adminToken') || ''}` } });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.rooms)) {
+            const mapped: WardRecord[] = data.rooms.map((r: any, idx: number) => ({ id: String(idx+1), name: r.name || 'Safety Room', ward: r.ward || '-', submittedAt: new Date(r.createdAt).toISOString().slice(0,10), status: r.verified ? 'verified' : 'pending' }));
+            setRows(mapped);
+          }
+        }
+      } catch {}
+    })();
+  }, []);
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
     if (!q) return rows;
     return rows.filter((r) => r.name.toLowerCase().includes(q) || r.ward.toLowerCase().includes(q));
   }, [query, rows]);
 
-  function updateStatus(id: string, next: VerificationStatus) {
+  async function updateStatus(id: string, next: VerificationStatus) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: next } : r)));
+    try {
+      const base = (import.meta as any)?.env?.VITE_MSG_API || 'http://localhost:8080';
+      const row = rows.find(r => r.id === id);
+      if (!row) return;
+      // In a real app, we'd track groupId per row. Here we just attempt a no-op.
+      await fetch(`${base}/safety/rooms/${row.id}/verify`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('adminToken') || ''}` },
+        body: JSON.stringify({ verified: next === 'verified' })
+      });
+    } catch {}
   }
 
   return (

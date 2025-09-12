@@ -22,6 +22,7 @@ export type Group = {
 	name?: string;
 	ownerId: UserId;
 	memberIds: Set<UserId>;
+	roles?: Map<UserId, 'owner' | 'admin' | 'member'>;
 	createdAt: number;
 	// Safety room metadata (optional)
 	isSafetyRoom?: boolean;
@@ -57,3 +58,29 @@ export type MessageEvent =
 	| { type: 'delete'; id: string; messageId: string; userId: UserId; timestamp: number };
 
 export const eventLog: MessageEvent[] = [];
+
+// Presence and typing state
+export const userPresence = new Map<UserId, { status: 'online' | 'away' | 'offline'; updatedAt: number }>();
+export const typingState = new Map<string, { userId: UserId; to: UserId | GroupId; scope: 'direct' | 'group'; isTyping: boolean; updatedAt: number }>();
+
+// Delivery and read receipts
+export const deliveredByMessageId = new Map<string, Set<UserId>>();
+export const readByMessageId = new Map<string, Set<UserId>>();
+
+// Devices registry (push)
+export type DeviceRecord = { id: string; userId: UserId; platform: 'ios' | 'android' | 'web'; token: string; lastSeenAt?: number; createdAt: number };
+export const deviceIdToDevice = new Map<string, DeviceRecord>();
+export const userIdToDevices = new Map<UserId, Set<string>>();
+
+// Media registry (very simple local store)
+export type MediaRecordMeta = {
+	id: string;
+	kind: 'image' | 'video' | 'audio' | 'file';
+	mime?: string;
+	size?: number;
+	originalPath?: string;
+	thumbPath?: string;
+	status: 'pending' | 'ready' | 'failed';
+	createdAt: number;
+};
+export const mediaIdToMeta = new Map<string, MediaRecordMeta>();

@@ -14,6 +14,7 @@ import Groups from "./pages/app/Groups";
 import Media from "./pages/app/Media";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
+import Search from "./pages/app/Search";
 import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="media" element={<Media />} />
             <Route path="events" element={<Events />} />
             <Route path="business" element={<Business />} />
+            <Route path="search" element={<Search />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

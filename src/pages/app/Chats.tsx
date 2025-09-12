@@ -13,6 +13,7 @@ import {
   Clock,
   Star
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Chats = () => {
   const chatGroups = [
@@ -101,6 +102,8 @@ const Chats = () => {
     }
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title="Chats" showSearch={true} />
@@ -131,7 +134,7 @@ const Chats = () => {
             const TypeIcon = getTypeIcon(chat.type);
             
             return (
-              <Card key={chat.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <Card key={chat.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/app/chats/${chat.id}`)}>
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
                   <div className="relative">

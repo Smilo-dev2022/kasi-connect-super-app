@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Events Service</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 2rem; }
+      input, button { padding: 0.5rem; margin: 0.25rem; }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+      .card { border: 1px solid #ddd; padding: 1rem; border-radius: 8px; margin: 0.5rem 0; }
+      .muted { color: #666; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Events</h1>
+    <div class="row">
+      <input id="title" placeholder="Title" />
+      <input id="startsAt" placeholder="Starts ISO (e.g., 2025-09-12T10:00:00Z)" />
+      <input id="endsAt" placeholder="Ends ISO (optional)" />
+      <input id="location" placeholder="Location (optional)" />
+      <input id="reminder" type="number" placeholder="Reminder minutes (default 60)" />
+      <button id="create">Create</button>
+    </div>
+    <div id="list"></div>
+
+    <script>
+      async function fetchEvents() {
+        const res = await fetch('/api/events');
+        const events = await res.json();
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+        events.forEach(ev => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `<div><strong>${ev.title}</strong></div>
+            <div class="muted">${ev.startsAt}${ev.endsAt ? ' → ' + ev.endsAt : ''}</div>
+            <div class="muted">Reminder: ${ev.reminderMinutesBefore ?? 60} min before</div>`;
+          list.appendChild(div);
+        });
+      }
+
+      async function createEvent() {
+        const title = document.getElementById('title').value.trim();
+        const startsAt = document.getElementById('startsAt').value.trim();
+        const endsAt = document.getElementById('endsAt').value.trim();
+        const location = document.getElementById('location').value.trim();
+        const reminder = document.getElementById('reminder').value.trim();
+        const body = { title, startsAt };
+        if (endsAt) body.endsAt = endsAt;
+        if (location) body.location = location;
+        if (reminder) body.reminderMinutesBefore = Number(reminder);
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert('Failed: ' + (err.error || res.status));
+        }
+        await fetchEvents();
+      }
+
+      document.getElementById('create').addEventListener('click', createEvent);
+      fetchEvents();
+    </script>
+  </body>
+</html>

@@ -9,3 +9,16 @@ export const config = {
     apiKey: process.env.TYPESENSE_API_KEY ?? 'xyz'
   }
 } as const
+
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.TYPESENSE_API_KEY || process.env.TYPESENSE_API_KEY === 'xyz') {
+    // eslint-disable-next-line no-console
+    console.error('TYPESENSE_API_KEY must be set in production');
+    process.exit(1);
+  }
+  if (config.typesense.protocol !== 'https') {
+    // eslint-disable-next-line no-console
+    console.error('Typesense protocol must be https in production');
+    process.exit(1);
+  }
+}

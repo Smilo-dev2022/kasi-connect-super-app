@@ -22,3 +22,17 @@ export const config = {
   },
 } as const;
 
+// Guardrails for production configuration
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.S3_ACCESS_KEY_ID || !process.env.S3_SECRET_ACCESS_KEY) {
+    // eslint-disable-next-line no-console
+    console.error('S3 credentials must be set in production');
+    process.exit(1);
+  }
+  if (config.corsOrigin === '*') {
+    // eslint-disable-next-line no-console
+    console.error('CORS_ORIGIN must be restricted in production');
+    process.exit(1);
+  }
+}
+

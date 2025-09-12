@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import fastifyHelmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import rateLimit from '@fastify/rate-limit';
 import fastifyJwt from '@fastify/jwt';
@@ -12,6 +13,7 @@ server.register(rateLimit, {
   max: 100,
   timeWindow: '1 minute'
 });
+server.register(fastifyHelmet);
 
 // Env
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
@@ -219,6 +221,17 @@ server.get('/ws', { websocket: true }, (connection /*, req */) => {
 async function start() {
   const port = Number(process.env.PORT || 4000);
   const host = process.env.HOST || '0.0.0.0';
+  // Guardrails for production secrets
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.JWT_SECRET || JWT_SECRET === 'dev-secret-change-me') {
+      server.log.error('JWT_SECRET must be set in production');
+      process.exit(1);
+    }
+    if (!process.env.OTP_PEPPER || process.env.OTP_PEPPER === 'dev-otp-pepper-change-me') {
+      server.log.error('OTP_PEPPER must be set in production');
+      process.exit(1);
+    }
+  }
   try {
     await server.listen({ port, host });
   } catch (err) {

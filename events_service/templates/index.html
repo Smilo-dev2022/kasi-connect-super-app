@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Upcoming events</h2>
+<ul class="card-list">
+  {% for e in events %}
+  <li class="card">
+    <h3><a href="/events/{{ e.slug }}">{{ e.title }}</a></h3>
+    {% if e.location %}<p class="muted">{{ e.location }}</p>{% endif %}
+    <p><a class="btn" href="/events/{{ e.slug }}">View details</a></p>
+  </li>
+  {% else %}
+  <li>No events yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{{ title if title else "Events" }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css"/>
+  </head>
+  <body>
+    <header class="container">
+      <h1><a href="/">Events</a></h1>
+    </header>
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="container">
+      <p>Agent 11 – Events Service</p>
+    </footer>
+  </body>
+</html>

@@ -1,43 +1,45 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, CreditCard, Shield, ShoppingBag, Calendar, TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Features = () => {
+  const { t } = useTranslation("common");
   const features = [
     {
       icon: MessageSquare,
-      title: "Safe Community Chat",
-      description: "Verified neighborhood groups with safety alerts and community updates. Connect with your neighbors in a trusted space.",
+      title: t("features.list.safeChatTitle"),
+      description: t("features.list.safeChatDesc"),
       color: "primary"
     },
     {
       icon: CreditCard,
-      title: "Stokvel Management",
-      description: "Digital stokvels made simple. Track contributions, manage payouts, and grow your savings together with transparency.",
+      title: t("features.list.stokvelTitle"),
+      description: t("features.list.stokvelDesc"),
       color: "community"
     },
     {
       icon: ShoppingBag,
-      title: "Local Business Hub",
-      description: "Order from spaza shops, support local vendors, and discover township entrepreneurs right in your area.",
+      title: t("features.list.businessTitle"),
+      description: t("features.list.businessDesc"),
       color: "secondary"
     },
     {
       icon: Shield,
-      title: "Community Safety",
-      description: "Real-time safety alerts, emergency contacts, and neighborhood watch coordination to keep everyone protected.",
+      title: t("features.list.safetyTitle"),
+      description: t("features.list.safetyDesc"),
       color: "primary"
     },
     {
       icon: Calendar,
-      title: "Event Coordination",
-      description: "Organize community events, church gatherings, and celebrations. Never miss what's happening in your kasi.",
+      title: t("features.list.eventsTitle"),
+      description: t("features.list.eventsDesc"),
       color: "community"
     },
     {
       icon: TrendingUp,
-      title: "Financial Growth",
-      description: "Savings circles, investment groups, and financial literacy resources to build wealth together as a community.",
+      title: t("features.list.growthTitle"),
+      description: t("features.list.growthDesc"),
       color: "secondary"
     }
   ];
@@ -60,11 +62,10 @@ const Features = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Everything Your Community Needs
+            {t("features.heading")}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            KasiLink brings together all the tools townships need to thrive - from daily conversations 
-            to financial empowerment, all in one secure platform.
+            {t("features.subheading")}
           </p>
         </div>
 
@@ -83,18 +84,17 @@ const Features = () => {
         <div className="text-center">
           <div className="bg-gradient-to-r from-primary/10 via-community/10 to-secondary/10 rounded-3xl p-12 border-2 border-primary/20">
             <h3 className="text-3xl font-bold text-foreground mb-4">
-              Ready to Transform Your Community?
+              {t("features.ctaHeading")}
             </h3>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of South Africans already using KasiLink to build stronger, 
-              more connected communities across the country.
+              {t("features.ctaSub")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" className="text-lg px-8 py-6">
-                Get Early Access
+                {t("features.ctaPrimary")}
               </Button>
               <Button variant="community" size="lg" className="text-lg px-8 py-6">
-                Start Your Community
+                {t("features.ctaSecondary")}
               </Button>
             </div>
           </div>

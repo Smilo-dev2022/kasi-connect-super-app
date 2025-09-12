@@ -15,15 +15,18 @@ import {
   Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import TownshipSelector from "@/components/TownshipSelector";
 
 const AppHome = () => {
+  const { t } = useTranslation("common");
   const quickActions = [
-    { icon: MessageCircle, label: "Chats", path: "/app/chats", color: "primary" },
-    { icon: Wallet, label: "Wallet", path: "/app/wallet", color: "community" },
-    { icon: Users, label: "Rooms", path: "/app/rooms", color: "secondary" },
-    { icon: Shield, label: "Safety", path: "/app/rooms", color: "destructive" },
-    { icon: Calendar, label: "Events", path: "/app/events", color: "primary" },
-    { icon: Store, label: "Business", path: "/app/business", color: "community" }
+    { icon: MessageCircle, label: t("nav.chats"), path: "/app/chats", color: "primary" },
+    { icon: Wallet, label: t("nav.wallet"), path: "/app/wallet", color: "community" },
+    { icon: Users, label: t("nav.rooms"), path: "/app/rooms", color: "secondary" },
+    { icon: Shield, label: t("app.quick.safety"), path: "/app/rooms", color: "destructive" },
+    { icon: Calendar, label: t("nav.events"), path: "/app/events", color: "primary" },
+    { icon: Store, label: t("nav.business"), path: "/app/business", color: "community" }
   ];
 
   const notifications = [
@@ -65,22 +68,25 @@ const AppHome = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="KasiLink" />
+      <AppHeader title={t("appName")} />
       
       <div className="p-4 space-y-6">
+        <div className="flex justify-end">
+          <TownshipSelector />
+        </div>
         {/* Welcome Section */}
         <Card className="p-6 bg-gradient-to-r from-primary/10 via-community/10 to-secondary/10 border-primary/20">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Sawubona, Thabo! 👋
+                {t("app.welcome", { name: "Thabo" })}
               </h2>
               <p className="text-muted-foreground">
-                Your community is active today
+                {t("app.yourCommunityActive")}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">Balance</div>
+              <div className="text-sm text-muted-foreground">{t("app.balance")}</div>
               <div className="text-2xl font-bold text-community">R1,250</div>
             </div>
           </div>
@@ -88,7 +94,7 @@ const AppHome = () => {
 
         {/* Quick Actions */}
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t("app.quickActions")}</h3>
           <div className="grid grid-cols-3 gap-3">
             {quickActions.map((action, index) => (
               <Link key={index} to={action.path}>
@@ -106,9 +112,9 @@ const AppHome = () => {
         {/* Notifications */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Recent Updates</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("app.recentUpdates")}</h3>
             <Button variant="ghost" size="sm">
-              View All <ArrowRight className="w-4 h-4 ml-1" />
+              {t("actions.viewAll")} <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
           <div className="space-y-3">
@@ -136,19 +142,19 @@ const AppHome = () => {
 
         {/* Community Stats */}
         <Card className="p-6 bg-gradient-to-r from-community/10 to-primary/10 border-community/20">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Your Community</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t("app.yourCommunity")}</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-community">12</div>
-              <div className="text-xs text-muted-foreground">Active Groups</div>
+              <div className="text-xs text-muted-foreground">{t("app.activeGroups")}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-primary">5</div>
-              <div className="text-xs text-muted-foreground">Stokvels</div>
+              <div className="text-xs text-muted-foreground">{t("app.stokvels")}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-secondary">8</div>
-              <div className="text-xs text-muted-foreground">Local Shops</div>
+              <div className="text-xs text-muted-foreground">{t("app.localShops")}</div>
             </div>
           </div>
         </Card>

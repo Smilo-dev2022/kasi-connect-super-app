@@ -18,8 +18,10 @@ import {
   Filter,
   TrendingUp
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Business = () => {
+  const { t } = useTranslation("common");
   const businessCategories = [
     { name: "All", count: 45, active: true },
     { name: "Spaza Shops", count: 12, active: false },
@@ -130,7 +132,7 @@ const Business = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="Local Business" />
+      <AppHeader title={t("business.title")} />
       
       <div className="p-4 space-y-6">
         {/* Search and Filters */}
@@ -139,7 +141,7 @@ const Business = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <input
               type="text"
-              placeholder="Search businesses..."
+              placeholder={t("business.searchPlaceholder")}
               className="w-full pl-10 pr-4 py-3 rounded-lg border border-input bg-background text-foreground"
             />
           </div>
@@ -151,7 +153,7 @@ const Business = () => {
         {/* Add Business Button */}
         <Button variant="hero" className="w-full justify-center gap-2 py-6">
           <Plus className="w-5 h-5" />
-          Register Your Business
+          {t("actions.registerBusiness")}
         </Button>
 
         {/* Categories */}
@@ -171,19 +173,19 @@ const Business = () => {
         <Card className="p-6 bg-gradient-to-r from-community/10 via-primary/10 to-secondary/10 border-community/20">
           <div className="text-center">
             <Store className="w-12 h-12 text-community mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-4">Supporting Local Economy</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">{t("business.supportingLocalEconomy")}</h3>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-community">45</div>
-                <div className="text-xs text-muted-foreground">Local Businesses</div>
+                <div className="text-xs text-muted-foreground">{t("business.localBusinesses")}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-primary">32</div>
-                <div className="text-xs text-muted-foreground">Verified Shops</div>
+                <div className="text-xs text-muted-foreground">{t("business.verifiedShops")}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-secondary">89%</div>
-                <div className="text-xs text-muted-foreground">Customer Satisfaction</div>
+                <div className="text-xs text-muted-foreground">{t("business.customerSatisfaction")}</div>
               </div>
             </div>
           </div>
@@ -192,10 +194,10 @@ const Business = () => {
         {/* Local Businesses */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Nearby Businesses</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("business.nearbyBusinesses")}</h3>
             <Button variant="ghost" size="sm">
               <TrendingUp className="w-4 h-4 mr-2" />
-              Popular
+              {t("business.popular")}
             </Button>
           </div>
           
@@ -255,7 +257,7 @@ const Business = () => {
                       {/* Special Offers */}
                       {business.specialOffers.length > 0 && (
                         <div className="mb-3">
-                          <div className="text-xs font-medium text-community mb-1">Special Offers:</div>
+                          <div className="text-xs font-medium text-community mb-1">{t("business.specialOffers")}</div>
                           <div className="flex flex-wrap gap-1">
                             {business.specialOffers.map((offer, index) => (
                               <Badge key={index} variant="outline" className="text-xs text-community border-community/30">
@@ -270,11 +272,11 @@ const Business = () => {
                       <div className="flex gap-2">
                         <Button variant="community" size="sm" className="flex-1">
                           <ShoppingBag className="w-4 h-4 mr-2" />
-                          Order Now
+                          {t("actions.orderNow")}
                         </Button>
                         <Button variant="outline" size="sm">
                           <Phone className="w-4 h-4 mr-2" />
-                          Call
+                          {t("actions.call")}
                         </Button>
                       </div>
                     </div>

@@ -13,8 +13,10 @@ import {
   Clock,
   Star
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Chats = () => {
+  const { t } = useTranslation("common");
   const chatGroups = [
     {
       id: 1,
@@ -103,18 +105,18 @@ const Chats = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="Chats" showSearch={true} />
+      <AppHeader title={t("chats.title")} showSearch={true} />
       
       <div className="p-4 space-y-4">
         {/* Create New Chat */}
         <Button variant="hero" className="w-full justify-center gap-2 py-6">
           <Plus className="w-5 h-5" />
-          Start New Chat
+          {t("actions.startNewChat")}
         </Button>
 
         {/* Chat Categories */}
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['All', 'Personal', 'Stokvels', 'Community', 'Verified'].map((category) => (
+          {[t("chats.categories.all"), t("chats.categories.personal"), t("chats.categories.stokvels"), t("chats.categories.community"), t("chats.categories.verified")].map((category) => (
             <Badge
               key={category}
               variant={category === 'All' ? 'default' : 'outline'}
@@ -190,11 +192,11 @@ const Chats = () => {
               <Shield className="w-6 h-6 text-destructive" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Emergency Contacts</h3>
-              <p className="text-sm text-muted-foreground">Police • Ambulance • Community Patrol</p>
+              <h3 className="font-semibold text-foreground">{t("chats.emergency.title")}</h3>
+              <p className="text-sm text-muted-foreground">{t("chats.emergency.subtitle")}</p>
             </div>
             <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10">
-              Call
+              {t("actions.call")}
             </Button>
           </div>
         </Card>

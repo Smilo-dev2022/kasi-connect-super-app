@@ -1,14 +1,16 @@
 import { NavLink } from "react-router-dom";
 import { Home, MessageCircle, Wallet, Users, Calendar, Store } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Navigation = () => {
+  const { t } = useTranslation("common");
   const navItems = [
-    { icon: Home, label: "Home", path: "/app" },
-    { icon: MessageCircle, label: "Chats", path: "/app/chats" },
-    { icon: Wallet, label: "Wallet", path: "/app/wallet" },
-    { icon: Users, label: "Rooms", path: "/app/rooms" },
-    { icon: Calendar, label: "Events", path: "/app/events" },
-    { icon: Store, label: "Business", path: "/app/business" }
+    { icon: Home, label: t("nav.home"), path: "/app" },
+    { icon: MessageCircle, label: t("nav.chats"), path: "/app/chats" },
+    { icon: Wallet, label: t("nav.wallet"), path: "/app/wallet" },
+    { icon: Users, label: t("nav.rooms"), path: "/app/rooms" },
+    { icon: Calendar, label: t("nav.events"), path: "/app/events" },
+    { icon: Store, label: t("nav.business"), path: "/app/business" }
   ];
 
   return (

@@ -17,8 +17,10 @@ import {
   Heart,
   Bell
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Events = () => {
+  const { t } = useTranslation("common");
   const upcomingEvents = [
     {
       id: 1,
@@ -116,13 +118,13 @@ const Events = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="Events" />
+      <AppHeader title={t("events.title")} />
       
       <div className="p-4 space-y-6">
         {/* Create Event Button */}
         <Button variant="hero" className="w-full justify-center gap-2 py-6">
           <Plus className="w-5 h-5" />
-          Create New Event
+          {t("actions.createEvent")}
         </Button>
 
         {/* Categories */}
@@ -142,19 +144,19 @@ const Events = () => {
         <Card className="p-6 bg-gradient-to-r from-primary/10 via-community/10 to-secondary/10 border-primary/20">
           <div className="text-center">
             <Calendar className="w-12 h-12 text-primary mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">This Week's Events</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">{t("events.thisWeeksEvents")}</h3>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-primary">8</div>
-                <div className="text-xs text-muted-foreground">Total Events</div>
+                <div className="text-xs text-muted-foreground">{t("events.totalEvents")}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-community">3</div>
-                <div className="text-xs text-muted-foreground">Free Events</div>
+                <div className="text-xs text-muted-foreground">{t("events.freeEvents")}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-secondary">328</div>
-                <div className="text-xs text-muted-foreground">Total RSVPs</div>
+                <div className="text-xs text-muted-foreground">{t("events.totalRsvps")}</div>
               </div>
             </div>
           </div>
@@ -162,7 +164,7 @@ const Events = () => {
 
         {/* Upcoming Events */}
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Upcoming Events</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t("events.upcomingEvents")}</h3>
           <div className="space-y-4">
             {upcomingEvents.map((event) => {
               const eventColor = getEventColor(event.category);
@@ -224,12 +226,12 @@ const Events = () => {
                           size="sm" 
                           className="flex-1"
                         >
-                          {event.rsvp ? "Cancel RSVP" : "RSVP"}
+                          {event.rsvp ? t("actions.cancelRsvp") : t("actions.rsvp")}
                         </Button>
                         {event.price > 0 && (
                           <Button variant="outline" size="sm">
                             <Ticket className="w-4 h-4 mr-2" />
-                            Buy Ticket
+                            {t("actions.buyTicket")}
                           </Button>
                         )}
                       </div>
@@ -250,7 +252,7 @@ const Events = () => {
           </p>
           <Button variant="community" className="gap-2">
             <Bell className="w-4 h-4" />
-            Enable Event Notifications
+            {t("actions.enableEventNotifications")}
           </Button>
         </Card>
       </div>

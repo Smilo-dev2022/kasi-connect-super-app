@@ -1,0 +1,159 @@
+{
+  "appName": "KasiLink",
+  "nav": {
+    "home": "Home",
+    "chats": "Chats",
+    "wallet": "Wallet",
+    "rooms": "Rooms",
+    "events": "Events",
+    "business": "Business"
+  },
+  "actions": {
+    "join": "Join the Community",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "registerBusiness": "Register Your Business",
+    "orderNow": "Order Now",
+    "call": "Call",
+    "createEvent": "Create New Event",
+    "rsvp": "RSVP",
+    "cancelRsvp": "Cancel RSVP",
+    "buyTicket": "Buy Ticket",
+    "enableEventNotifications": "Enable Event Notifications",
+    "notifyMe": "Notify Me",
+    "joinGroup": "Join Group",
+    "startNewChat": "Start New Chat"
+  },
+  "hero": {
+    "tagline": "The Township Super-App for",
+    "pill": "Chat • Money • Community",
+    "desc": "A safe, verified space where people can talk, pay, save, and grow together. From stokvel payments to community safety alerts, KasiLink brings township life into one powerful app.",
+    "chat": "Chat",
+    "money": "Money",
+    "community": "Community",
+    "chatDesc": "Connect with your community safely",
+    "moneyDesc": "Stokvels, savings & payments",
+    "communityDesc": "Safety alerts & local business"
+  },
+  "features": {
+    "heading": "Everything Your Community Needs",
+    "subheading": "KasiLink brings together all the tools townships need to thrive - from daily conversations to financial empowerment, all in one secure platform.",
+    "ctaHeading": "Ready to Transform Your Community?",
+    "ctaSub": "Join thousands of South Africans already using KasiLink to build stronger, more connected communities across the country.",
+    "ctaPrimary": "Get Early Access",
+    "ctaSecondary": "Start Your Community",
+    "list": {
+      "safeChatTitle": "Safe Community Chat",
+      "safeChatDesc": "Verified neighborhood groups with safety alerts and community updates. Connect with your neighbors in a trusted space.",
+      "stokvelTitle": "Stokvel Management",
+      "stokvelDesc": "Digital stokvels made simple. Track contributions, manage payouts, and grow your savings together with transparency.",
+      "businessTitle": "Local Business Hub",
+      "businessDesc": "Order from spaza shops, support local vendors, and discover township entrepreneurs right in your area.",
+      "safetyTitle": "Community Safety",
+      "safetyDesc": "Real-time safety alerts, emergency contacts, and neighborhood watch coordination to keep everyone protected.",
+      "eventsTitle": "Event Coordination",
+      "eventsDesc": "Organize community events, church gatherings, and celebrations. Never miss what's happening in your kasi.",
+      "growthTitle": "Financial Growth",
+      "growthDesc": "Savings circles, investment groups, and financial literacy resources to build wealth together as a community."
+    }
+  },
+  "footer": {
+    "stayConnected": "Stay Connected with Your Community",
+    "newsletterDesc": "Be the first to know when KasiLink launches in your area. Join our community of early adopters building the future of township connectivity.",
+    "emailPlaceholder": "Enter your email",
+    "platform": "Platform",
+    "links": {
+      "communityChat": "Community Chat",
+      "stokvelManagement": "Stokvel Management",
+      "localBusiness": "Local Business",
+      "safetyAlerts": "Safety Alerts"
+    },
+    "brandDesc": "Empowering South African townships through technology. Building bridges between communities, one connection at a time.",
+    "proudlySA": "Proudly South African",
+    "copyright": "© 2024 KasiLink. Made with ♥ for South African communities.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "guidelines": "Community Guidelines"
+  },
+  "app": {
+    "welcome": "Sawubona, {{name}}! 👋",
+    "yourCommunityActive": "Your community is active today",
+    "balance": "Balance",
+    "quickActions": "Quick Actions",
+    "recentUpdates": "Recent Updates",
+    "yourCommunity": "Your Community",
+    "activeGroups": "Active Groups",
+    "stokvels": "Stokvels",
+    "localShops": "Local Shops",
+    "emergencyServices": "Emergency Services",
+    "emergencyContacts": "Emergency Contacts",
+    "police": "Police 10111",
+    "ambulance": "Ambulance 10177",
+    "quick": {
+      "safety": "Safety"
+    }
+  },
+  "chats": {
+    "title": "Chats",
+    "categories": {
+      "all": "All",
+      "personal": "Personal",
+      "stokvels": "Stokvels",
+      "community": "Community",
+      "verified": "Verified"
+    },
+    "emergency": {
+      "title": "Emergency Contacts",
+      "subtitle": "Police • Ambulance • Community Patrol"
+    }
+  },
+  "wallet": {
+    "title": "Wallet",
+    "totalBalance": "Total Balance",
+    "thisMonth": "This month",
+    "myStokvels": "My Stokvels",
+    "groupBalance": "Group Balance",
+    "myContribution": "My Contribution",
+    "nextPayout": "Next Payout",
+    "recentTransactions": "Recent Transactions",
+    "free": "Free"
+  },
+  "rooms": {
+    "title": "Community Rooms",
+    "communityMembers": "Community Members",
+    "activeRooms": "Active Rooms",
+    "latestUpdates": "Latest Updates",
+    "urgent": "Urgent",
+    "joinRoom": "Join Room"
+  },
+  "events": {
+    "title": "Events",
+    "thisWeeksEvents": "This Week's Events",
+    "totalEvents": "Total Events",
+    "freeEvents": "Free Events",
+    "totalRsvps": "Total RSVPs",
+    "upcomingEvents": "Upcoming Events"
+  },
+  "business": {
+    "title": "Local Business",
+    "supportingLocalEconomy": "Supporting Local Economy",
+    "localBusinesses": "Local Businesses",
+    "verifiedShops": "Verified Shops",
+    "customerSatisfaction": "Customer Satisfaction",
+    "nearbyBusinesses": "Nearby Businesses",
+    "popular": "Popular",
+    "specialOffers": "Special Offers:",
+    "searchPlaceholder": "Search businesses..."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Oops! Page not found",
+    "returnHome": "Return to Home"
+  },
+  "selectors": {
+    "language": "Language",
+    "township": "Township",
+    "selectTownship": "Select township"
+  }
+}
+

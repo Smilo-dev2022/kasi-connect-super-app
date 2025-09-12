@@ -17,8 +17,10 @@ import {
   ArrowDownRight
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const Wallet = () => {
+  const { t } = useTranslation("common");
   const [showBalance, setShowBalance] = useState(true);
 
   const quickActions = [
@@ -110,14 +112,14 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="Wallet" />
+      <AppHeader title={t("wallet.title")} />
       
       <div className="p-4 space-y-6">
         {/* Balance Card */}
         <Card className="p-6 bg-gradient-to-r from-community/20 via-primary/10 to-secondary/20 border-community/30">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-sm text-muted-foreground mb-1">Total Balance</h2>
+              <h2 className="text-sm text-muted-foreground mb-1">{t("wallet.totalBalance")}</h2>
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold text-foreground">
                   {showBalance ? "R1,250.50" : "R****.**"}
@@ -137,7 +139,7 @@ const Wallet = () => {
                 <TrendingUp className="w-4 h-4" />
                 <span className="text-sm">+8.5%</span>
               </div>
-              <div className="text-xs text-muted-foreground">This month</div>
+              <div className="text-xs text-muted-foreground">{t("wallet.thisMonth")}</div>
             </div>
           </div>
           
@@ -159,10 +161,10 @@ const Wallet = () => {
         {/* Stokvels Section */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">My Stokvels</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("wallet.myStokvels")}</h3>
             <Button variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
-              Join Group
+              {t("actions.joinGroup")}
             </Button>
           </div>
           
@@ -184,15 +186,15 @@ const Wallet = () => {
                     <div className="text-lg font-bold text-community">
                       R{stokvel.balance.toLocaleString()}
                     </div>
-                    <div className="text-xs text-muted-foreground">Group Balance</div>
+                    <div className="text-xs text-muted-foreground">{t("wallet.groupBalance")}</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-primary">R{stokvel.contribution}</div>
-                    <div className="text-xs text-muted-foreground">My Contribution</div>
+                    <div className="text-xs text-muted-foreground">{t("wallet.myContribution")}</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-secondary">{stokvel.nextPayout}</div>
-                    <div className="text-xs text-muted-foreground">Next Payout</div>
+                    <div className="text-xs text-muted-foreground">{t("wallet.nextPayout")}</div>
                   </div>
                 </div>
               </Card>
@@ -203,10 +205,10 @@ const Wallet = () => {
         {/* Transaction History */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Recent Transactions</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("wallet.recentTransactions")}</h3>
             <Button variant="ghost" size="sm">
               <History className="w-4 h-4 mr-2" />
-              View All
+              {t("actions.viewAll")}
             </Button>
           </div>
           

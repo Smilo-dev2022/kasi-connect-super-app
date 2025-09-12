@@ -1,0 +1,158 @@
+{
+  "appName": "KasiLink",
+  "nav": {
+    "home": "Ikhaya",
+    "chats": "Ingxoxo",
+    "wallet": "Iwalleti",
+    "rooms": "Amakamelo",
+    "events": "Imicimbi",
+    "business": "Ibhizinisi"
+  },
+  "actions": {
+    "join": "Joyina Umphakathi",
+    "learnMore": "Funda kabanzi",
+    "viewAll": "Buka konke",
+    "registerBusiness": "Bhalisa Ibhizinisi Lakho",
+    "orderNow": "Oda Manje",
+    "call": "Shayela",
+    "createEvent": "Dala Umcimbi Omusha",
+    "rsvp": "RSVP",
+    "cancelRsvp": "Khansela i-RSVP",
+    "buyTicket": "Thenga Ithikithi",
+    "enableEventNotifications": "Vula Izaziso Zemicimbi",
+    "notifyMe": "Ngazisa",
+    "joinGroup": "Joyina Iqembu",
+    "startNewChat": "Qala Ingxoxo Entsha"
+  },
+  "hero": {
+    "tagline": "Uhlelo lweKasi oluhlanganisa konke",
+    "pill": "Ingxoxo • Imali • Umphakathi",
+    "desc": "Indawo ephephile, eqinisekisiwe lapho abantu bengakhuluma, bakhokhe, balondoloze, futhi bakhule ndawonye. Kusuka ezinkokhelweni ze-stokvel kuya ezazisweni zokuphepha, i-KasiLink iletha impilo yasekasi kuhlelo olulodwa olunamandla.",
+    "chat": "Ingxoxo",
+    "money": "Imali",
+    "community": "Umphakathi",
+    "chatDesc": "Xhuma nomphakathi wakho ngokuphepha",
+    "moneyDesc": "Ama-stokvel, ukulondoloza nokukhokha",
+    "communityDesc": "Izaziso zokuphepha namabhizinisi endawo"
+  },
+  "features": {
+    "heading": "Konke Umphakathi Wakho Okudingayo",
+    "subheading": "I-KasiLink ihlanganisa wonke amathuluzi adingwa amalokishi ukuze achume - kusukela ezingxoxweni zansuku zonke kuya ekunikezeni amandla kwezezimali, konke kupulatifomu eyodwa ephephile.",
+    "ctaHeading": "Ulungele Ukuguqula Umphakathi Wakho?",
+    "ctaSub": "Joyina izakhamuzi eziningi zaseNingizimu Afrika ezisebenzisa i-KasiLink ukwakha imiphakathi eqinile, exhumene kangcono ezweni lonke.",
+    "ctaPrimary": "Thola Ukufinyelela Kwangaphambi",
+    "ctaSecondary": "Qala Umphakathi Wakho",
+    "list": {
+      "safeChatTitle": "Ingxoxo Yomphakathi Ephephile",
+      "safeChatDesc": "Amaqembu omakhelwane aqinisekisiwe anezaziso zokuphepha nezibuyekezo zomphakathi. Xhuma nomakhelwane bakho endaweni ethembekile.",
+      "stokvelTitle": "Ukuphathwa kweStokvel",
+      "stokvelDesc": "Ama-stokvel edijithali enziwe alula. Landelela iminikelo, phatha izinkokhelo, futhi nikhulise ukonga ngokusobala.",
+      "businessTitle": "Isikhungo Samabhizinisi Endawo",
+      "businessDesc": "Oda ezitolo ze-spaza, usekele abathengisi bendawo, futhi uthole osomabhizinisi basekasi endaweni yakho.",
+      "safetyTitle": "Ukuphepha Komphakathi",
+      "safetyDesc": "Izaziso zokuphepha ngesikhathi sangempela, oxhumana nabo bezimo eziphuthumayo, kanye nokuhleleka kwe-neighborhood watch ukugcina wonke umuntu evikelekile.",
+      "eventsTitle": "Ukuhlelwa Kwemicimbi",
+      "eventsDesc": "Hlela imicimbi yomphakathi, imihlangano yesonto, nemikhosi. Ungaphuthelwa ukuthi kwenzekani ekasi lakho.",
+      "growthTitle": "Ukukhula Kwezimali",
+      "growthDesc": "Imijikelezo yokonga, amaqembu okutshalwa kwezimali, nezinsiza zokuqwashisa ngezezimali ukwakha ingcebo ndawonye njengomphakathi."
+    }
+  },
+  "footer": {
+    "stayConnected": "Hlala Uxhumene Nomphakathi Wakho",
+    "newsletterDesc": "Yiba ngowokuqala ukwazi lapho i-KasiLink yethulwa endaweni yakho. Joyina umphakathi wethu wabasunguli basekuqaleni abakhulisa ikusasa lokuxhumana kwamalokishi.",
+    "emailPlaceholder": "Faka i-imeyili yakho",
+    "platform": "Iplatifomu",
+    "links": {
+      "communityChat": "Ingxoxo Yomphakathi",
+      "stokvelManagement": "Ukuphathwa kweStokvel",
+      "localBusiness": "Ibhizinisi Lendawo",
+      "safetyAlerts": "Izaziso Zokuphepha"
+    },
+    "brandDesc": "Sigqugquzela amalokishi aseNingizimu Afrika ngobuchwepheshe. Sakha amabhuloho phakathi kwemiphakathi, uxhumano olulodwa ngesikhathi.",
+    "proudlySA": "I-Ningizimu Afrika Ngokuzigqaja",
+    "privacy": "Inqubomgomo Yobumfihlo",
+    "terms": "Imigomo Yensiza",
+    "guidelines": "Imihlahlandlela Yomphakathi"
+  },
+  "app": {
+    "welcome": "Sawubona, {{name}}! 👋",
+    "yourCommunityActive": "Umphakathi wakho uyasebenza namuhla",
+    "balance": "Ibhalansi",
+    "quickActions": "Izenzo Ezisheshayo",
+    "recentUpdates": "Izibuyekezo Zakamuva",
+    "yourCommunity": "Umphakathi Wakho",
+    "activeGroups": "Amaqembu Asebenzayo",
+    "stokvels": "AmaStokvel",
+    "localShops": "Izitolo Zendawo",
+    "emergencyServices": "Izinsiza Eziphuthumayo",
+    "emergencyContacts": "Oxhumana Nabo Eziphuthumayo",
+    "police": "Amaphoyisa 10111",
+    "ambulance": "I-Ambulensi 10177",
+    "quick": {
+      "safety": "Ukuphepha"
+    }
+  },
+  "chats": {
+    "title": "Ingxoxo",
+    "categories": {
+      "all": "Konke",
+      "personal": "Okomuntu",
+      "stokvels": "AmaStokvel",
+      "community": "Umphakathi",
+      "verified": "Kuqinisekisiwe"
+    },
+    "emergency": {
+      "title": "Oxhumana Nabo Eziphuthumayo",
+      "subtitle": "Amaphoyisa • I-Ambulensi • I-Community Patrol"
+    }
+  },
+  "wallet": {
+    "title": "Iwalleti",
+    "totalBalance": "Ibhalansi Yonke",
+    "thisMonth": "Kule nyanga",
+    "myStokvels": "AmaStokvel Ami",
+    "groupBalance": "Ibhalansi Yeqembu",
+    "myContribution": "Umnikelo Wami",
+    "nextPayout": "Inkokhelo Elandelayo",
+    "recentTransactions": "Imisebenzi Yakamuva",
+    "free": "Mahhala"
+  },
+  "rooms": {
+    "title": "Amakamelo Omphakathi",
+    "communityMembers": "Amalungu Omphakathi",
+    "activeRooms": "Amakamelo Asebenzayo",
+    "latestUpdates": "Izibuyekezo Zakamuva",
+    "urgent": "Kuphuthumayo",
+    "joinRoom": "Joyina Ikamelo"
+  },
+  "events": {
+    "title": "Imicimbi",
+    "thisWeeksEvents": "Imicimbi Yalesi Siviki",
+    "totalEvents": "Imicimbi Yonke",
+    "freeEvents": "Imicimbi Yamahhala",
+    "totalRsvps": "Ama-RSVP Onke",
+    "upcomingEvents": "Imicimbi Ezayo"
+  },
+  "business": {
+    "title": "Ibhizinisi Lendawo",
+    "supportingLocalEconomy": "Ukusekela Umnotho Wendawo",
+    "localBusinesses": "Amabhizinisi Endawo",
+    "verifiedShops": "Izitolo Eziqinisekisiwe",
+    "customerSatisfaction": "Ukwaneliseka Kwekhasimende",
+    "nearbyBusinesses": "Amabhizinisi Aseduze",
+    "popular": "Okudumile",
+    "specialOffers": "Okunikezwayo Okukhethekile:",
+    "searchPlaceholder": "Sesha amabhizinisi..."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Hhayi bo! Ikhasi alitholakali",
+    "returnHome": "Buyela Ekhaya"
+  },
+  "selectors": {
+    "language": "Ulimi",
+    "township": "Ikasi",
+    "selectTownship": "Khetha ikasi"
+  }
+}
+

@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { TownshipProvider } from "@/context/TownshipContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/AppLayout";
@@ -21,21 +22,23 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/app" element={<AppLayout />}>
-            <Route index element={<AppHome />} />
-            <Route path="chats" element={<Chats />} />
-            <Route path="wallet" element={<Wallet />} />
-            <Route path="rooms" element={<Rooms />} />
-            <Route path="events" element={<Events />} />
-            <Route path="business" element={<Business />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <TownshipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<AppHome />} />
+              <Route path="chats" element={<Chats />} />
+              <Route path="wallet" element={<Wallet />} />
+              <Route path="rooms" element={<Rooms />} />
+              <Route path="events" element={<Events />} />
+              <Route path="business" element={<Business />} />
+            </Route>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TownshipProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

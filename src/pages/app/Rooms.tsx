@@ -14,8 +14,10 @@ import {
   Clock,
   MapPin
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Rooms = () => {
+  const { t } = useTranslation("common");
   const communityRooms = [
     {
       id: 1,
@@ -109,7 +111,7 @@ const Rooms = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="Community Rooms" showNotifications={true} />
+      <AppHeader title={t("rooms.title")} showNotifications={true} />
       
       <div className="p-4 space-y-6">
         {/* Quick Stats */}
@@ -117,11 +119,11 @@ const Rooms = () => {
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-primary">8,260</div>
-              <div className="text-sm text-muted-foreground">Community Members</div>
+              <div className="text-sm text-muted-foreground">{t("rooms.communityMembers")}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-community">4</div>
-              <div className="text-sm text-muted-foreground">Active Rooms</div>
+              <div className="text-sm text-muted-foreground">{t("rooms.activeRooms")}</div>
             </div>
           </div>
         </Card>
@@ -130,7 +132,7 @@ const Rooms = () => {
         <div>
           <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <Bell className="w-5 h-5" />
-            Latest Updates
+            {t("rooms.latestUpdates")}
           </h3>
           <div className="space-y-3">
             {recentAlerts.map((alert, index) => (
@@ -149,7 +151,7 @@ const Rooms = () => {
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-semibold text-foreground">{alert.title}</h4>
                       {alert.urgent && (
-                        <Badge className="bg-destructive text-destructive-foreground">Urgent</Badge>
+                        <Badge className="bg-destructive text-destructive-foreground">{t("rooms.urgent")}</Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
@@ -172,7 +174,7 @@ const Rooms = () => {
 
         {/* Community Rooms */}
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Community Rooms</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t("rooms.title")}</h3>
           <div className="space-y-3">
             {communityRooms.map((room) => (
               <Card key={room.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
@@ -210,7 +212,7 @@ const Rooms = () => {
                       </Badge>
                     )}
                     <Button variant="outline" size="sm">
-                      Join Room
+                      {t("rooms.joinRoom")}
                     </Button>
                   </div>
                 </div>

@@ -7,6 +7,29 @@ on:
     branches: [ main ]
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci || npm install
+      - run: npm --prefix services/auth ci || npm --prefix services/auth install
+      - run: npm --prefix services/messaging ci || npm --prefix services/messaging install
+      - run: npm --prefix services/auth run build
+      - run: npm --prefix services/messaging run build
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
   web-admin:
     runs-on: ubuntu-latest
     defaults:

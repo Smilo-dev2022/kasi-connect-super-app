@@ -1,0 +1,101 @@
+openapi: 3.0.3
+info:
+  title: Messaging Service
+  version: 0.1.0
+servers:
+  - url: http://localhost:4002
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /.well-known/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /devices/register:
+    post:
+      summary: Register or update device keys and upload prekeys
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                registrationId:
+                  type: integer
+                identityKey:
+                  type: string
+                signedPreKey:
+                  type: object
+                  properties:
+                    keyId:
+                      type: integer
+                    publicKey:
+                      type: string
+                    signature:
+                      type: string
+                oneTimePreKeys:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      keyId:
+                        type: integer
+                      publicKey:
+                        type: string
+      responses:
+        '200':
+          description: OK
+  /keys/{userId}:
+    get:
+      summary: Fetch key bundles for a user
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Bundles
+  /messages:
+    post:
+      summary: Send ciphertext to recipient
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipientUserId:
+                  type: string
+                recipientDeviceId:
+                  type: string
+                ciphertext:
+                  type: string
+      responses:
+        '200':
+          description: Queued
+  /messages/inbox:
+    get:
+      summary: Pull inbox for current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Messages

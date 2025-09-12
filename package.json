@@ -3,12 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "services/*",
+    "apps/*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:auth": "npm --prefix services/auth run dev",
+    "dev:messaging": "npm --prefix services/messaging run dev",
+    "dev:services": "concurrently -k -n AUTH,MESS \"npm run dev:auth\" \"npm run dev:messaging\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -85,5 +92,18 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19"
-  }
+  },
+  "description": "## Project info",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Smilo-dev2022/kasi-connect-super-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/issues"
+  },
+  "homepage": "https://github.com/Smilo-dev2022/kasi-connect-super-app#readme"
 }

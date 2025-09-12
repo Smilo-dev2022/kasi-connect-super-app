@@ -3,10 +3,12 @@ import SwiftUI
 final class ServiceContainer: ObservableObject {
     let authService: AuthService
     let chatService: ChatService
+    let mediaUploadService: MediaUploadService
 
-    init(authService: AuthService, chatService: ChatService) {
+    init(authService: AuthService, chatService: ChatService, mediaUploadService: MediaUploadService) {
         self.authService = authService
         self.chatService = chatService
+        self.mediaUploadService = mediaUploadService
     }
 }
 
@@ -18,7 +20,8 @@ struct ChatApp: App {
     init() {
         let services = ServiceContainer(
             authService: MockAuthService(),
-            chatService: MockChatService()
+            chatService: MockChatService(),
+            mediaUploadService: MockMediaUploadService()
         )
         _services = StateObject(wrappedValue: services)
         _authViewModel = StateObject(wrappedValue: AuthViewModel(service: services.authService))

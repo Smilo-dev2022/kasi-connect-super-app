@@ -14,6 +14,13 @@ struct MainTabView: View {
             }
 
             NavigationStack {
+                GroupsView()
+            }
+            .tabItem {
+                Label("Groups", systemImage: "person.3")
+            }
+
+            NavigationStack {
                 VStack(spacing: 16) {
                     Text("Settings")
                         .font(.title2)

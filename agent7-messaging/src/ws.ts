@@ -3,7 +3,7 @@ import { IncomingMessage } from 'http';
 import url from 'url';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, eventLog } from './state';
+import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, eventLog, userIdToPresence } from './state';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -14,7 +14,9 @@ type ClientMessage =
 	| { type: 'msg'; id?: string; to: string; scope: 'direct' | 'group'; ciphertext: string; contentType?: string; timestamp?: number; replyTo?: string }
 	| { type: 'react'; id?: string; messageId: string; emoji: string; timestamp?: number }
 	| { type: 'edit'; id?: string; messageId: string; ciphertext: string; contentType?: string; timestamp?: number }
-	| { type: 'delete'; id?: string; messageId: string; timestamp?: number };
+	| { type: 'delete'; id?: string; messageId: string; timestamp?: number }
+	| { type: 'receipt'; id?: string; messageId: string; status: 'delivered' | 'read'; timestamp?: number }
+	| { type: 'typing'; to: string; scope: 'direct' | 'group'; typing: boolean; timestamp?: number };
 
 type ServerMessage =
 	| { type: 'welcome'; userId: string }
@@ -23,6 +25,9 @@ type ServerMessage =
 	| { type: 'reaction'; id: string; messageId: string; userId: string; emoji: string; timestamp: number }
 	| { type: 'edit'; id: string; messageId: string; userId: string; ciphertext: string; contentType?: string; timestamp: number }
 	| { type: 'delete'; id: string; messageId: string; userId: string; timestamp: number }
+	| { type: 'receipt'; id: string; messageId: string; userId: string; status: 'delivered' | 'read'; timestamp: number }
+	| { type: 'presence'; userId: string; online: boolean; lastSeen: number }
+	| { type: 'typing'; from: string; to: string; scope: 'direct' | 'group'; typing: boolean; timestamp: number }
 	| { type: 'error'; id?: string; error: string };
 
 export function attachWebSocketServer(server: import('http').Server) {
@@ -56,7 +61,9 @@ export function attachWebSocketServer(server: import('http').Server) {
 		}
 
 		userIdToSocket.set(userId, socket);
+		userIdToPresence.set(userId, { online: true, lastSeen: Date.now() });
 		send(socket, { type: 'welcome', userId });
+		broadcastPresence(userId, true);
 
 		socket.on('message', (data: RawData) => {
 			try {
@@ -77,6 +84,10 @@ export function attachWebSocketServer(server: import('http').Server) {
 					const id = msg.id || uuidv4();
 					const timestamp = msg.timestamp || Date.now();
 					const from = userId!;
+					if (msg.scope === 'group') {
+						const group = groupIdToGroup.get(String(msg.to));
+						if (!group || !group.memberIds.has(from)) return send(socket, { type: 'error', error: 'not_group_member' });
+					}
 					const envelope: CipherMessage = {
 						id,
 						from,
@@ -89,6 +100,19 @@ export function attachWebSocketServer(server: import('http').Server) {
 					};
 					messageLog.push(envelope);
 					deliver(envelope);
+					return;
+				}
+				if (msg.type === 'receipt') {
+					const id = msg.id || uuidv4();
+					const timestamp = msg.timestamp || Date.now();
+					const original = messageLog.find((m) => m.id === msg.messageId);
+					if (!original) return send(socket, { type: 'error', error: 'message_not_found' });
+					recordAndBroadcastReceipt(msg.status, userId!, original, id, timestamp);
+					return;
+				}
+				if (msg.type === 'typing') {
+					const nowTs = msg.timestamp || Date.now();
+					broadcastTyping({ from: userId!, to: msg.to, scope: msg.scope, typing: msg.typing, timestamp: nowTs });
 					return;
 				}
 				if (msg.type === 'react') {
@@ -132,6 +156,8 @@ export function attachWebSocketServer(server: import('http').Server) {
 		socket.on('close', () => {
 			if (userId && userIdToSocket.get(userId) === socket) {
 				userIdToSocket.delete(userId);
+				userIdToPresence.set(userId, { online: false, lastSeen: Date.now() });
+				broadcastPresence(userId, false);
 			}
 		});
 	});
@@ -146,7 +172,11 @@ function send(socket: WebSocket, message: ServerMessage) {
 function deliver(envelope: CipherMessage) {
 	if (envelope.scope === 'direct') {
 		const recipient = userIdToSocket.get(envelope.to);
-		if (recipient) send(recipient, { type: 'msg', ...envelope });
+		if (recipient) {
+			send(recipient, { type: 'msg', ...envelope });
+			// delivered receipt
+			recordAndBroadcastReceipt('delivered', envelope.to as string, envelope);
+		}
 		const sender = userIdToSocket.get(envelope.from);
 		if (sender) send(sender, { type: 'msg', ...envelope });
 		return;
@@ -156,7 +186,12 @@ function deliver(envelope: CipherMessage) {
 		if (!group) return;
 		for (const memberId of group.memberIds) {
 			const ws = userIdToSocket.get(memberId);
-			if (ws) send(ws, { type: 'msg', ...envelope });
+			if (ws) {
+				send(ws, { type: 'msg', ...envelope });
+				if (memberId !== envelope.from) {
+					recordAndBroadcastReceipt('delivered', memberId, envelope);
+				}
+			}
 		}
 	}
 }
@@ -176,5 +211,56 @@ function deliverEvent(event: { type: 'reaction' | 'edit' | 'delete'; id: string;
             const ws = userIdToSocket.get(memberId);
             if (ws) send(ws, event as ServerMessage);
         }
+    }
+}
+
+function recordAndBroadcastReceipt(status: 'delivered' | 'read', ackUserId: string, original: CipherMessage, id?: string, timestamp?: number) {
+    const ts = timestamp || Date.now();
+    const recId = id || uuidv4();
+    if (status === 'delivered') {
+        original.deliveredTo = Array.from(new Set([...(original.deliveredTo || []), ackUserId]));
+    } else if (status === 'read') {
+        original.readBy = Array.from(new Set([...(original.readBy || []), ackUserId]));
+    }
+    eventLog.push({ type: 'receipt', id: recId, messageId: original.id, userId: ackUserId, status, timestamp: ts });
+    // broadcast to relevant participants
+    if (original.scope === 'direct') {
+        const recipient = userIdToSocket.get(original.to);
+        if (recipient) send(recipient, { type: 'receipt', id: recId, messageId: original.id, userId: ackUserId, status, timestamp: ts });
+        const sender = userIdToSocket.get(original.from);
+        if (sender) send(sender, { type: 'receipt', id: recId, messageId: original.id, userId: ackUserId, status, timestamp: ts });
+        return;
+    }
+    if (original.scope === 'group') {
+        const group: Group | undefined = groupIdToGroup.get(String(original.to));
+        if (!group) return;
+        for (const memberId of group.memberIds) {
+            const ws = userIdToSocket.get(memberId);
+            if (ws) send(ws, { type: 'receipt', id: recId, messageId: original.id, userId: ackUserId, status, timestamp: ts });
+        }
+    }
+}
+
+function broadcastPresence(userId: string, online: boolean) {
+    const presence = userIdToPresence.get(userId);
+    const lastSeen = presence?.lastSeen || Date.now();
+    for (const [, ws] of userIdToSocket) {
+        try { ws.send(JSON.stringify({ type: 'presence', userId, online, lastSeen } as ServerMessage)); } catch {}
+    }
+}
+
+function broadcastTyping(evt: { from: string; to: string; scope: 'direct' | 'group'; typing: boolean; timestamp: number }) {
+    if (evt.scope === 'direct') {
+        const wsTo = userIdToSocket.get(evt.to);
+        if (wsTo) send(wsTo, { type: 'typing', ...evt });
+        const wsFrom = userIdToSocket.get(evt.from);
+        if (wsFrom) send(wsFrom, { type: 'typing', ...evt });
+        return;
+    }
+    const group = groupIdToGroup.get(String(evt.to));
+    if (!group) return;
+    for (const memberId of group.memberIds) {
+        const sock = userIdToSocket.get(memberId);
+        if (sock) send(sock, { type: 'typing', ...evt });
     }
 }

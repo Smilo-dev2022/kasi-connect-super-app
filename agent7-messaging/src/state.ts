@@ -22,6 +22,7 @@ export type Group = {
 	name?: string;
 	ownerId: UserId;
 	memberIds: Set<UserId>;
+	adminIds?: Set<UserId>;
 	createdAt: number;
 	// Safety room metadata (optional)
 	isSafetyRoom?: boolean;
@@ -43,6 +44,9 @@ export type CipherMessage = {
 	replyTo?: string;
 	editedAt?: number;
 	deletedAt?: number;
+	// delivery receipts
+	deliveredTo?: UserId[];
+	readBy?: UserId[];
 };
 
 export const userIdToSocket = new Map<UserId, WebSocket>();
@@ -54,6 +58,10 @@ export const messageLog: CipherMessage[] = [];
 export type MessageEvent =
 	| { type: 'reaction'; id: string; messageId: string; userId: UserId; emoji: string; timestamp: number }
 	| { type: 'edit'; id: string; messageId: string; userId: UserId; ciphertext: string; contentType?: string; timestamp: number }
-	| { type: 'delete'; id: string; messageId: string; userId: UserId; timestamp: number };
+	| { type: 'delete'; id: string; messageId: string; userId: UserId; timestamp: number }
+	| { type: 'receipt'; id: string; messageId: string; userId: UserId; status: 'delivered' | 'read'; timestamp: number };
 
 export const eventLog: MessageEvent[] = [];
+
+export type Presence = { online: boolean; lastSeen: number };
+export const userIdToPresence = new Map<UserId, Presence>();

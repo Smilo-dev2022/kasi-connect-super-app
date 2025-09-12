@@ -16,6 +16,15 @@ getMissedMessagesRouter.get('/since/:ts', (req: Request, res: Response) => {
 		}
 		return false;
 	});
-	const events = eventLog.filter((e) => e.timestamp > since);
+	const events = eventLog.filter((e) => e.timestamp > since).filter((e) => {
+		const original = messageLog.find((m) => m.id === e.messageId);
+		if (!original) return false;
+		if (original.to === userId || original.from === userId) return true;
+		if (original.scope === 'group') {
+			const group = groupIdToGroup.get(String(original.to));
+			return !!group && group.memberIds.has(userId);
+		}
+		return false;
+	});
 	res.json({ messages, events });
 });

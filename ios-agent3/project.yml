@@ -1,0 +1,27 @@
+name: Agent3
+options:
+  minimumXcodeGenVersion: 2.35.0
+configs:
+  Debug: debug
+  Release: release
+targets:
+  Agent3:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: App
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.agent3
+      DEVELOPMENT_TEAM: ""
+      SWIFT_VERSION: 5.9
+      INFOPLIST_FILE: App/Info.plist
+      CODE_SIGN_ENTITLEMENTS: App/Agent3.entitlements
+    dependencies:
+      - package: libsignal-client
+        product: LibSignalClient
+packages:
+  libsignal-client:
+    url: https://github.com/signalapp/libsignal-client.git
+    branch: main
+

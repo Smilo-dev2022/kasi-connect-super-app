@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: >
+      turnserver
+      --no-cli
+      --no-tls
+      --listening-port=3478
+      --realm=${TURN_REALM}
+      --fingerprint
+      --lt-cred-mech
+      --user=${TURN_USERNAME}:${TURN_PASSWORD}
+      --no-software-attribute
+      --no-multicast-peers
+      --no-tcp-relay
+      --log-file=stdout
+      --simple-log
+      --external-ip=${EXTERNAL_IP}
+      --min-port=49160 --max-port=49200

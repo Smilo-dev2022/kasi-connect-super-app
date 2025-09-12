@@ -17,9 +17,13 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { subscribePush } from "@/lib/push";
+import { useState } from "react";
 
 const AppHome = () => {
   const { t } = useTranslation();
+  const [pushEnabled, setPushEnabled] = useState<boolean>(false);
+  const [enabling, setEnabling] = useState<boolean>(false);
 
   const quickActions = [
     { icon: MessageCircle, label: "Chats", path: "/app/chats", color: "primary" },
@@ -111,9 +115,36 @@ const AppHome = () => {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">{t("home.recentUpdates")}</h3>
-            <Button variant="ghost" size="sm">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={pushEnabled ? "outline" : "default"}
+                size="sm"
+                disabled={enabling}
+                onClick={async () => {
+                  try {
+                    setEnabling(true);
+                    // Dev token helper: in a real app, use logged-in session token
+                    const tokenRes = await fetch("http://localhost:8080/auth/dev-token", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ userId: "dev-user", name: "Developer" })
+                    });
+                    const tokenJson = await tokenRes.json();
+                    const ok = await subscribePush(tokenJson.token);
+                    setPushEnabled(ok);
+                  } catch {
+                    setPushEnabled(false);
+                  } finally {
+                    setEnabling(false);
+                  }
+                }}
+              >
+                {pushEnabled ? "Notifications On" : enabling ? "Enabling..." : "Enable Notifications"}
+              </Button>
+              <Button variant="ghost" size="sm">
               View All <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+              </Button>
+            </div>
           </div>
           <div className="space-y-3">
             {notifications.map((notification, index) => (

@@ -4,6 +4,7 @@ import url from 'url';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket } from './state';
+import { sendPushToUser } from './push';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -92,6 +93,10 @@ function deliver(envelope: CipherMessage) {
 	if (envelope.scope === 'direct') {
 		const recipient = userIdToSocket.get(envelope.to);
 		if (recipient) send(recipient, { type: 'msg', ...envelope });
+		else {
+			// Push notify offline user
+			void sendPushToUser(envelope.to as UserId, { type: 'message', scope: 'direct', from: envelope.from, id: envelope.id, ts: envelope.timestamp });
+		}
 		const sender = userIdToSocket.get(envelope.from);
 		if (sender) send(sender, { type: 'msg', ...envelope });
 		return;
@@ -102,6 +107,9 @@ function deliver(envelope: CipherMessage) {
 		for (const memberId of group.memberIds) {
 			const ws = userIdToSocket.get(memberId);
 			if (ws) send(ws, { type: 'msg', ...envelope });
+			else if (memberId !== envelope.from) {
+				void sendPushToUser(memberId, { type: 'message', scope: 'group', groupId: envelope.to, from: envelope.from, id: envelope.id, ts: envelope.timestamp });
+			}
 		}
 	}
 }

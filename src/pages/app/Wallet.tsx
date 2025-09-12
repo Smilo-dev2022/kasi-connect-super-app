@@ -16,7 +16,10 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWalletSnapshot, type WalletSnapshot } from "@/lib/wallet";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
@@ -28,67 +31,15 @@ const Wallet = () => {
     { icon: Smartphone, label: "Airtime", color: "primary" }
   ];
 
-  const stokvels = [
-    {
-      name: "Thabo's Investment Group",
-      members: 12,
-      balance: 15600,
-      contribution: 150,
-      nextPayout: "2 days",
-      status: "active"
-    },
-    {
-      name: "Ladies Savings Circle",
-      members: 8,
-      balance: 8400,
-      contribution: 100,
-      nextPayout: "1 week",
-      status: "pending"
-    },
-    {
-      name: "Youth Development Fund",
-      members: 15,
-      balance: 22500,
-      contribution: 200,
-      nextPayout: "3 weeks",
-      status: "active"
-    }
-  ];
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery<WalletSnapshot>({
+    queryKey: ["wallet", "snapshot"],
+    queryFn: fetchWalletSnapshot,
+    refetchOnWindowFocus: false,
+  });
 
-  const transactions = [
-    {
-      type: "received",
-      amount: 150,
-      from: "Mama Sarah",
-      description: "Groceries money",
-      time: "2h ago",
-      status: "completed"
-    },
-    {
-      type: "sent",
-      amount: 50,
-      to: "Taxi fare",
-      description: "Daily transport",
-      time: "4h ago",
-      status: "completed"
-    },
-    {
-      type: "stokvel",
-      amount: 150,
-      to: "Thabo's Group",
-      description: "Monthly contribution",
-      time: "1d ago",
-      status: "completed"
-    },
-    {
-      type: "airtime",
-      amount: 30,
-      to: "Vodacom",
-      description: "Data bundle",
-      time: "2d ago",
-      status: "completed"
-    }
-  ];
+  const stokvels = useMemo(() => data?.stokvels ?? [], [data]);
+
+  const transactions = useMemo(() => data?.transactions ?? [], [data]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -108,6 +59,84 @@ const Wallet = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
+        <AppHeader title="Wallet" />
+        <div className="p-4 space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-8 w-40" />
+              </div>
+              <Skeleton className="h-10 w-20" />
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
+            </div>
+          </Card>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-9 w-28" />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <Skeleton className="h-5 w-40 mb-3" />
+                  <div className="grid grid-cols-3 gap-4">
+                    {Array.from({ length: 3 }).map((_, j) => (
+                      <Skeleton key={j} className="h-10" />
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i} className="p-4">
+                  <Skeleton className="h-10" />
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
+        <AppHeader title="Wallet" />
+        <div className="p-4 space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm text-muted-foreground mb-1">Total Balance</h2>
+                <div className="text-foreground">Could not load wallet</div>
+              </div>
+              <Button variant="outline" onClick={() => refetch()} disabled={isRefetching}>
+                Retry
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title="Wallet" />
@@ -120,7 +149,7 @@ const Wallet = () => {
               <h2 className="text-sm text-muted-foreground mb-1">Total Balance</h2>
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold text-foreground">
-                  {showBalance ? "R1,250.50" : "R****.**"}
+                  {showBalance ? `R${data?.balance.amountRand.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "R****.**"}
                 </span>
                 <Button
                   variant="ghost"
@@ -135,7 +164,7 @@ const Wallet = () => {
             <div className="text-right">
               <div className="flex items-center gap-1 text-community mb-1">
                 <TrendingUp className="w-4 h-4" />
-                <span className="text-sm">+8.5%</span>
+                <span className="text-sm">{data?.balance.monthChangePercent > 0 ? "+" : ""}{data?.balance.monthChangePercent}%</span>
               </div>
               <div className="text-xs text-muted-foreground">This month</div>
             </div>
@@ -182,16 +211,16 @@ const Wallet = () => {
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <div className="text-lg font-bold text-community">
-                      R{stokvel.balance.toLocaleString()}
+                      R{stokvel.balanceRand.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">Group Balance</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-primary">R{stokvel.contribution}</div>
+                    <div className="text-lg font-bold text-primary">R{stokvel.contributionRand}</div>
                     <div className="text-xs text-muted-foreground">My Contribution</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-secondary">{stokvel.nextPayout}</div>
+                    <div className="text-lg font-bold text-secondary">{stokvel.nextPayoutHuman}</div>
                     <div className="text-xs text-muted-foreground">Next Payout</div>
                   </div>
                 </div>
@@ -232,12 +261,12 @@ const Wallet = () => {
                         <span className={`font-bold ${
                           isReceived ? 'text-community' : 'text-foreground'
                         }`}>
-                          {isReceived ? '+' : '-'}R{transaction.amount}
+                          {isReceived ? '+' : '-'}R{transaction.amountRand}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">{transaction.description}</p>
-                        <span className="text-xs text-muted-foreground">{transaction.time}</span>
+                        <span className="text-xs text-muted-foreground">{transaction.timeHuman}</span>
                       </div>
                     </div>
                   </div>

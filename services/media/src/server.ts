@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import helmet from 'helmet';
 import { config } from './config';
 import uploadsRouter from './routes/uploads';
 import mediaRouter from './routes/media';
@@ -10,6 +11,7 @@ import { ensureBucketExists } from './s3';
 const app = express();
 
 app.use(cors({ origin: config.corsOrigin, credentials: false }));
+app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
@@ -37,6 +39,19 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
   res.status(statusCode).json({ error: message });
 });
+
+// Enforce HTTPS when behind a proxy in production
+if (config.nodeEnv === 'production') {
+  app.enable('trust proxy');
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const proto = req.header('x-forwarded-proto');
+    if (proto && proto !== 'https') {
+      const host = req.header('x-forwarded-host') || req.header('host');
+      return res.redirect(301, `https://${host}${req.originalUrl}`);
+    }
+    return next();
+  });
+}
 
 function start() {
   ensureBucketExists().catch((err) => {

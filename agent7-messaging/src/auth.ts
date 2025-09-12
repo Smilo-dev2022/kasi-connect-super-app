@@ -33,8 +33,19 @@ export const authRouter = Router();
 const DevTokenBody = z.object({ userId: z.string().min(1), name: z.string().optional() });
 
 authRouter.post('/dev-token', (req: Request, res: Response) => {
+	if (process.env.NODE_ENV === 'production') {
+		return res.status(403).json({ error: 'endpoint disabled in production' });
+	}
 	const parsed = DevTokenBody.safeParse(req.body);
 	if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 	const token = jwt.sign(parsed.data, jwtSecret, { expiresIn: '7d' });
 	res.json({ token });
 });
+
+if (process.env.NODE_ENV === 'production') {
+	if (!process.env.JWT_SECRET || jwtSecret === 'devsecret') {
+		// eslint-disable-next-line no-console
+		console.error('JWT_SECRET must be set in production');
+		process.exit(1);
+	}
+}

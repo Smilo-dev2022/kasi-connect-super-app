@@ -13,9 +13,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/helmet": "^0.0.48",
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "express": "^5.1.0",
+    "helmet": "^8.1.0",
     "uuid": "^13.0.0",
     "zod": "^4.1.8"
   },

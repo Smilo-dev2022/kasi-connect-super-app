@@ -18,4 +18,14 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+    # Production guardrails
+    if (settings.base_url.startswith("https://") is False) and (
+        (settings.base_url.startswith("http://localhost") is False)
+        and (settings.base_url.startswith("http://127.0.0.1") is False)
+    ):
+        # In non-local environments, require https base_url
+        raise RuntimeError("events_service base_url must be https in production")
+    if settings.secret_key == "dev-secret-change" and not settings.base_url.startswith("http://"):
+        raise RuntimeError("events_service secret_key must be set in production")
+    return settings

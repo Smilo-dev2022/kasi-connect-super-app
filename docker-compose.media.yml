@@ -34,6 +34,23 @@ services:
     depends_on:
       - minio
 
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      - ACME_AGREE=true
+    volumes:
+      - ./ops/tls/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - media
+
 volumes:
   minio-data: {}
+  caddy-data: {}
+  caddy-config: {}
 

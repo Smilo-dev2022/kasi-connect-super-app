@@ -1,0 +1,24 @@
+{
+    # Global options block. Email is used for Let's Encrypt notifications
+    email you@example.com
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+# Replace example.com with your domain
+example.com {
+    encode gzip
+    log
+    @http { protocol http }
+    redir @http https://{host}{uri}
+
+    reverse_proxy media:4008
+}
+
+# Local development (self-signed / internal CA) example
+localhost {
+    encode gzip
+    log
+    tls internal
+    reverse_proxy media:4008
+}
+

@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local TLS and secrets
+certs/
+.env
+.env.*
+!.env.example

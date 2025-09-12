@@ -1,0 +1,5 @@
+body{font-family:system-ui,Arial,sans-serif;margin:24px;background:#0b0d10;color:#e6e6e6}
+header h1{margin:0 0 16px}
+.report{border:1px solid #2a2d33;border-radius:8px;padding:12px;margin:8px 0;background:#12151a}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.content{margin-top:8px;color:#cbd5e1}

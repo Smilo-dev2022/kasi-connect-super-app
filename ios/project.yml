@@ -1,0 +1,17 @@
+name: CommunityApp
+options:
+  bundleIdPrefix: com.example
+  xcodeVersion: "15.0"
+targets:
+  CommunityApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_NAME: CommunityApp
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.CommunityApp
+        INFOPLIST_FILE: Support/Info.plist
+        SWIFT_VERSION: "5.9"

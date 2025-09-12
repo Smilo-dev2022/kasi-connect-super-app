@@ -3,6 +3,8 @@ plugins {
 	id("org.jetbrains.kotlin.android")
 }
 
+val hasGoogleServices = file("google-services.json").exists()
+
 android {
 	namespace = "com.example.chatapp"
 	compileSdk = 35
@@ -15,6 +17,9 @@ android {
 		versionName = "1.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+		// Gate FCM components in manifest
+		manifestPlaceholders["fcmEnabled"] = hasGoogleServices.toString()
 	}
 
 	buildTypes {

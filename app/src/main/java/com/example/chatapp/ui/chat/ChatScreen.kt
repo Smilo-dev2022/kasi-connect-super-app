@@ -1,10 +1,13 @@
 package com.example.chatapp.ui.chat
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -13,8 +16,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,7 +26,14 @@ fun ChatScreen(groupId: String, viewModel: ChatViewModel, onBack: () -> Unit) {
 	var input by remember { mutableStateOf("") }
 
 	Column(modifier = Modifier.fillMaxSize()) {
-		TopAppBar(title = { Text("Chat") }, navigationIcon = {})
+		TopAppBar(
+			title = { Text("Chat") },
+			navigationIcon = {
+				IconButton(onClick = onBack) {
+					Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+				}
+			}
+		)
 		LazyColumn(
 			modifier = Modifier.weight(1f).fillMaxWidth().padding(8.dp),
 			reverseLayout = false

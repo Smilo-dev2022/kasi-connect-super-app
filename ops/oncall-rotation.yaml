@@ -1,0 +1,49 @@
+# Week 6 On-Call Rotation (Agents 1–4)
+timezone: Africa/Johannesburg
+daily_triage_time: "10:00"
+eod_status_time: "17:30"
+contact_channels:
+  incidents: "#incidents"
+  engineering: "#eng"
+  launch: "#launch"
+schedule:
+  - day: 36
+    date: 2025-09-12
+    primary: "Agent 1"
+    secondary: "Agent 2"
+  - day: 37
+    date: 2025-09-13
+    primary: "Agent 2"
+    secondary: "Agent 3"
+  - day: 38
+    date: 2025-09-14
+    primary: "Agent 3"
+    secondary: "Agent 4"
+  - day: 39
+    date: 2025-09-15
+    primary: "Agent 4"
+    secondary: "Agent 1"
+  - day: 40
+    date: 2025-09-16
+    primary: "Agent 1"
+    secondary: "Agent 3"
+  - day: 41
+    date: 2025-09-17
+    primary: "Agent 2"
+    secondary: "Agent 4"
+  - day: 42
+    date: 2025-09-18
+    primary: "Agent 3"
+    secondary: "Agent 1"
+
+sla:
+  p0:
+    acknowledge_minutes: 15
+    assign_minutes: 60
+    mitigation_hours: 4
+    fix_hours: 24
+  p1:
+    acknowledge_minutes: 60
+    assign_minutes: 120
+    fix_hours: 72
+

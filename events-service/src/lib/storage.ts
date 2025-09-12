@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
+import fs from 'fs';
+import path from 'path';
 import {
   Event,
   EventSchema,
@@ -15,8 +17,65 @@ import {
   UpdateRsvpInput,
 } from '../models/rsvp';
 
-const events: Event[] = [];
-const rsvps: Rsvp[] = [];
+const dataDir = path.resolve(process.cwd(), 'data');
+const eventsFile = path.join(dataDir, 'events.json');
+const rsvpsFile = path.join(dataDir, 'rsvps.json');
+
+function ensureDataDirSync(): void {
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+  } catch {}
+}
+
+function atomicWriteFileSync(filePath: string, data: string): void {
+  ensureDataDirSync();
+  const tmpPath = `${filePath}.tmp`;
+  fs.writeFileSync(tmpPath, data);
+  fs.renameSync(tmpPath, filePath);
+}
+
+function readJsonArrayFileSync<T>(filePath: string): T[] {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed as T[];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+let events: Event[] = [];
+let rsvps: Rsvp[] = [];
+
+function loadDataSync(): void {
+  const rawEvents = readJsonArrayFileSync<any>(eventsFile);
+  const validatedEvents: Event[] = [];
+  for (const item of rawEvents) {
+    const parsed = EventSchema.safeParse(item);
+    if (parsed.success) validatedEvents.push(parsed.data);
+  }
+  events = validatedEvents;
+
+  const rawRsvps = readJsonArrayFileSync<any>(rsvpsFile);
+  const validatedRsvps: Rsvp[] = [];
+  for (const item of rawRsvps) {
+    const parsed = RsvpSchema.safeParse(item);
+    if (parsed.success) validatedRsvps.push(parsed.data);
+  }
+  rsvps = validatedRsvps;
+}
+
+function saveEventsSync(): void {
+  atomicWriteFileSync(eventsFile, JSON.stringify(events, null, 2));
+}
+
+function saveRsvpsSync(): void {
+  atomicWriteFileSync(rsvpsFile, JSON.stringify(rsvps, null, 2));
+}
+
+// Load once on module import
+loadDataSync();
 
 export function listEvents(): Event[] {
   return [...events].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -35,6 +94,7 @@ export function createEvent(input: NewEventInput): Event {
     ...parsed,
   });
   events.push(event);
+  saveEventsSync();
   return event;
 }
 
@@ -57,6 +117,7 @@ export function updateEvent(eventId: string, input: UpdateEventInput): Event {
   if (idx !== -1) {
     events[idx] = updated;
   }
+  saveEventsSync();
   return updated;
 }
 
@@ -64,12 +125,15 @@ export function deleteEvent(eventId: string): boolean {
   const index = events.findIndex((e) => e.id === eventId);
   if (index === -1) return false;
   events.splice(index, 1);
+  // Cascade delete RSVPs
   for (let i = rsvps.length - 1; i >= 0; i--) {
     const item = rsvps[i];
     if (item && item.eventId === eventId) {
       rsvps.splice(i, 1);
     }
   }
+  saveEventsSync();
+  saveRsvpsSync();
   return true;
 }
 
@@ -97,6 +161,7 @@ export function createRsvp(input: NewRsvpInput): Rsvp {
     ...parsed,
   });
   rsvps.push(rsvp);
+  saveRsvpsSync();
   return rsvp;
 }
 
@@ -112,6 +177,7 @@ export function updateRsvp(rsvpId: string, input: UpdateRsvpInput): Rsvp {
     updatedAt: new Date().toISOString(),
   });
   rsvps[index] = updated;
+  saveRsvpsSync();
   return updated;
 }
 
@@ -119,5 +185,6 @@ export function deleteRsvp(rsvpId: string): boolean {
   const index = rsvps.findIndex((r) => r.id === rsvpId);
   if (index === -1) return false;
   rsvps.splice(index, 1);
+  saveRsvpsSync();
   return true;
 }

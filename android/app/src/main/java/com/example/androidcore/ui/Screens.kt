@@ -22,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.androidcore.data.AuthRepository
 import com.example.androidcore.data.Chat
 import com.example.androidcore.data.ChatRepository
@@ -72,9 +74,18 @@ fun LoginScreen(authRepository: AuthRepository, onLoggedIn: () -> Unit) {
 }
 
 @Composable
-fun ChatsScreen(chatRepository: ChatRepository, onOpenChat: (String) -> Unit) {
+fun ChatsScreen(chatRepository: ChatRepository, onOpenChat: (String) -> Unit, onOpenCreateGroup: () -> Unit) {
 	val chats by chatRepository.getChats().collectAsState(initial = emptyList())
-	Scaffold(topBar = { TopAppBar(title = { Text("Chats") }) }) { inner ->
+	Scaffold(topBar = {
+		TopAppBar(
+			title = { Text("Chats") },
+			actions = {
+				IconButton(onClick = onOpenCreateGroup) {
+					Icon(painter = painterResource(android.R.drawable.ic_input_add), contentDescription = "New group")
+				}
+			}
+		)
+	}) { inner ->
 		LazyColumn(
 			modifier = Modifier
 				.fillMaxSize()
@@ -132,6 +143,15 @@ fun ChatDetailScreen(chatId: String, chatRepository: ChatRepository, onBack: () 
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 				verticalAlignment = Alignment.CenterVertically
 			) {
+				IconButton(onClick = {
+					scope.launch {
+						val uploaded = chatRepository.pickAndUploadMedia()
+						chatRepository.sendMediaMessage(chatId, uploaded, caption = input.trim().ifBlank { null })
+						setInput("")
+					}
+				}) {
+					Icon(painter = painterResource(android.R.drawable.ic_menu_add), contentDescription = "Attach")
+				}
 				OutlinedTextField(
 					value = input,
 					onValueChange = setInput,
@@ -171,7 +191,56 @@ fun MessageBubble(message: Message) {
 					)
 					.padding(12.dp)
 			) {
-				Text(text = message.text)
+				if (message.mediaUrl != null) {
+					Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+						AsyncImage(
+							model = message.mediaUrl,
+							contentDescription = "media",
+							modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)
+						)
+						if (message.text.isNotBlank()) Text(text = message.text)
+					}
+				} else {
+					Text(text = message.text)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+fun CreateGroupScreen(chatRepository: ChatRepository, onCreated: (String) -> Unit, onCancel: () -> Unit) {
+	val scope = rememberCoroutineScope()
+	val (title, setTitle) = remember { mutableStateOf("") }
+	val (membersInput, setMembersInput) = remember { mutableStateOf("") }
+	var errorText by remember { mutableStateOf<String?>(null) }
+	Scaffold(topBar = { TopAppBar(title = { Text("New group") }) }) { inner ->
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(inner)
+				.padding(16.dp),
+			verticalArrangement = Arrangement.spacedBy(12.dp)
+		) {
+			OutlinedTextField(value = title, onValueChange = setTitle, label = { Text("Group name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+			OutlinedTextField(value = membersInput, onValueChange = setMembersInput, label = { Text("Members (comma-separated emails)") }, modifier = Modifier.fillMaxWidth())
+			if (errorText != null) {
+				Text(text = errorText ?: "", color = MaterialTheme.colorScheme.error)
+			}
+			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+				Button(onClick = onCancel) { Text("Cancel") }
+				Button(onClick = {
+					val members = membersInput.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+					scope.launch {
+						try {
+							val chatId = chatRepository.createGroup(title, members)
+							errorText = null
+							onCreated(chatId)
+						} catch (t: Throwable) {
+							errorText = t.message
+						}
+					}
+				}, enabled = title.isNotBlank()) { Text("Create") }
 			}
 		}
 	}

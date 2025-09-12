@@ -16,8 +16,11 @@ import {
   Image as ImageIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const AppHome = () => {
+  const { t } = useTranslation();
+
   const quickActions = [
     { icon: MessageCircle, label: "Chats", path: "/app/chats", color: "primary" },
     { icon: Wallet, label: "Wallet", path: "/app/wallet", color: "community" },
@@ -66,7 +69,7 @@ const AppHome = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
-      <AppHeader title="KasiLink" />
+      <AppHeader title={t("app.name")} />
       
       <div className="p-4 space-y-6">
         {/* Welcome Section */}
@@ -74,14 +77,14 @@ const AppHome = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Sawubona, Thabo! 👋
+                {t("home.hello", { name: "Thabo" })}
               </h2>
               <p className="text-muted-foreground">
-                Your community is active today
+                {t("home.communityActive")}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">Balance</div>
+              <div className="text-sm text-muted-foreground">{t("home.balance")}</div>
               <div className="text-2xl font-bold text-community">R1,250</div>
             </div>
           </div>
@@ -89,7 +92,7 @@ const AppHome = () => {
 
         {/* Quick Actions */}
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t("home.quickActions")}</h3>
           <div className="grid grid-cols-3 gap-3">
             {quickActions.map((action, index) => (
               <Link key={index} to={action.path}>
@@ -107,7 +110,7 @@ const AppHome = () => {
         {/* Notifications */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Recent Updates</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("home.recentUpdates")}</h3>
             <Button variant="ghost" size="sm">
               View All <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
@@ -137,19 +140,20 @@ const AppHome = () => {
 
         {/* Community Stats */}
         <Card className="p-6 bg-gradient-to-r from-community/10 to-primary/10 border-community/20">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Your Community</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">{t("home.yourCommunity")}
+          </h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-community">12</div>
-              <div className="text-xs text-muted-foreground">Active Groups</div>
+              <div className="text-xs text-muted-foreground">{t("home.activeGroups")}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-primary">5</div>
-              <div className="text-xs text-muted-foreground">Stokvels</div>
+              <div className="text-xs text-muted-foreground">{t("home.stokvels")}</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-secondary">8</div>
-              <div className="text-xs text-muted-foreground">Local Shops</div>
+              <div className="text-xs text-muted-foreground">{t("home.localShops")}</div>
             </div>
           </div>
         </Card>

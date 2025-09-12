@@ -1,6 +1,7 @@
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Search, Menu, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 interface AppHeaderProps {
   title: string;
@@ -9,6 +10,13 @@ interface AppHeaderProps {
 }
 
 const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppHeaderProps) => {
+  const { i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const next = i18n.language?.startsWith("zu") ? "en" : "zu";
+    i18n.changeLanguage(next);
+  };
+
   return (
     <header className="bg-white border-b border-border px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -24,6 +32,11 @@ const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppH
             <Search className="w-5 h-5" />
           </Button>
         )}
+
+        <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-1">
+          <Globe className="w-4 h-4" />
+          {i18n.language?.startsWith("zu") ? "Zulu" : "English"}
+        </Button>
         
         {showNotifications && (
           <Button variant="ghost" size="icon" className="relative">

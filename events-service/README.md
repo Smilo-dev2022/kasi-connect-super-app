@@ -36,3 +36,8 @@ npm run dev
 
 - Uses in-memory arrays. Data resets on restart.
 - Reminder scheduler logs reminders around the minute a reminder should fire.
+
+## Security
+
+- Set `ENFORCE_HTTPS=true` in production to force HTTPS via reverse proxy headers.
+- Security headers are applied via Helmet.

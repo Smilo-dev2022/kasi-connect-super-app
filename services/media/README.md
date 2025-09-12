@@ -29,3 +29,8 @@ MinIO console at `http://localhost:9001` (minioadmin/minioadmin).
 ## Environment
 
 See `.env.example`.
+
+## Security
+
+- Set `ENFORCE_HTTPS=true` in production to force HTTPS via reverse proxy headers.
+- Security headers are applied via Helmet.

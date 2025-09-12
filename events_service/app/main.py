@@ -7,6 +7,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResp
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware import Middleware
 from sqlmodel import select, Session
 
 from slowapi import Limiter, _rate_limiter
@@ -21,7 +24,19 @@ from .settings import get_settings
 from .utils import generate_qr_base64_png, build_event_ics
 
 
-app = FastAPI(title="Events Service")
+import os
+
+enforce_https = (os.environ.get("ENFORCE_HTTPS") or "false").lower() == "true"
+allowed_hosts_env = os.environ.get("ALLOWED_HOSTS")
+middleware: list[Middleware] = []
+if enforce_https:
+    middleware.append(Middleware(HTTPSRedirectMiddleware))
+if allowed_hosts_env:
+    allowed_hosts = [h.strip() for h in allowed_hosts_env.split(",") if h.strip()]
+    if allowed_hosts:
+        middleware.append(Middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts))
+
+app = FastAPI(title="Events Service", middleware=middleware)
 app.mount("/static", StaticFiles(directory="/workspace/events_service/static"), name="static")
 templates = Jinja2Templates(directory="/workspace/events_service/templates")
 settings = get_settings()
@@ -39,6 +54,16 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limiter)
 app.add_middleware(SlowAPIMiddleware)
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    if enforce_https:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 
 @app.on_event("startup")

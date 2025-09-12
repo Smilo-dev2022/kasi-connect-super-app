@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import { config } from './config';
@@ -8,6 +9,21 @@ import thumbnailRouter from './routes/thumbnail';
 import { ensureBucketExists } from './s3';
 
 const app = express();
+app.set('trust proxy', 1);
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+
+const enforceHttps = (process.env.ENFORCE_HTTPS || 'false').toLowerCase() === 'true';
+if (enforceHttps) {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') return next();
+    const host = (req.headers['x-forwarded-host'] as string) || req.headers.host;
+    return res.redirect(308, `https://${host}${req.originalUrl}`);
+  });
+}
 
 app.use(cors({ origin: config.corsOrigin, credentials: false }));
 app.use(express.json({ limit: '1mb' }));

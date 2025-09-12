@@ -37,6 +37,11 @@ npm run build
 npm start
 ```
 
+## Security
+
+- Set `ENFORCE_HTTPS=true` in production to force HTTPS via reverse proxy headers.
+- Security headers are applied via Helmet.
+
 ## Auth
 
 Use JWTs with a `userId` claim. For quick local testing there is a dev endpoint to mint a token:

@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import fastifyHelmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import rateLimit from '@fastify/rate-limit';
 import fastifyJwt from '@fastify/jwt';
@@ -7,6 +8,23 @@ import { ulid } from 'ulid';
 import { createHash, timingSafeEqual } from 'node:crypto';
 
 const server = Fastify({ logger: true });
+// Security headers
+server.register(fastifyHelmet, {
+  contentSecurityPolicy: false
+});
+// Enforce HTTPS behind proxy if enabled
+const enforceHttps = (process.env.ENFORCE_HTTPS || 'false').toLowerCase() === 'true';
+if (enforceHttps) {
+  server.addHook('onRequest', async (req, reply) => {
+    const upgrade = String(req.headers['upgrade'] || '').toLowerCase();
+    if (upgrade === 'websocket') return;
+    const proto = req.headers['x-forwarded-proto'] as string | undefined;
+    if (proto !== 'https') {
+      const host = (req.headers['x-forwarded-host'] as string) || (req.headers['host'] as string);
+      reply.redirect(308, `https://${host}${req.url}`);
+    }
+  });
+}
 server.register(websocket);
 server.register(rateLimit, {
   max: 100,

@@ -12,6 +12,7 @@ import Wallet from "./pages/app/Wallet";
 import Rooms from "./pages/app/Rooms";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
+import Media from "./pages/app/Media";
 import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="rooms" element={<Rooms />} />
             <Route path="events" element={<Events />} />
             <Route path="business" element={<Business />} />
+            <Route path="media" element={<Media />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

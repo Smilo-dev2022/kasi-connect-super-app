@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { Home, MessageCircle, Wallet, Users, Calendar, Store } from "lucide-react";
+import { Home, MessageCircle, Wallet, Users, Calendar, Store, Search } from "lucide-react";
 
 const Navigation = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/app" },
     { icon: MessageCircle, label: "Chats", path: "/app/chats" },
+    { icon: Search, label: "Search", path: "/app/search" },
     { icon: Wallet, label: "Wallet", path: "/app/wallet" },
     { icon: Users, label: "Rooms", path: "/app/rooms" },
     { icon: Calendar, label: "Events", path: "/app/events" },

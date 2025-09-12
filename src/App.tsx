@@ -12,6 +12,7 @@ import Wallet from "./pages/app/Wallet";
 import Rooms from "./pages/app/Rooms";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
+import Search from "./pages/app/Search";
 import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<AppHome />} />
             <Route path="chats" element={<Chats />} />
+            <Route path="search" element={<Search />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="rooms" element={<Rooms />} />
             <Route path="events" element={<Events />} />

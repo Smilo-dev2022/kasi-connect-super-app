@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import select, Session
 
 from slowapi import Limiter, _rate_limiter
@@ -24,6 +25,14 @@ app = FastAPI(title="Events Service")
 app.mount("/static", StaticFiles(directory="/workspace/events_service/static"), name="static")
 templates = Jinja2Templates(directory="/workspace/events_service/templates")
 settings = get_settings()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
@@ -58,6 +67,50 @@ def on_startup() -> None:
 def index(request: Request, session=Depends(get_session)):
     events = session.exec(select(Event).where(Event.is_published == True)).all()
     return templates.TemplateResponse("index.html", {"request": request, "events": events})
+
+
+# JSON API
+@app.get("/api/events")
+@limiter.limit("60/minute")
+def api_events(session=Depends(get_session)):
+    events = session.exec(select(Event).where(Event.is_published == True)).all()
+    def serialize(e: Event):
+        return {
+            "id": e.id,
+            "slug": e.slug,
+            "title": e.title,
+            "description": e.description,
+            "location": e.location,
+            "start_at": e.start_at.isoformat(),
+            "end_at": e.end_at.isoformat() if e.end_at else None,
+            "capacity": e.capacity,
+            "is_published": e.is_published,
+        }
+    return {"ok": True, "events": [serialize(e) for e in events]}
+
+
+@app.get("/api/events/{slug}")
+@limiter.limit("60/minute")
+def api_event_detail(slug: str, session=Depends(get_session)):
+    event = session.exec(select(Event).where(Event.slug == slug)).first()
+    if not event or not event.is_published:
+        raise HTTPException(404, "Event not found")
+    rsvp_count = len(session.exec(select(RSVP).where(RSVP.event_id == event.id)).all())
+    return {
+        "ok": True,
+        "event": {
+            "id": event.id,
+            "slug": event.slug,
+            "title": event.title,
+            "description": event.description,
+            "location": event.location,
+            "start_at": event.start_at.isoformat(),
+            "end_at": event.end_at.isoformat() if event.end_at else None,
+            "capacity": event.capacity,
+            "is_published": event.is_published,
+            "rsvp_count": rsvp_count,
+        },
+    }
 
 
 @app.get("/events/{slug}", response_class=HTMLResponse)
@@ -125,6 +178,49 @@ def create_rsvp(
     return RedirectResponse(url=f"/rsvp/{rsvp.id}/confirm", status_code=303)
 
 
+@app.post("/api/events/{slug}/rsvp")
+@limiter.limit("10/minute")
+def api_create_rsvp(
+    slug: str,
+    name: str = Form(...),
+    email: str = Form(...),
+    session=Depends(get_session),
+):
+    event = session.exec(select(Event).where(Event.slug == slug)).first()
+    if not event or not event.is_published:
+        raise HTTPException(404, "Event not found")
+
+    if event.capacity is not None:
+        count = session.exec(select(RSVP).where(RSVP.event_id == event.id)).all()
+        if len(count) >= event.capacity:
+            raise HTTPException(400, "Event is at capacity")
+
+    existing = session.exec(
+        select(RSVP).where(RSVP.event_id == event.id).where(RSVP.email == email)
+    ).first()
+    if existing:
+        ticket = session.exec(select(Ticket).where(Ticket.rsvp_id == existing.id)).first()
+        return {
+            "ok": True,
+            "rsvp_id": existing.id,
+            "ticket_id": ticket.id if ticket else None,
+            "token": ticket.token if ticket else None,
+        }
+
+    rsvp = RSVP(event_id=event.id, name=name, email=email, status="confirmed")
+    session.add(rsvp)
+    session.flush()
+
+    payload = {"r": rsvp.id, "e": event.id, "ts": datetime.utcnow().isoformat()}
+    token = sign_ticket_payload(payload)
+
+    ticket = Ticket(rsvp_id=rsvp.id, token=token, status="valid")
+    session.add(ticket)
+    session.commit()
+
+    return {"ok": True, "rsvp_id": rsvp.id, "ticket_id": ticket.id, "token": token}
+
+
 @app.get("/rsvp/{rsvp_id}/confirm", response_class=HTMLResponse)
 @limiter.limit("60/minute")
 def rsvp_confirm(rsvp_id: int, request: Request, session=Depends(get_session)):
@@ -158,6 +254,37 @@ def ticket_page(ticket_id: int, request: Request, session=Depends(get_session)):
 @limiter.limit("60/minute")
 def scanner_page(request: Request):
     return templates.TemplateResponse("scanner.html", {"request": request})
+
+
+@app.get("/api/tickets/{ticket_id}")
+@limiter.limit("60/minute")
+def api_ticket(ticket_id: int, session=Depends(get_session)):
+    ticket = session.get(Ticket, ticket_id)
+    if not ticket:
+        raise HTTPException(404, "Ticket not found")
+    rsvp = session.get(RSVP, ticket.rsvp_id)
+    event = session.get(Event, rsvp.event_id) if rsvp else None
+    return {
+        "ok": True,
+        "ticket": {
+            "id": ticket.id,
+            "rsvp_id": ticket.rsvp_id,
+            "token": ticket.token,
+            "issued_at": ticket.issued_at.isoformat(),
+            "checked_in_at": ticket.checked_in_at.isoformat() if ticket.checked_in_at else None,
+            "status": ticket.status,
+        },
+        "event": {
+            "id": event.id,
+            "slug": event.slug,
+            "title": event.title,
+        } if event else None,
+        "rsvp": {
+            "id": rsvp.id,
+            "name": rsvp.name,
+            "email": rsvp.email,
+        } if rsvp else None,
+    }
 
 
 @app.get("/checkin/verify")

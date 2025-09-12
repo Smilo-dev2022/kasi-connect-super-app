@@ -50,3 +50,26 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Development
+
+- Install: `npm ci`
+- Start: `npm run dev`
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+- Test: `npm run test` (watch: `npm run test:watch`, coverage: `npm run test:coverage`)
+- Build: `npm run build`
+
+## CI/CD
+
+GitHub Actions runs on pushes and PRs to `main`:
+
+- Lint, typecheck, tests with coverage
+- Build production bundle
+- Uploads build and coverage artifacts
+
+Releases on `main` are automated via semantic-release.
+
+## Contributing & Releases
+
+- See `CONTRIBUTING.md` for guidelines
+- See `RELEASE.md` for release workflow

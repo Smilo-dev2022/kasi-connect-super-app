@@ -9,6 +9,7 @@ import { authRouter, requireJwt } from './auth';
 import { keysRouter } from './keys';
 import { groupsRouter } from './groups';
 import { getMissedMessagesRouter } from './messages_http';
+import { presenceRouter } from './presence';
 import { safetyRouter } from './safety';
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use('/auth', authRouter);
 app.use('/keys', requireJwt, keysRouter);
 app.use('/groups', requireJwt, groupsRouter);
 app.use('/messages', requireJwt, getMissedMessagesRouter);
+app.use('/presence', requireJwt, presenceRouter);
 app.use('/safety', requireJwt, safetyRouter);
 
 const server = http.createServer(app);

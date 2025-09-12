@@ -17,6 +17,7 @@ groupsRouter.post('/', (req: Request, res: Response) => {
 		name: parsed.data.name,
 		ownerId: req.user.userId,
 		memberIds: new Set([req.user.userId, ...parsed.data.members]),
+		adminIds: new Set(),
 		createdAt: Date.now(),
 		tags: parsed.data.tags,
 	};
@@ -26,11 +27,17 @@ groupsRouter.post('/', (req: Request, res: Response) => {
 
 const AddMembersBody = z.object({ members: z.array(z.string().min(1)).min(1) });
 
+function isOwnerOrAdmin(userId: string, group: Group): boolean {
+	if (group.ownerId === userId) return true;
+	if (group.adminIds && group.adminIds.has(userId)) return true;
+	return false;
+}
+
 groupsRouter.post('/:groupId/members', (req: Request, res: Response) => {
 	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
 	const group = groupIdToGroup.get(req.params.groupId);
 	if (!group) return res.status(404).json({ error: 'not found' });
-	if (group.ownerId !== req.user.userId) return res.status(403).json({ error: 'forbidden' });
+	if (!isOwnerOrAdmin(req.user.userId, group)) return res.status(403).json({ error: 'forbidden' });
 	const parsed = AddMembersBody.safeParse(req.body);
 	if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 	for (const m of parsed.data.members) group.memberIds.add(m);
@@ -41,7 +48,12 @@ groupsRouter.delete('/:groupId/members/:userId', (req: Request, res: Response) =
 	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
 	const group = groupIdToGroup.get(req.params.groupId);
 	if (!group) return res.status(404).json({ error: 'not found' });
-	if (group.ownerId !== req.user.userId) return res.status(403).json({ error: 'forbidden' });
+	if (!isOwnerOrAdmin(req.user.userId, group)) return res.status(403).json({ error: 'forbidden' });
+	if (group.ownerId === req.params.userId) return res.status(400).json({ error: 'cannot_remove_owner' });
+	if (group.adminIds && group.adminIds.has(req.params.userId)) {
+		if (group.ownerId !== req.user.userId) return res.status(403).json({ error: 'only_owner_can_remove_admin' });
+		group.adminIds.delete(req.params.userId);
+	}
 	group.memberIds.delete(req.params.userId);
 	res.json({ ok: true, members: [...group.memberIds] });
 });
@@ -49,5 +61,31 @@ groupsRouter.delete('/:groupId/members/:userId', (req: Request, res: Response) =
 groupsRouter.get('/:groupId', (req: Request, res: Response) => {
 	const group = groupIdToGroup.get(req.params.groupId);
 	if (!group) return res.status(404).json({ error: 'not found' });
-	res.json({ groupId: group.groupId, name: group.name, ownerId: group.ownerId, members: [...group.memberIds], createdAt: group.createdAt });
+	res.json({ groupId: group.groupId, name: group.name, ownerId: group.ownerId, members: [...group.memberIds], admins: [...(group.adminIds || [])], createdAt: group.createdAt });
+});
+
+// Admin management (owner only)
+const AdminsBody = z.object({ admins: z.array(z.string().min(1)).min(1) });
+
+groupsRouter.post('/:groupId/admins', (req: Request, res: Response) => {
+	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
+	const group = groupIdToGroup.get(req.params.groupId);
+	if (!group) return res.status(404).json({ error: 'not found' });
+	if (group.ownerId !== req.user.userId) return res.status(403).json({ error: 'forbidden' });
+	const parsed = AdminsBody.safeParse(req.body);
+	if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+	if (!group.adminIds) group.adminIds = new Set();
+	for (const a of parsed.data.admins) {
+		if (a !== group.ownerId && group.memberIds.has(a)) group.adminIds.add(a);
+	}
+	res.json({ ok: true, admins: [...group.adminIds] });
+});
+
+groupsRouter.delete('/:groupId/admins/:userId', (req: Request, res: Response) => {
+	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
+	const group = groupIdToGroup.get(req.params.groupId);
+	if (!group) return res.status(404).json({ error: 'not found' });
+	if (group.ownerId !== req.user.userId) return res.status(403).json({ error: 'forbidden' });
+	if (group.adminIds) group.adminIds.delete(req.params.userId);
+	return res.json({ ok: true, admins: [...(group.adminIds || [])] });
 });

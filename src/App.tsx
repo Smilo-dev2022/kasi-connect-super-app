@@ -13,6 +13,10 @@ import Rooms from "./pages/app/Rooms";
 import Events from "./pages/app/Events";
 import Business from "./pages/app/Business";
 import Navigation from "./components/Navigation";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Conversation from "./pages/app/Conversation";
 
 const queryClient = new QueryClient();
 
@@ -24,13 +28,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/app" element={<AppLayout />}>
-            <Route index element={<AppHome />} />
-            <Route path="chats" element={<Chats />} />
-            <Route path="wallet" element={<Wallet />} />
-            <Route path="rooms" element={<Rooms />} />
-            <Route path="events" element={<Events />} />
-            <Route path="business" element={<Business />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<AppHome />} />
+              <Route path="chats" element={<Chats />} />
+              <Route path="wallet" element={<Wallet />} />
+              <Route path="rooms" element={<Rooms />} />
+              <Route path="events" element={<Events />} />
+              <Route path="business" element={<Business />} />
+              <Route path="conversation/:id" element={<Conversation />} />
+            </Route>
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

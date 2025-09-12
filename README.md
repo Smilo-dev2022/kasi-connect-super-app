@@ -1,3 +1,25 @@
+# Township Messenger Monorepo
+
+This workspace contains all services and apps for the township messenger project.
+
+## Packages
+
+- `backend`: TypeScript Fastify service (HTTP + WebSocket) with Postgres and Redis clients
+- `web-admin`: Next.js admin dashboard for ward verification and operations
+- `mobile/android`: Android app shell (Kotlin) with libsignal integration (planned)
+- `mobile/ios`: iOS app shell (Swift) with libsignal integration (planned)
+- `infra`: Infrastructure as code (Docker Compose for local, Terraform skeleton)
+- `docs`: Documentation
+
+## Quick start (local, minimal)
+
+1. Copy `.env.example` to `.env` and adjust if needed
+2. Start services (Postgres, Redis, MinIO) once `docker-compose.yml` is added
+3. Backend: `cd backend && npm install && npm run dev`
+4. Web-admin: `cd web-admin && npm install && npm run dev`
+
+See `docs/SETUP.md` for details.
+
 # Welcome to the Kasi chat Project
 
 ## Project info

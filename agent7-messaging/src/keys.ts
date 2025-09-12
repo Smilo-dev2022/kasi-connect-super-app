@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { IdentityRecord, OneTimePreKey, userIdToIdentity, userIdToPrekeys } from './state';
+import { IdentityRecord, OneTimePreKey, userIdToIdentity, userIdToPrekeys, keyTransparencyLog } from './state';
 
 export const keysRouter = Router();
 
@@ -17,6 +17,9 @@ keysRouter.post('/identity', (req: Request, res: Response) => {
 		updatedAt: Date.now(),
 	};
 	userIdToIdentity.set(req.user.userId, record);
+	const history = keyTransparencyLog.get(req.user.userId) || [];
+	history.push(record);
+	keyTransparencyLog.set(req.user.userId, history);
 	return res.json({ ok: true });
 });
 
@@ -39,4 +42,11 @@ keysRouter.get('/prekeys/:userId', (req: Request, res: Response) => {
 	userIdToPrekeys.set(targetId, list);
 	const identity = userIdToIdentity.get(targetId);
 	return res.json({ identityKey: identity?.identityKey, signedPreKey: identity?.signedPreKey, oneTimePreKey: one });
+});
+
+// Key transparency history (append-only)
+keysRouter.get('/transparency/:userId', (_req: Request, res: Response) => {
+	const userId = String(_req.params.userId);
+	const history = keyTransparencyLog.get(userId) || [];
+	return res.json({ userId, history });
 });

@@ -99,6 +99,52 @@ const resources = {
       },
     },
   },
+  st: {
+    translation: {
+      app: { name: "KasiLink" },
+      nav: {
+        chats: "Puisano",
+        wallet: "Walleto",
+        rooms: "Likamore",
+        safety: "Polokeho",
+        events: "Liketsahalo",
+        business: "Khoebo",
+      },
+      home: {
+        hello: "Lumelang, {{name}}! 👋",
+        communityActive: "Sechaba sa hao sea sebetsa kajeno",
+        balance: "Chelete",
+        quickActions: "Liketso ka Potlako",
+        recentUpdates: "Lintlafatso tsa morao tjena",
+        yourCommunity: "Sechaba sa Hau",
+        activeGroups: "Lihlopha tse sebetsang",
+        stokvels: "Stokvel",
+        localShops: "Lebenkele la lehae",
+      },
+      features: {
+        heading: "Tsohle tseo Sechaba sa Hao se li Hlokang",
+        subheading: "KasiLink e kopanya lisebelisoa tsohle tseo metse e li hlokang hore e atlehe - ho tloha lipuisanong tsa letsatsi le letsatsi ho isa matlafatsong a lichelete, kaofela sethaleng se le seng se sireletsehileng.",
+        ctaHeading: "U se U Itokiselitse ho Fetola Sechaba sa Hao?",
+        ctaCopy: "Kena le likete tsa Maafrika Borwa a sebelisang KasiLink ho haha metse e matla le e hokahaneng naheng ka bophara.",
+        getEarlyAccess: "Fumana Phihlello ea Pele",
+        startCommunity: "Qala Sechaba sa Hao",
+        list: {
+          chatTitle: "Puisano ea Sechaba e Sireletsehileng",
+          chatDesc: "Lihlopha tsa boahelani tse netefalitsoeng ka litemoso tsa polokeho le lintlafatso tsa sechaba. Hokahana le boahelani ba hao sebakeng se tšepahalang.",
+          stokvelTitle: "Taolo ea Stokvel",
+          stokvelDesc: "Stokvel tsa dijithale tse nolofalitsoeng. Latedisa menehelo, laola litefo, 'me le hōlise chelete hammoho ka pepeneneng.",
+          businessTitle: "Setsi sa Khoebo ea Lehae",
+          businessDesc: "Laela ho tsoa lisepazeng, tšehetsa barekisi ba lehae, 'me u fumane borakhoebo ba malokong sebakeng sa heno.",
+          safetyTitle: "Polokeho ea Sechaba",
+          safetyDesc: "Litemoso tsa nako ea nnete tsa polokeho, mabitso a tšohanyetso, le ho hlophisa balebeli ba boahelani ho sireletsa bohle.",
+          eventsTitle: "Tlhophiso ea Liketsahalo",
+          eventsDesc: "Hlophisa liketsahalo tsa sechaba, liboka tsa kereke, le mekete. Se ke oa hloloheloa se etsahalang kasing ea heno.",
+          financeTitle: "Kholiso ea Lichelete",
+          financeDesc: "Litsebeletso tsa ho boloka chelete, lihlopha tsa matsete, le lisebelisoa tsa thuto ea lichelete ho haha leruo 'moho e le sechaba.",
+        },
+      },
+    },
+  },
 } as const;
 
 i18n
@@ -107,7 +153,7 @@ i18n
   .init({
     resources,
     fallbackLng: "en",
-    supportedLngs: ["en", "zu"],
+    supportedLngs: ["en", "zu", "st"],
     interpolation: {
       escapeValue: false,
     },

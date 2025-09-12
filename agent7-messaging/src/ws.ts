@@ -3,7 +3,7 @@ import { IncomingMessage } from 'http';
 import url from 'url';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket } from './state';
+import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, MessageEvent, eventLog } from './state';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -17,6 +17,7 @@ type ServerMessage =
 	| { type: 'welcome'; userId: string }
 	| { type: 'pong' }
 	| { type: 'msg'; id: string; from: string; to: string; scope: 'direct' | 'group'; ciphertext: string; contentType?: string; timestamp: number }
+	| { type: 'event'; id: string; eventType: MessageEvent['eventType']; from: string; to: string; scope: 'direct' | 'group'; messageId: string; ciphertext?: string; reaction?: string; timestamp: number }
 	| { type: 'error'; id?: string; error: string };
 
 export function attachWebSocketServer(server: import('http').Server) {
@@ -50,7 +51,7 @@ export function attachWebSocketServer(server: import('http').Server) {
 
 		socket.on('message', (data) => {
 			try {
-				const msg = JSON.parse(data.toString()) as ClientMessage;
+				const msg = JSON.parse(data.toString()) as ClientMessage | (MessageEvent & { type: 'event' });
 				if (msg.type === 'ping') return send(socket, { type: 'pong' });
 				if (msg.type === 'msg') {
 					const id = msg.id || uuidv4();
@@ -67,6 +68,26 @@ export function attachWebSocketServer(server: import('http').Server) {
 					};
 					messageLog.push(envelope);
 					deliver(envelope);
+					return;
+				}
+				if ((msg as any).type === 'event') {
+					const incoming = msg as MessageEvent & { type: 'event' };
+					const id = incoming.id || uuidv4();
+					const timestamp = incoming.timestamp || Date.now();
+					const from = userId!;
+					const evt: MessageEvent = {
+						id,
+						eventType: incoming.eventType,
+						from,
+						to: incoming.to,
+						scope: incoming.scope,
+						messageId: incoming.messageId,
+						ciphertext: incoming.ciphertext,
+						reaction: incoming.reaction,
+						timestamp,
+					};
+					eventLog.push(evt);
+					deliverEvent(evt);
 					return;
 				}
 			} catch (e) {
@@ -102,6 +123,24 @@ function deliver(envelope: CipherMessage) {
 		for (const memberId of group.memberIds) {
 			const ws = userIdToSocket.get(memberId);
 			if (ws) send(ws, { type: 'msg', ...envelope });
+		}
+	}
+}
+
+function deliverEvent(evt: MessageEvent) {
+	if (evt.scope === 'direct') {
+		const recipient = userIdToSocket.get(String(evt.to));
+		if (recipient) send(recipient, { type: 'event', ...evt });
+		const sender = userIdToSocket.get(evt.from);
+		if (sender) send(sender, { type: 'event', ...evt });
+		return;
+	}
+	if (evt.scope === 'group') {
+		const group: Group | undefined = groupIdToGroup.get(String(evt.to));
+		if (!group) return;
+		for (const memberId of group.memberIds) {
+			const ws = userIdToSocket.get(memberId);
+			if (ws) send(ws, { type: 'event', ...evt });
 		}
 	}
 }

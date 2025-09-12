@@ -1,3 +1,19 @@
+Agent3Chat iOS
+
+Requirements
+- Xcode 15+
+- XcodeGen (`brew install xcodegen`)
+
+Generate project
+```bash
+xcodegen generate --spec project.yml
+```
+
+Open `Agent3Chat.xcodeproj` and run on iOS 16+.
+
+Notes
+- Push requires a real device and proper provisioning. `aps-environment` is set to development in `Config/App.entitlements`.
+- `libsignal-client` is added via SPM in `project.yml`. The current `LibSignalEncryptionService` is a placeholder until full integration.
 # ChatApp iOS
 
 SwiftUI iOS app shell with auth and chat UI, generated via XcodeGen.

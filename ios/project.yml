@@ -1,3 +1,35 @@
+name: Agent3Chat
+options:
+  minimumXcodeGenVersion: 2.38.0
+  deploymentTarget:
+    iOS: 16.0
+packages:
+  LibSignalClient:
+    url: https://github.com/signalapp/libsignal-client
+    branch: main
+targets:
+  Agent3Chat:
+    type: application
+    platform: iOS
+    deploymentTarget: 16.0
+    sources:
+      - path: App
+      - path: Models
+      - path: Services
+      - path: ViewModels
+      - path: Views
+      - path: Resources
+    info:
+      path: Config/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.agent3chat
+        CODE_SIGN_ENTITLEMENTS: Config/App.entitlements
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+    dependencies:
+      - package: LibSignalClient
+        product: LibSignalClient
 name: ChatApp
 options:
   deploymentTarget:

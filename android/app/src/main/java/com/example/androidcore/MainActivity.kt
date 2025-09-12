@@ -36,6 +36,7 @@ sealed class Screen(val route: String) {
 	data object ChatDetail : Screen("chat/{chatId}") {
 		fun route(chatId: String) = "chat/$chatId"
 	}
+	data object CreateGroup : Screen("create_group")
 }
 
 @Composable
@@ -75,13 +76,30 @@ fun AppNavHost(navController: NavHostController, authRepository: AuthRepository,
 			})
 		}
 		composable(Screen.Chats.route) {
-			ChatsScreen(chatRepository = chatRepository, onOpenChat = { chatId ->
-				navController.navigate(Screen.ChatDetail.route(chatId))
-			})
+			ChatsScreen(
+				chatRepository = chatRepository,
+				onOpenChat = { chatId ->
+					navController.navigate(Screen.ChatDetail.route(chatId))
+				},
+				onOpenCreateGroup = {
+					navController.navigate(Screen.CreateGroup.route)
+				}
+			)
 		}
 		composable(Screen.ChatDetail.route) {
 			val chatId = it.arguments?.getString("chatId") ?: ""
 			ChatDetailScreen(chatId = chatId, chatRepository = chatRepository, onBack = { navController.popBackStack() })
+		}
+		composable(Screen.CreateGroup.route) {
+			CreateGroupScreen(
+				chatRepository = chatRepository,
+				onCreated = { newChatId ->
+					navController.navigate(Screen.ChatDetail.route(newChatId)) {
+						popUpTo(Screen.Chats.route)
+					}
+				},
+				onCancel = { navController.popBackStack() }
+			)
 		}
 	}
 }

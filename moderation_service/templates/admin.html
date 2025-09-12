@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Moderation Admin</title>
+	<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+	<header>
+		<h1>Moderation Admin – Day 1 Stub</h1>
+	</header>
+	<main>
+		<section>
+			<h2>Reports</h2>
+			<div id="reports"></div>
+		</section>
+	</main>
+	<script>
+	async function loadReports() {
+		const res = await fetch('/api/reports');
+		const reports = await res.json();
+		const container = document.getElementById('reports');
+		if (!Array.isArray(reports) || reports.length === 0) {
+			container.innerHTML = '<p>No reports yet.</p>';
+			return;
+		}
+		container.innerHTML = '';
+		reports.forEach(r => {
+			const el = document.createElement('div');
+			el.className = 'report';
+			el.innerHTML = `
+				<div class="row">
+					<div><strong>ID</strong>: ${r.id}</div>
+					<div><strong>Status</strong>: ${r.status}</div>
+					<div><strong>Reason</strong>: ${r.reason}</div>
+				</div>
+				<div class="content"><strong>Content</strong>: ${r.content_text}</div>
+			`;
+			container.appendChild(el);
+		});
+	}
+	loadReports();
+	</script>
+</body>
+</html>

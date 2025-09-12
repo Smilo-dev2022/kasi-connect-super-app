@@ -1,0 +1,1 @@
+"""Moderation service FastAPI application package."""

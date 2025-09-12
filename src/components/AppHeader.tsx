@@ -1,6 +1,8 @@
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Search, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { authClient } from "@/lib/authClient";
+import { useNavigate } from "react-router-dom";
 
 interface AppHeaderProps {
   title: string;
@@ -9,6 +11,13 @@ interface AppHeaderProps {
 }
 
 const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppHeaderProps) => {
+  const navigate = useNavigate();
+  const onLogout = async () => {
+    try {
+      await authClient.logout();
+      navigate("/login");
+    } catch {}
+  };
   return (
     <header className="bg-white border-b border-border px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -33,6 +42,9 @@ const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppH
             </Badge>
           </Button>
         )}
+        <Button variant="ghost" size="icon" onClick={onLogout}>
+          <LogOut className="w-5 h-5" />
+        </Button>
       </div>
     </header>
   );

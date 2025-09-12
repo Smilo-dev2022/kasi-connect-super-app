@@ -57,11 +57,11 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="hero" size="lg" className="text-lg px-8 py-6" onClick={() => window.location.href = '/app'}>
-            Join the Community
-          </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6 bg-white/20 border-white/40 text-white hover:bg-white/30">
-              Learn More
+            <Button variant="hero" size="lg" className="text-lg px-8 py-6" onClick={() => window.location.href = '/signup'}>
+              Join the Community
+            </Button>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-6 bg-white/20 border-white/40 text-white hover:bg-white/30" onClick={() => window.location.href = '/login'}>
+              I already have an account
             </Button>
           </div>
         </div>

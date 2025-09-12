@@ -1,3 +1,41 @@
+## Events Service (FastAPI)
+
+### Quickstart
+
+If venv creation fails due to ensurepip being unavailable, install `python3.13-venv` using apt.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip wheel setuptools
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Then open `http://localhost:8000/` for the UI stub.
+
+### API
+
+- GET `/events/`
+- POST `/events/`
+- GET `/events/{id}`
+- PATCH `/events/{id}`
+- DELETE `/events/{id}`
+- POST `/events/seed`
+- POST `/events/{event_id}/rsvps`
+- GET `/events/{event_id}/rsvps`
+- POST `/rsvps`
+- GET `/rsvps/{id}`
+- PATCH `/rsvps/{id}`
+- DELETE `/rsvps/{id}`
+- POST `/reminders/queue-upcoming`
+
+### Notes
+
+- SQLite database at `events.db`
+- Models: `Event`, `RSVP` (SQLModel)
+- Minimal static UI lists events and allows RSVP
+
 # Welcome to the Kasi chat Project
 
 ## Project info

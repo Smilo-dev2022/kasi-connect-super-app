@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import AppHeader from "@/components/AppHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
@@ -18,7 +19,8 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { walletsApi, type GroupWallet, type LedgerEntry } from "@/lib/api";
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
@@ -34,6 +36,12 @@ const Wallet = () => {
     { icon: CreditCard, label: "Pay Bill", color: "secondary" },
     { icon: Smartphone, label: "Airtime", color: "primary" }
   ];
+
+  const [groupWallets, setGroupWallets] = useState<GroupWallet[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<GroupWallet | null>(null);
+  const [ledger, setLedger] = useState<LedgerEntry[]>([]);
+  const [isContributing, setIsContributing] = useState(false);
 
   const stokvels = [
     {
@@ -112,6 +120,70 @@ const Wallet = () => {
       case 'stokvel': return Users;
       case 'airtime': return Smartphone;
       default: return CreditCard;
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    walletsApi
+      .list()
+      .then((ws) => {
+        if (mounted) setGroupWallets(ws);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleCreateGroup = async () => {
+    const name = window.prompt("Stokvel group name?");
+    if (!name) return;
+    const membersCsv = window.prompt("Members (comma-separated emails or names)?", "");
+    const members = membersCsv ? membersCsv.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    try {
+      const wallet = await walletsApi.create(name, members);
+      setGroupWallets((prev) => [wallet, ...prev]);
+    } catch (e) {
+      console.error(e);
+      alert(
+        "Could not create group. Is the backend running on " + String((import.meta as any).env?.VITE_API_BASE ?? 'http://localhost:4000')
+      );
+    }
+  };
+
+  const openWallet = async (wallet: GroupWallet) => {
+    setSelectedWallet(wallet);
+    setDrawerOpen(true);
+    try {
+      const entries = await walletsApi.ledger(wallet.id);
+      setLedger(entries);
+    } catch {
+      setLedger([]);
+    }
+  };
+
+  const handleContribute = async () => {
+    if (!selectedWallet) return;
+    const amtStr = window.prompt("Contribution amount (R)");
+    if (!amtStr) return;
+    const amount = Number(amtStr);
+    if (!Number.isFinite(amount) || amount <= 0) return alert("Invalid amount");
+    const member = window.prompt("Your name (for record)") || "Member";
+    try {
+      setIsContributing(true);
+      await walletsApi.contribute(selectedWallet.id, amount, member);
+      // refresh wallet + ledger
+      const wallets = await walletsApi.list();
+      const updated = wallets.find((w) => w.id === selectedWallet.id) || selectedWallet;
+      setSelectedWallet(updated);
+      const entries = await walletsApi.ledger(selectedWallet.id);
+      setLedger(entries);
+    } catch (e) {
+      console.error(e);
+      alert("Contribution failed");
+    } finally {
+      setIsContributing(false);
     }
   };
 
@@ -201,14 +273,22 @@ const Wallet = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">My Stokvels</h3>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleCreateGroup}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Join Group
+                  Create Group
                 </Button>
               </div>
               <div className="space-y-3">
-                {stokvels.map((stokvel, index) => (
-                  <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                {(groupWallets.length ? groupWallets.map((gw) => ({
+                  _wallet: gw,
+                  name: gw.name,
+                  members: gw.members.length,
+                  balance: gw.balance,
+                  contribution: 0,
+                  nextPayout: "—",
+                  status: "active"
+                })) : stokvels).map((stokvel: any, index) => (
+                  <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm cursor-pointer" onClick={() => stokvel._wallet && openWallet(stokvel._wallet)}>
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h4 className="font-semibold text-foreground">{stokvel.name}</h4>
@@ -354,6 +434,37 @@ const Wallet = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent className="p-4">
+          <DrawerHeader>
+            <DrawerTitle>{selectedWallet?.name}</DrawerTitle>
+            <DrawerDescription>
+              Members: {selectedWallet?.members.length ?? 0} • Balance: R{selectedWallet?.balance.toLocaleString()}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="max-h-64 overflow-y-auto space-y-2">
+            {ledger.length === 0 && (
+              <div className="text-sm text-muted-foreground">No ledger entries yet.</div>
+            )}
+            {ledger.map((e) => (
+              <Card key={e.id} className="p-3 flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium capitalize">{e.type}</div>
+                  <div className="text-xs text-muted-foreground">{e.member || "—"} • {new Date(e.createdAt).toLocaleString()}</div>
+                </div>
+                <div className="text-sm font-bold">{['payout','expense'].includes(e.type) ? '-' : '+'}R{e.amount}</div>
+              </Card>
+            ))}
+          </div>
+          <DrawerFooter>
+            <Button onClick={handleContribute} disabled={!selectedWallet || isContributing}>{isContributing ? 'Processing...' : 'Contribute'}</Button>
+            <DrawerClose asChild>
+              <Button variant="outline">Close</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

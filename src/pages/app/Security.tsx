@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Lock, FileDown, Trash2 } from "lucide-react";
+import { Shield, Lock, FileDown, Trash2, UserCheck } from "lucide-react";
+import { kycApi } from "@/lib/api";
 
 type ConsentSettings = {
   processingConsent: boolean;
@@ -76,6 +77,10 @@ const Security = () => {
   const [ivB64, setIvB64] = useState("");
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
+
+  const [kycSessionId, setKycSessionId] = useState<string>("");
+  const [kycStatus, setKycStatus] = useState<string>("not_started");
+  const [checkingKyc, setCheckingKyc] = useState(false);
 
   useEffect(() => {
     try {
@@ -207,6 +212,30 @@ const Security = () => {
     }
   };
 
+  const handleStartKyc = async () => {
+    try {
+      const { sessionId } = await kycApi.startSession();
+      setKycSessionId(sessionId);
+      setKycStatus("created");
+      toast({ title: "KYC started", description: `Session ${sessionId} created (sandbox).` });
+    } catch (e) {
+      toast({ title: "KYC error", description: String(e), variant: "destructive" });
+    }
+  };
+
+  const handleCheckKyc = async () => {
+    if (!kycSessionId) return;
+    setCheckingKyc(true);
+    try {
+      const { status } = await kycApi.status(kycSessionId);
+      setKycStatus(status);
+    } catch (e) {
+      toast({ title: "Status error", description: String(e), variant: "destructive" });
+    } finally {
+      setCheckingKyc(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title="Security & Compliance" />
@@ -229,6 +258,21 @@ const Security = () => {
                 <Badge variant="outline">E2EE demo</Badge>
               </div>
             </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 bg-card/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <UserCheck className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">KYC Sandbox (demo)</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Start a sandbox KYC session and poll its status. This is a stubbed flow.</p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={handleStartKyc} disabled={!!kycSessionId}>Start KYC</Button>
+            <Button variant="outline" onClick={handleCheckKyc} disabled={!kycSessionId || checkingKyc}>{checkingKyc ? "Checking..." : "Check status"}</Button>
+          </div>
+          <div className="mt-3 text-sm text-muted-foreground">
+            Session: {kycSessionId || "—"} • Status: <span className="font-medium text-foreground">{kycStatus}</span>
           </div>
         </Card>
 

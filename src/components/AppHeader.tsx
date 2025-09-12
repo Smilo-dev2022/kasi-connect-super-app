@@ -24,6 +24,9 @@ const AppHeader = ({ title, showNotifications = true, showSearch = false }: AppH
           <Menu className="w-5 h-5" />
         </Button>
         <h1 className="text-xl font-bold text-foreground">{title}</h1>
+        {(import.meta as any).env?.VITE_BETA === '1' && (
+          <Badge variant="outline" className="ml-2">Beta</Badge>
+        )}
       </div>
 
       <div className="flex items-center gap-2">

@@ -23,6 +23,13 @@ export type Group = {
 	ownerId: UserId;
 	memberIds: Set<UserId>;
 	createdAt: number;
+	// Safety room metadata (optional)
+	isSafetyRoom?: boolean;
+	ward?: string;
+	verified?: boolean;
+	verifiedBy?: UserId;
+	verifiedAt?: number;
+	tags?: string[];
 };
 
 export type CipherMessage = {
@@ -33,6 +40,9 @@ export type CipherMessage = {
 	ciphertext: string;
 	contentType?: string;
 	timestamp: number;
+	replyTo?: string;
+	editedAt?: number;
+	deletedAt?: number;
 };
 
 export const userIdToSocket = new Map<UserId, WebSocket>();
@@ -40,3 +50,10 @@ export const userIdToIdentity = new Map<UserId, IdentityRecord>();
 export const userIdToPrekeys = new Map<UserId, OneTimePreKey[]>();
 export const groupIdToGroup = new Map<GroupId, Group>();
 export const messageLog: CipherMessage[] = [];
+
+export type MessageEvent =
+	| { type: 'reaction'; id: string; messageId: string; userId: UserId; emoji: string; timestamp: number }
+	| { type: 'edit'; id: string; messageId: string; userId: UserId; ciphertext: string; contentType?: string; timestamp: number }
+	| { type: 'delete'; id: string; messageId: string; userId: UserId; timestamp: number };
+
+export const eventLog: MessageEvent[] = [];

@@ -1,71 +1,37 @@
-# Welcome to the Kasi chat Project
+# Agent1 Android Chat (Compose)
 
-## Project info
+An Android sample app with:
+- OTP login scaffold (mock: use 123456)
+- Groups list and group chat UI with in-memory messages
+- Firebase Cloud Messaging integration for push notifications
 
-**URL**: 
+## Requirements
+- Android Studio Ladybug or newer
+- JDK 17
 
-**Use your preferred IDE**
+## Build & Run
+1. Open the project in Android Studio.
+2. Sync Gradle.
+3. Run the `app` configuration on a device or emulator.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+## OTP Login (Mock)
+- Enter any phone number (8+ digits)
+- Tap "Send OTP"
+- Enter `123456` and tap Verify
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Navigation
+- Login -> Groups -> Chat
 
-Follow these steps:
+## Push Notifications (FCM)
+This project includes Firebase Messaging. To enable push:
+1. In Firebase Console, create a project and add an Android app with package `com.example.chatapp`.
+2. Download `google-services.json` and place it at `app/google-services.json`.
+3. Rebuild the app. The Google Services plugin is applied automatically when the file is present.
+4. Get the FCM registration token from logs (filter for `FirebaseMessaging`).
+5. Send a test notification from Firebase Console or via HTTPv1 API targeting the token.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Notifications post to channel `chat_default_channel`.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-
-## Search service (Agent 9)
-
-The app includes a simple web search page at \/app\/search with tabs for Text, Media, and Links.
-
-### Providers
-
-- Primary: SerpAPI (Google \/ Google Images)
-- Fallback: DuckDuckGo redirect links (client-side friendly)
-
-### Environment
-
-To enable SerpAPI, set the following in your environment:
-
-\u0060\u0060\u0060sh
-VITE_SERPAPI_KEY=your_serpapi_key
-\u0060\u0060\u0060
-
-When the key is not set, the search will fall back to DuckDuckGo links. Image searches without SerpAPI show an external link to DDG Images.
+## Notes
+- All data is in-memory; no persistence.
+- UI is Jetpack Compose Material3.

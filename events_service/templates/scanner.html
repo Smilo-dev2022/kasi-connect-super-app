@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="card">
+  <h2>Scanner</h2>
+  <p>Use your camera to scan a QR. Or paste a token below.</p>
+  <form id="manual" method="post" action="/checkin">
+    <input name="token" placeholder="Paste token"/>
+    <button class="btn" type="submit">Check in</button>
+  </form>
+  <pre id="result"></pre>
+</article>
+<script>
+async function verify(token){
+  const res = await fetch(`/checkin/verify?token=${encodeURIComponent(token)}`);
+  const data = await res.json();
+  document.getElementById(result).textContent = JSON.stringify(data, null, 2);\n}\nconst manual = document.getElementById(manual);\nmanual.addEventListener(submit, async (e) => {\n  e.preventDefault();\n  const fd = new FormData(manual);\n  const token = fd.get(token);\n  await verify(token);\n});\n</script>\n{% endblock %}\n

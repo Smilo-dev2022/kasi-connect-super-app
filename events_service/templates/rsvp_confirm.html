@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="card">
+  <h2>Thanks, {{ rsvp.name }}!</h2>
+  <p>Your ticket is ready for <strong>{{ event.title }}</strong>.</p>
+  <p><a class="btn" href="/ticket/{{ ticket.id }}">View your ticket</a></p>
+</article>
+{% endblock %}

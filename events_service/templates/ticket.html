@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="card">
+  <h2>Ticket #{{ ticket.id }}</h2>
+  <p>{{ rsvp.name }} — {{ rsvp.email }}</p>
+  <p>Event: <strong>{{ event.title }}</strong></p>
+  {% if ticket.checked_in_at %}
+  <p class="badge success">Checked in at {{ ticket.checked_in_at }}</p>
+  {% else %}
+  <p class="badge">Not checked in</p>
+  {% endif %}
+  <img alt="QR" src="{{ qr }}"/>
+</article>
+{% endblock %}

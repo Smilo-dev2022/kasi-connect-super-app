@@ -1,0 +1,15 @@
+/* Minimal styles */
+:root{--bg:#0b0c10;--card:#12141a;--text:#e8eef2;--muted:#8b98a5;--brand:#4cc9f0;--ok:#2ecc71;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+.container{max-width:880px;margin:32px auto;padding:0 16px}
+header h1 a{color:var(--text);text-decoration:none}
+.card{background:var(--card);border:1px solid #22283b;border-radius:12px;padding:16px;margin:12px 0}
+.btn{display:inline-block;background:var(--brand);color:#001018;padding:8px 12px;border-radius:8px;text-decoration:none;border:none;cursor:pointer}
+.btn:hover{opacity:.9}
+.muted{color:var(--muted)}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#2b2f3a;color:var(--muted)}
+.badge.success{background:var(--ok);color:#001018}
+.card-list{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card-list .card{margin:0}
+label input{width:100%;padding:8px;border-radius:8px;border:1px solid #2b2f3a;background:#0e1117;color:var(--text)}

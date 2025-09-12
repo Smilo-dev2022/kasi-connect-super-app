@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="card">
+  <h2>{{ event.title }}</h2>
+  {% if event.location %}<p class="muted">{{ event.location }}</p>{% endif %}
+  {% if event.description %}<p>{{ event.description }}</p>{% endif %}
+  <p><a class="btn" href="/events/{{ event.slug }}/ics">Add to calendar</a></p>
+</article>
+
+<article class="card">
+  <h3>RSVP</h3>
+  <form method="post" action="/events/{{ event.slug }}/rsvp">
+    <label>Name<br/><input required name="name"/></label><br/>
+    <label>Email<br/><input required type="email" name="email"/></label><br/>
+    <button class="btn" type="submit">Get ticket</button>
+  </form>
+</article>
+{% endblock %}

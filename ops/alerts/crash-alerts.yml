@@ -1,0 +1,30 @@
+# Crash and ANR Alert Policies (pseudo-config)
+service: mobile-app
+environment: production
+timezone: Africa/Johannesburg
+channel: "#incidents"
+
+alerts:
+  - name: crash_free_sessions_drop
+    metric: crash_free_sessions_percentage
+    window: 2h
+    threshold_below: 99.3
+    severity: P0
+    message: "Crash-free sessions below 99.3% (2h window)"
+
+  - name: anr_rate_spike
+    metric: anr_rate_percentage
+    window: 2h
+    threshold_above: 0.30
+    severity: P0
+    message: "ANR rate above 0.30% (2h window)"
+
+  - name: new_top_cluster
+    metric: crash_cluster_new_or_growth
+    window: 2h
+    threshold_above: 50
+    severity: P0
+    message: "Top crash cluster grew >50% in 2h or new P0 cluster appeared"
+
+runbook: ../../runbooks/crash-triage.md
+

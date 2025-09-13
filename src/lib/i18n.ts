@@ -6,7 +6,7 @@ const resources = {
   en: {
     translation: {
       app: {
-        name: "KasiLink",
+        name: "iKasiLink",
       },
       nav: {
         chats: "Chats",

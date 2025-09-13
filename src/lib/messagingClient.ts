@@ -26,8 +26,10 @@ export class MessagingClient {
   private token?: string;
 
   async connect(userId: string): Promise<void> {
-    // Prefer Auth JWT if available; otherwise use dev token endpoint
-    this.token = getStoredAuthToken() || await getDevTokenForUser(userId);
+    const jwtOnly = ((import.meta as any)?.env?.VITE_JWT_ONLY as string | undefined) === 'true';
+    const authToken = getStoredAuthToken();
+    // JWT-only blocks dev token fallback
+    this.token = jwtOnly ? (authToken || '') : (authToken || await getDevTokenForUser(userId));
     const url = new URL('/ws', getMessagingApiBase());
     url.searchParams.set('token', this.token);
     await new Promise<void>((resolve, reject) => {

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { config } from '../config';
 import { redis } from '../redis';
-import { signToken } from '../jwt';
+import { signToken, signRefreshToken, verifyRefreshToken } from '../jwt';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { ulid } from 'ulid';
 
@@ -14,7 +14,8 @@ router.post('/dev-token', (req: Request, res: Response) => {
   const parsed = DevTokenBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const token = signToken({ sub: parsed.data.userId, name: parsed.data.name });
-  return res.json({ token });
+  const refresh = signRefreshToken({ sub: parsed.data.userId, name: parsed.data.name });
+  return res.json({ token, refresh });
 });
 
 function hashOtp(code: string): string {
@@ -110,7 +111,19 @@ router.post('/otp/verify', async (req: Request, res: Response) => {
   }
 
   const token = signToken({ sub: userId as string });
-  return res.json({ token });
+  const refresh = signRefreshToken({ sub: userId as string });
+  return res.json({ token, refresh });
+});
+
+const RefreshBody = z.object({ refresh: z.string().min(10) });
+router.post('/refresh', (req: Request, res: Response) => {
+  const parsed = RefreshBody.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const payload = verifyRefreshToken(parsed.data.refresh);
+  if (!payload) return res.status(401).json({ error: 'invalid_refresh' });
+  const token = signToken({ sub: payload.sub!, name: payload.name });
+  const refresh = signRefreshToken({ sub: payload.sub!, name: payload.name });
+  return res.json({ token, refresh });
 });
 
 export default router;

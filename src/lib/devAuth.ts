@@ -55,6 +55,7 @@ export async function getDevTokenForUser(userId: string, name?: string): Promise
 
 // OTP Auth service helpers
 const AUTH_JWT_KEY = 'auth.jwt';
+const AUTH_REFRESH_KEY = 'auth.refresh';
 
 export function getStoredAuthToken(): string | undefined {
   return getStorage()?.getItem(AUTH_JWT_KEY) || undefined;
@@ -65,6 +66,17 @@ export function setStoredAuthToken(token: string | undefined): void {
   if (!storage) return;
   if (token) storage.setItem(AUTH_JWT_KEY, token);
   else storage.removeItem(AUTH_JWT_KEY);
+}
+
+export function getStoredRefreshToken(): string | undefined {
+  return getStorage()?.getItem(AUTH_REFRESH_KEY) || undefined;
+}
+
+export function setStoredRefreshToken(token: string | undefined): void {
+  const storage = getStorage();
+  if (!storage) return;
+  if (token) storage.setItem(AUTH_REFRESH_KEY, token);
+  else storage.removeItem(AUTH_REFRESH_KEY);
 }
 
 export async function requestOtp(channel: 'sms' | 'email', to: string): Promise<void> {
@@ -83,8 +95,24 @@ export async function verifyOtp(params: { channel: 'sms' | 'email'; to: string; 
     body: JSON.stringify(params)
   });
   if (!res.ok) throw new Error('otp-verify-failed');
-  const data = (await res.json()) as { token: string };
+  const data = (await res.json()) as { token: string; refresh?: string };
   setStoredAuthToken(data.token);
+  if (data.refresh) setStoredRefreshToken(data.refresh);
+  return data.token;
+}
+
+export async function refreshToken(): Promise<string | undefined> {
+  const refresh = getStoredRefreshToken();
+  if (!refresh) return undefined;
+  const res = await fetch(`${getAuthApiBase()}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh })
+  });
+  if (!res.ok) return undefined;
+  const data = (await res.json()) as { token: string; refresh?: string };
+  setStoredAuthToken(data.token);
+  if (data.refresh) setStoredRefreshToken(data.refresh);
   return data.token;
 }
 

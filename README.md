@@ -117,4 +117,7 @@ To enable SerpAPI, set the following in your environment:
 VITE_SERPAPI_KEY=your_serpapi_key
 \u0060\u0060\u0060
 
-When the key is not set, the search will fall back to DuckDuckGo links. Image searches without SerpAPI show an external link to DDG Images.
+
+---
+
+© 2025 Kasi Connect KC Pty Ltd. All rights reserved.

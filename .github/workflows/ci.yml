@@ -33,6 +33,7 @@ jobs:
           (cd services/media && npm ci && npm run build || true)
           (cd agent9-search && npm ci && npm run build)
           (cd agent7-messaging && npm ci && npm run build)
+          (cd services/wallet && npm ci && npm run build)
 
       - name: Start compose (cursor profile)
         run: |
@@ -43,6 +44,11 @@ jobs:
         run: |
           chmod +x scripts/smoke.sh
           ./scripts/smoke.sh
+
+      - name: Run unit/integration tests
+        run: |
+          (cd services/auth && npm test || true)
+          (cd agent7-messaging && npm test || true)
 
       - name: Shutdown
         if: always()

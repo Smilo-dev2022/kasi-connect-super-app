@@ -44,6 +44,11 @@ services:
     command: sh -c "npm i && npm run dev"
     ports:
       - '8080:8080'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       - postgres
 
@@ -64,6 +69,11 @@ services:
       - redis
     ports:
       - '4010:4010'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4010/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   media:
     build:
@@ -86,6 +96,11 @@ services:
       - minio
     ports:
       - '4008:4008'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4008/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   search:
     build:
@@ -101,6 +116,11 @@ services:
       - typesense
     ports:
       - '4009:4009'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4009/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres:
     image: postgres:16-alpine
@@ -121,22 +141,39 @@ services:
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
+      - EVENTS_DATABASE_URL=postgresql+psycopg2://kasilink:kasilink@postgres:5432/kasilink
     volumes:
       - ./:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
       - '8000:8000'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
 
   moderation:
     image: python:3.11-slim
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
+      - MOD_USE_DB=true
+      - MOD_DB_URL=postgresql://kasilink:kasilink@postgres:5432/kasilink
     volumes:
       - ./moderation_service:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8082 --reload"
     ports:
       - '8082:8082'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
 
   web:
     image: node:20-alpine

@@ -66,3 +66,7 @@ const App = () => (
 );
 
 export default App;
+
+build:
+  context: ./services/media
+  target: dev

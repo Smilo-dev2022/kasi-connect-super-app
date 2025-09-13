@@ -125,6 +125,9 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_MSG_API=http://localhost:8080
+      - VITE_SEARCH_API=http://localhost:4009
+      - VITE_MEDIA_API=http://localhost:4008
+      - VITE_AUTH_API=http://localhost:4010
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"

@@ -37,11 +37,15 @@ services:
       - PORT=8080
       - JWT_SECRET=devsecret
       - CORS_ORIGIN=*
+      - USE_DB=true
+      - DATABASE_URL=postgres://kasilink:kasilink@postgres:5432/kasilink
     volumes:
       - ./agent7-messaging:/app
     command: sh -c "npm i && npm run dev"
     ports:
       - '8080:8080'
+    depends_on:
+      - postgres
 
   auth:
     build:
@@ -101,9 +105,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=app
-      - POSTGRES_PASSWORD=app
-      - POSTGRES_DB=messaging
+      - POSTGRES_USER=kasilink
+      - POSTGRES_PASSWORD=kasilink
+      - POSTGRES_DB=kasilink
     ports:
       - '5432:5432'
     volumes:

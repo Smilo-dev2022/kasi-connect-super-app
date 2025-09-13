@@ -1,11 +1,30 @@
 import { Router, Request, Response } from 'express';
 import { eventLog, messageLog, groupIdToGroup } from './state';
+import { createRepos } from './repos';
+
+const USE_DB = (process.env.USE_DB || '').toLowerCase() === 'true';
+const repos = USE_DB ? createRepos() : null;
 
 export const getMissedMessagesRouter = Router();
 
-getMissedMessagesRouter.get('/since/:ts', (req: Request, res: Response) => {
+getMissedMessagesRouter.get('/since/:conversationId', async (req: Request, res: Response) => {
 	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
-	const since = Number(req.params.ts || 0);
+	const conversationId = String(req.params.conversationId);
+	const sinceIso = (req.query.since as string | undefined) || null;
+	const limit = Math.min(200, parseInt(String(req.query.limit || '100'), 10));
+	const cursor = (req.query.cursor as string | undefined) || null;
+
+	if (USE_DB && repos) {
+		try {
+			const { messages, next_cursor } = await repos.messages.listSince(conversationId, sinceIso, limit, cursor);
+			return res.json({ messages, next_cursor });
+		} catch (e) {
+			return res.status(500).json({ error: 'db_read_failed' });
+		}
+	}
+
+	// In-memory fallback keeps previous behavior using timestamp
+	const since = Number(sinceIso || 0);
 	const userId = req.user.userId;
 	const messages = messageLog.filter((m) => {
 		if (m.timestamp <= since) return false;
@@ -16,6 +35,5 @@ getMissedMessagesRouter.get('/since/:ts', (req: Request, res: Response) => {
 		}
 		return false;
 	});
-	const events = eventLog.filter((e) => e.timestamp > since);
-	res.json({ messages, events });
+	res.json({ messages });
 });

@@ -79,6 +79,14 @@ export function setStoredRefreshToken(token: string | undefined): void {
   else storage.removeItem(AUTH_REFRESH_KEY);
 }
 
+export function logout(): void {
+  setStoredAuthToken(undefined);
+  setStoredRefreshToken(undefined);
+  try {
+    window.dispatchEvent(new CustomEvent('auth:logout'));
+  } catch {}
+}
+
 export async function requestOtp(channel: 'sms' | 'email', to: string): Promise<void> {
   const res = await fetch(`${getAuthApiBase()}/auth/otp/request`, {
     method: 'POST',

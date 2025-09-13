@@ -66,5 +66,10 @@ export class MessagingClient {
     const payload = { type: 'msg', ...message } as const;
     this.socket?.send(JSON.stringify(payload));
   }
+
+  close() {
+    try { this.socket?.close(); } catch {}
+    this.socket = undefined;
+  }
 }
 

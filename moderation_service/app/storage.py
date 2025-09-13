@@ -42,8 +42,9 @@ class PostgresReportStore:
         async with pool.acquire() as conn:
             await conn.execute(
                 """
+                create extension if not exists pgcrypto;
                 create table if not exists mod_reports (
-                  id uuid primary key,
+                  id uuid primary key default gen_random_uuid(),
                   content_id text not null,
                   content_text text not null,
                   reason text not null,

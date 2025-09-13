@@ -162,6 +162,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOD_USE_DB=true
       - MOD_DB_URL=postgresql://kasilink:kasilink@postgres:5432/kasilink
+      - DATABASE_URL=postgresql://kasilink:kasilink@postgres:5432/kasilink
     volumes:
       - ./moderation_service:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8082 --reload"

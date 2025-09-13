@@ -70,6 +70,11 @@ def index(request: Request, session=Depends(get_session)):
 
 
 # JSON API
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/api/events")
 @limiter.limit("60/minute")
 def api_events(session=Depends(get_session)):

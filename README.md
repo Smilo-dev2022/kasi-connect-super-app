@@ -1,3 +1,8 @@
+
+<p align="center">
+		<img src="ikasilink.logo.png.png" alt="iKasiLink Logo" width="200"/>
+</p>
+
 ## Events Service (FastAPI)
 
 ### Quickstart
@@ -36,9 +41,11 @@ Then open `http://localhost:8000/` for the UI stub.
 - Models: `Event`, `RSVP` (SQLModel)
 - Minimal static UI lists events and allows RSVP
 
-# Welcome to the Kasi chat Project
 
-## Project info
+# Welcome to the iKasiLink Project
+
+
+## Project info (iKasiLink)
 
 **URL**: 
 
@@ -51,26 +58,29 @@ The only requirement is having Node.js & npm installed - [install with nvm](http
 Follow these steps:
 
 ```sh
+
 # Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Step 2: Navigate to the iKasiLink project directory.
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the iKasiLink development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+
+**Edit a file directly in GitHub (iKasiLink)**
 
 - Navigate to the desired file(s).
 - Click the "Edit" button (pencil icon) at the top right of the file view.
 - Make your changes and commit the changes.
 
-**Use GitHub Codespaces**
+
+**Use GitHub Codespaces (iKasiLink)**
 
 - Navigate to the main page of your repository.
 - Click on the "Code" button (green button) near the top right.
@@ -78,7 +88,8 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
+
+## What technologies are used for iKasiLink?
 
 This project is built with:
 

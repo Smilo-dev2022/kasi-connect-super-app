@@ -23,11 +23,21 @@ import WardVerification from "./pages/admin/WardVerification";
 
 const queryClient = new QueryClient();
 
+
+const logoStyle: React.CSSProperties = {
+  display: 'block',
+  margin: '2rem auto 1rem auto',
+  maxWidth: 180,
+  height: 'auto',
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+  {/* Main Logo at the top */}
+  <img src="/ikasilink.logo.png.png" alt="iKasiLink Logo" style={logoStyle} />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

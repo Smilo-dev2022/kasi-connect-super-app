@@ -19,7 +19,7 @@ const Hero = () => {
           {/* Logo/Brand */}
           <div className="mb-8">
             <h1 className="text-6xl md:text-8xl font-bold text-white mb-4 tracking-tight">
-              KasiLink
+              iKasiLink
             </h1>
             <div className="w-24 h-1 bg-gradient-to-r from-white/80 to-white/40 mx-auto rounded-full" />
           </div>
@@ -33,23 +33,23 @@ const Hero = () => {
           {/* Description */}
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
             A safe, verified space where people can talk, pay, save, and grow together. 
-            From stokvel payments to community safety alerts, KasiLink brings township life into one powerful app.
+            From stokvel payments to community safety alerts, iKasiLink brings township life into one powerful app.
           </p>
 
           {/* Feature Cards Row */}
-          <div className="grid md:grid-cols-3 gap-4 mb-12 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-4 mb-12 max-w-3xl mx-auto" role="region" aria-label="Key features">
             <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-              <MessageCircle className="w-8 h-8 text-primary mx-auto mb-3" />
+              <MessageCircle className="w-8 h-8 text-primary mx-auto mb-3" aria-hidden="true" />
               <h3 className="font-semibold text-foreground mb-2">Chat</h3>
               <p className="text-sm text-muted-foreground">Connect with your community safely</p>
             </Card>
             <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-              <Coins className="w-8 h-8 text-community mx-auto mb-3" />
+              <Coins className="w-8 h-8 text-community mx-auto mb-3" aria-hidden="true" />
               <h3 className="font-semibold text-foreground mb-2">Money</h3>
               <p className="text-sm text-muted-foreground">Stokvels, savings & payments</p>
             </Card>
             <Card className="p-6 bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-              <Users className="w-8 h-8 text-secondary mx-auto mb-3" />
+              <Users className="w-8 h-8 text-secondary mx-auto mb-3" aria-hidden="true" />
               <h3 className="font-semibold text-foreground mb-2">Community</h3>
               <p className="text-sm text-muted-foreground">Safety alerts & local business</p>
             </Card>

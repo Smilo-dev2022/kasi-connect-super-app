@@ -6,7 +6,7 @@ const resources = {
   en: {
     translation: {
       app: {
-        name: "KasiLink",
+        name: "iKasiLink",
       },
       nav: {
         chats: "Chats",
@@ -29,9 +29,9 @@ const resources = {
       },
       features: {
         heading: "Everything Your Community Needs",
-        subheading: "KasiLink brings together all the tools townships need to thrive - from daily conversations to financial empowerment, all in one secure platform.",
+        subheading: "iKasiLink brings together all the tools townships need to thrive - from daily conversations to financial empowerment, all in one secure platform.",
         ctaHeading: "Ready to Transform Your Community?",
-        ctaCopy: "Join thousands of South Africans already using KasiLink to build stronger, more connected communities across the country.",
+        ctaCopy: "Join thousands of South Africans already using iKasiLink to build stronger, more connected communities across the country.",
         getEarlyAccess: "Get Early Access",
         startCommunity: "Start Your Community",
         list: {
@@ -54,7 +54,7 @@ const resources = {
   zu: {
     translation: {
       app: {
-        name: "KasiLink",
+        name: "iKasiLink",
       },
       nav: {
         chats: "Ingxoxo",
@@ -77,9 +77,9 @@ const resources = {
       },
       features: {
         heading: "Konke Okudingwa Umphakathi Wakho",
-        subheading: "I-KasiLink ihlanganisa wonke amathuluzi adingwa yimiphakathi ukuze ichume - kusukela ezingxoxweni zansuku zonke kuya ekunothisweni kwezezimali, konke kuphephile endaweni eyodwa.",
+        subheading: "I-iKasiLink ihlanganisa wonke amathuluzi adingwa yimiphakathi ukuze ichume - kusukela ezingxoxweni zansuku zonke kuya ekunothisweni kwezezimali, konke kuphephile endaweni eyodwa.",
         ctaHeading: "Ukulungele Ukuguqula Umphakathi Wakho?",
-        ctaCopy: "Joyina izinkulungwane zabantu baseNingizimu Afrika abasebenzisa i-KasiLink ukwakha imiphakathi eqinile futhi exhumekile ezweni lonke.",
+        ctaCopy: "Joyina izinkulungwane zabantu baseNingizimu Afrika abasebenzisa i-iKasiLink ukwakha imiphakathi eqinile futhi exhumekile ezweni lonke.",
         getEarlyAccess: "Thola Ukufinyelela Kwakuqala",
         startCommunity: "Qala Umphakathi Wakho",
         list: {

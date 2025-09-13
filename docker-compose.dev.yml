@@ -135,6 +135,9 @@ services:
       - agent7-messaging
     ports:
       - '5173:8080'
+    profiles:
+      - cursor
+      - vscode
 
 volumes:
   redis-data: {}

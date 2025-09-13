@@ -10,6 +10,7 @@ services=(
   "http://localhost:4009/health|search"
   "http://localhost:8000|events"
   "http://localhost:8082/api/health|moderation"
+  "http://localhost:4015/healthz|wallet"
 )
 
 fail=0

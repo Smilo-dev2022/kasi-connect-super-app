@@ -185,6 +185,7 @@ services:
       - VITE_SEARCH_API=http://localhost:4009
       - VITE_MEDIA_API=http://localhost:4008
       - VITE_AUTH_API=http://localhost:4010
+      - VITE_WALLET_API=http://localhost:4015
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"
@@ -192,6 +193,19 @@ services:
       - agent7-messaging
     ports:
       - '5173:8080'
+    profiles:
+      - cursor
+      - vscode
+
+  wallet:
+    build:
+      context: ./services/wallet
+    environment:
+      - NODE_ENV=development
+      - PORT=4015
+      - CORS_ORIGIN=*
+    ports:
+      - '4015:4015'
     profiles:
       - cursor
       - vscode

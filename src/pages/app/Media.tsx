@@ -7,6 +7,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Image as ImageIcon, Video, Upload, Play, Pause } from "lucide-react";
+import { addMedia } from "@/lib/media";
 
 type MediaItem = {
   id: number;
@@ -40,14 +41,25 @@ const Media = () => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
     setUploading(true);
-    // Fake client-only preview entries
-    const newItems: MediaItem[] = files.map((f, i) => ({
-      id: Date.now() + i,
-      type: f.type.startsWith("video") ? "video" : "image",
-      src: URL.createObjectURL(f),
-      title: f.name,
-    }));
-    setItems((prev) => [...newItems, ...prev]);
+    try {
+      // Try backend upload if configured (handled inside addMedia fallback otherwise)
+      const summaries = await Promise.all(files.map((f) => addMedia(f)));
+      const newItems: MediaItem[] = summaries.map((s, i) => ({
+        id: Date.now() + i,
+        type: s.mimeType.startsWith("video") ? "video" : "image",
+        src: s.thumbnailUrl || "/placeholder.svg",
+        title: s.name,
+      }));
+      setItems((prev) => [...newItems, ...prev]);
+    } catch (err) {
+      const newItems: MediaItem[] = files.map((f, i) => ({
+        id: Date.now() + i,
+        type: f.type.startsWith("video") ? "video" : "image",
+        src: URL.createObjectURL(f),
+        title: f.name,
+      }));
+      setItems((prev) => [...newItems, ...prev]);
+    }
     setUploading(false);
   };
 

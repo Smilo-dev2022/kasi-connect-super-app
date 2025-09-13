@@ -36,6 +36,7 @@ services:
       - NODE_ENV=development
       - PORT=8080
       - JWT_SECRET=devsecret
+      - CORS_ORIGIN=*
     volumes:
       - ./agent7-messaging:/app
     command: sh -c "npm i && npm run dev"
@@ -97,6 +98,20 @@ services:
     ports:
       - '4009:4009'
 
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_DB=messaging
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    profiles:
+      - cursor
+      - vscode
+
   events:
     image: python:3.13-slim
     working_dir: /app
@@ -143,4 +158,5 @@ volumes:
   redis-data: {}
   minio-data: {}
   typesense-data: {}
+  pg-data: {}
 

@@ -8,13 +8,15 @@ import { authRouter, requireJwt } from './auth';
 import { keysRouter } from './keys';
 import { groupsRouter } from './groups';
 import { getMissedMessagesRouter } from './messages_http';
+import { conversationsRouter } from './conversations';
 import { safetyRouter } from './safety';
 
 dotenv.config();
 
 export function createApp() {
 	const app = express();
-	app.use(cors());
+	const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : undefined;
+	app.use(cors({ origin: (corsOrigin && corsOrigin.length > 0) ? corsOrigin : '*' }));
 	app.use(helmet());
 	app.use(express.json({ limit: '1mb' }));
 	app.use(morgan('dev'));
@@ -27,6 +29,7 @@ export function createApp() {
 	app.use('/keys', requireJwt, keysRouter);
 	app.use('/groups', requireJwt, groupsRouter);
 	app.use('/messages', requireJwt, getMissedMessagesRouter);
+	app.use('/conversations', requireJwt, conversationsRouter);
 	app.use('/safety', requireJwt, safetyRouter);
 
 	if (process.env.NODE_ENV === 'production') {

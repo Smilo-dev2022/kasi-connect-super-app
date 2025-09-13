@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { MessagingClient, IncomingMessage } from '@/lib/messagingClient';
 import { getCurrentUserId, setCurrentUserId } from '@/lib/devAuth';
 import { Check, X, ShoppingBag } from 'lucide-react';
+import { requestPayment } from '@/lib/wallet';
 
 type OrderPayload = {
   kind: 'order';
@@ -87,6 +88,12 @@ export default function ChatThread() {
     clientRef.current?.send({ to: peerId, scope: 'direct', ciphertext: encode(order), contentType: 'application/order+json' });
   }
 
+  async function requestPaymentDemo() {
+    try {
+      await requestPayment(peerId, 120, 'ZAR');
+    } catch {}
+  }
+
   function respondToOrder(source: IncomingMessage, status: 'accepted' | 'declined') {
     const decoded = tryDecode(source.ciphertext) as Partial<OrderPayload> | undefined;
     if (!decoded || decoded.kind !== 'order' || !decoded.orderId) return;
@@ -106,6 +113,7 @@ export default function ChatThread() {
           <Button variant="community" onClick={sendOrderRequest}>
             <ShoppingBag className="w-4 h-4 mr-2" /> Send Order Request
           </Button>
+          <Button variant="outline" onClick={requestPaymentDemo}>Request Payment</Button>
         </div>
         <div className="space-y-2">
           {messages.map((m) => {

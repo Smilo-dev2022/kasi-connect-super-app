@@ -1,4 +1,4 @@
-import { getDevTokenForUser, getMessagingApiBase } from './devAuth';
+import { getDevTokenForUser, getMessagingApiBase, getStoredAuthToken } from './devAuth';
 
 export type OutgoingMessage = {
   to: string;
@@ -26,7 +26,10 @@ export class MessagingClient {
   private token?: string;
 
   async connect(userId: string): Promise<void> {
-    this.token = await getDevTokenForUser(userId);
+    const jwtOnly = ((import.meta as any)?.env?.VITE_JWT_ONLY as string | undefined) === 'true';
+    const authToken = getStoredAuthToken();
+    // JWT-only blocks dev token fallback
+    this.token = jwtOnly ? (authToken || '') : (authToken || await getDevTokenForUser(userId));
     const url = new URL('/ws', getMessagingApiBase());
     url.searchParams.set('token', this.token);
     await new Promise<void>((resolve, reject) => {
@@ -62,6 +65,11 @@ export class MessagingClient {
   send(message: OutgoingMessage) {
     const payload = { type: 'msg', ...message } as const;
     this.socket?.send(JSON.stringify(payload));
+  }
+
+  close() {
+    try { this.socket?.close(); } catch {}
+    this.socket = undefined;
   }
 }
 

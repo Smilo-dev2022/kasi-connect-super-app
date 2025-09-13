@@ -17,6 +17,26 @@ export type SearchResponse = {
 };
 
 const serpApiKey = ((import.meta as any).env?.VITE_SERPAPI_KEY as string | undefined);
+const agent9Base = ((import.meta as any).env?.VITE_SEARCH_API as string | undefined);
+
+async function searchAgent9(query: string, category: SearchCategory): Promise<SearchResult[]> {
+  const base = agent9Base || "http://localhost:4009";
+  const params = new URLSearchParams({ q: query, per_page: "10" });
+  if (category === "media") params.set("type", "image");
+  if (category === "links") params.set("type", "link");
+  const url = `${base}/messages/search?${params.toString()}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Agent9 request failed: ${response.status}`);
+  const data = await response.json();
+  const hits: any[] = Array.isArray((data as any).hits) ? (data as any).hits : [];
+  return hits.map((doc: any) => ({
+    title: (doc.text as string | undefined)?.slice(0, 80) || "(no title)",
+    url: "#",
+    snippet: doc.text,
+    source: doc.conversation_id ? `conv:${doc.conversation_id}` : doc.sender_id ? `sender:${doc.sender_id}` : "Agent9",
+    thumbnailUrl: undefined,
+  }));
+}
 
 async function searchSerpApi(query: string, category: SearchCategory): Promise<SearchResult[]> {
   const base = "https://serpapi.com/search.json";
@@ -95,7 +115,15 @@ export async function performSearch(query: string, category: SearchCategory): Pr
   const started = performance.now();
   let results: SearchResult[] = [];
   let provider = "DuckDuckGo";
-  if (serpApiKey) {
+  if (agent9Base) {
+    try {
+      results = await searchAgent9(query, category);
+      provider = "Agent9 (Typesense)";
+    } catch {
+      // fall through to web providers
+    }
+  }
+  if (!results.length && serpApiKey) {
     try {
       results = await searchSerpApi(query, category);
       provider = category === "media" ? "SerpAPI (Google Images)" : "SerpAPI (Google)";
@@ -104,7 +132,9 @@ export async function performSearch(query: string, category: SearchCategory): Pr
       provider = "DuckDuckGo";
     }
   } else {
-    results = await searchDuckDuckGo(query, category);
+    if (!results.length) {
+      results = await searchDuckDuckGo(query, category);
+    }
   }
   const tookMs = Math.round(performance.now() - started);
   return { category, query, results, tookMs, provider };

@@ -1,0 +1,7 @@
+/agent7-messaging @agent7
+/services/auth @agent6
+/services/media @agent8
+/agent9-search @agent9
+/web-admin @agent5
+/mobile/android @agent1 @agent2
+/mobile/ios @agent3 @agent4

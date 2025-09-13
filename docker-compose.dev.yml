@@ -1,0 +1,218 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-08-17T01-00-00Z
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --address :9000 --console-address :9001
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+
+  typesense:
+    image: typesense/typesense:0.25.2
+    command: ["/opt/typesense-server", "--data-dir", "/data", "--api-key", "xyz", "--listen-port", "8108", "--enable-cors"]
+    ports:
+      - '8108:8108'
+    volumes:
+      - typesense-data:/data
+
+  agent7-messaging:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - JWT_SECRET=devsecret
+      - CORS_ORIGIN=*
+      - USE_DB=true
+      - DATABASE_URL=postgres://kasilink:kasilink@postgres:5432/kasilink
+    volumes:
+      - ./agent7-messaging:/app
+    command: sh -c "npm i && npm run dev"
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
+
+  auth:
+    build:
+      context: ./services/auth
+    environment:
+      - NODE_ENV=development
+      - PORT=4010
+      - CORS_ORIGIN=*
+      - JWT_SECRET=dev-secret-change-me
+      - REDIS_URL=redis://redis:6379
+      - OTP_TTL_SECONDS=300
+      - OTP_COOLDOWN_SECONDS=60
+      - OTP_MAX_ATTEMPTS=5
+      - OTP_PEPPER=dev-otp-pepper-change-me
+    depends_on:
+      - redis
+    ports:
+      - '4010:4010'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4010/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  media:
+    build:
+      context: ./services/media
+      target: dev
+    environment:
+      - NODE_ENV=development
+      - PORT=4008
+      - CORS_ORIGIN=*
+      - S3_ENDPOINT=http://minio:9000
+      - S3_REGION=us-east-1
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET=media
+      - S3_FORCE_PATH_STYLE=true
+    volumes:
+      - ./services/media:/app
+      - /app/node_modules
+    depends_on:
+      - minio
+    ports:
+      - '4008:4008'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4008/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  search:
+    build:
+      context: ./agent9-search
+    environment:
+      - NODE_ENV=development
+      - PORT=4009
+      - TYPESENSE_HOST=typesense
+      - TYPESENSE_PORT=8108
+      - TYPESENSE_PROTOCOL=http
+      - TYPESENSE_API_KEY=xyz
+    depends_on:
+      - typesense
+    ports:
+      - '4009:4009'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4009/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=kasilink
+      - POSTGRES_PASSWORD=kasilink
+      - POSTGRES_DB=kasilink
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    profiles:
+      - cursor
+      - vscode
+
+  events:
+    image: python:3.13-slim
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - EVENTS_DATABASE_URL=postgresql+psycopg2://kasilink:kasilink@postgres:5432/kasilink
+    volumes:
+      - ./:/app
+    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - '8000:8000'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
+
+  moderation:
+    image: python:3.11-slim
+    working_dir: /app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOD_USE_DB=true
+      - MOD_DB_URL=postgresql://kasilink:kasilink@postgres:5432/kasilink
+      - DATABASE_URL=postgresql://kasilink:kasilink@postgres:5432/kasilink
+    volumes:
+      - ./moderation_service:/app
+    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8082 --reload"
+    ports:
+      - '8082:8082'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - postgres
+
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - VITE_MSG_API=http://localhost:8080
+      - VITE_SEARCH_API=http://localhost:4009
+      - VITE_MEDIA_API=http://localhost:4008
+      - VITE_AUTH_API=http://localhost:4010
+      - VITE_WALLET_API=http://localhost:4015
+    volumes:
+      - ./:/app
+    command: sh -c "npm i && npm run dev"
+    depends_on:
+      - agent7-messaging
+    ports:
+      - '5173:8080'
+    profiles:
+      - cursor
+      - vscode
+
+  wallet:
+    build:
+      context: ./services/wallet
+    environment:
+      - NODE_ENV=development
+      - PORT=4015
+      - CORS_ORIGIN=*
+    ports:
+      - '4015:4015'
+    profiles:
+      - cursor
+      - vscode
+
+volumes:
+  redis-data: {}
+  minio-data: {}
+  typesense-data: {}
+  pg-data: {}
+

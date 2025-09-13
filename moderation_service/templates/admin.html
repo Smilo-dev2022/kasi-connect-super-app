@@ -8,21 +8,79 @@
 </head>
 <body>
 	<header>
-		<h1>Moderation Admin – Day 1 Stub</h1>
+		<h1>Moderation Admin</h1>
 	</header>
 	<main>
 		<section>
 			<h2>Reports</h2>
+			<div class="filters">
+				<label>Status:
+					<select id="status">
+						<option value="">All</option>
+						<option value="pending">Pending</option>
+						<option value="queued">Queued</option>
+						<option value="in_review">In Review</option>
+						<option value="action_taken">Action Taken</option>
+						<option value="dismissed">Dismissed</option>
+					</select>
+				</label>
+				<label>Limit:
+					<select id="limit">
+						<option>10</option>
+						<option selected>20</option>
+						<option>50</option>
+					</select>
+				</label>
+				<button id="refresh">Refresh</button>
+				<button id="prev">Prev</button>
+				<button id="next">Next</button>
+			</div>
 			<div id="reports"></div>
+		</section>
+
+		<section>
+			<h2>Queue</h2>
+			<div class="filters">
+				<input id="agent" placeholder="Your agent/user id" />
+				<button id="claim">Claim Oldest</button>
+				<button id="refresh-queue">Refresh Queue</button>
+			</div>
+			<div id="queue"></div>
 		</section>
 	</main>
 	<script>
+	let cursorStack = [null];
+	let nextCursor = null;
+
+	async function api(path, opts) {
+		const res = await fetch(path, opts);
+		if (!res.ok) throw new Error('request_failed');
+		return res.json();
+	}
+
+	function currentCursor() {
+		return cursorStack[cursorStack.length - 1];
+	}
+
+	function resetPagination() {
+		cursorStack = [null];
+		nextCursor = null;
+	}
+
 	async function loadReports() {
-		const res = await fetch('/api/reports');
-		const reports = await res.json();
+		const status = document.getElementById('status').value;
+		const limit = parseInt(document.getElementById('limit').value, 10) || 20;
+		const cur = currentCursor();
+		const params = new URLSearchParams();
+		if (status) params.set('status', status);
+		params.set('limit', String(limit));
+		if (cur) params.set('cursor', cur);
+		const data = await api(`/api/reports/list?${params.toString()}`);
+		nextCursor = data.next_cursor || null;
+		const reports = data.items || [];
 		const container = document.getElementById('reports');
-		if (!Array.isArray(reports) || reports.length === 0) {
-			container.innerHTML = '<p>No reports yet.</p>';
+		if (reports.length === 0) {
+			container.innerHTML = '<p>No reports.</p>';
 			return;
 		}
 		container.innerHTML = '';
@@ -32,15 +90,100 @@
 			el.innerHTML = `
 				<div class="row">
 					<div><strong>ID</strong>: ${r.id}</div>
-					<div><strong>Status</strong>: ${r.status}</div>
-					<div><strong>Reason</strong>: ${r.reason}</div>
+					<div><strong>Status</strong>: <span id="status-${r.id}">${r.status}</span></div>
+					<div><strong>Reason</strong>: ${r.reason || ''}</div>
+					<div><strong>Created</strong>: ${r.created_at || ''}</div>
 				</div>
-				<div class="content"><strong>Content</strong>: ${r.content_text}</div>
+				<div class="actions">
+					<button data-action="in_review" data-id="${r.id}">Mark In Review</button>
+					<button data-action="action_taken" data-id="${r.id}">Action Taken</button>
+					<button data-action="dismissed" data-id="${r.id}">Dismiss</button>
+				</div>
 			`;
 			container.appendChild(el);
 		});
 	}
+
+	async function loadQueue() {
+		const data = await api('/api/queue');
+		const items = data.items || [];
+		const container = document.getElementById('queue');
+		if (items.length === 0) {
+			container.innerHTML = '<p>Queue empty.</p>';
+			return;
+		}
+		container.innerHTML = '';
+		items.forEach(q => {
+			const el = document.createElement('div');
+			el.className = 'queue-item';
+			el.innerHTML = `
+				<div class="row">
+					<div><strong>QID</strong>: ${q.id}</div>
+					<div><strong>Report</strong>: ${q.report_id}</div>
+					<div><strong>State</strong>: ${q.state}</div>
+					<div><strong>Assigned</strong>: ${q.assigned_to || ''}</div>
+				</div>
+				<div class="actions">
+					${q.assigned_to ? `<button data-release="${q.id}">Release</button>` : ''}
+				</div>
+			`;
+			container.appendChild(el);
+		});
+	}
+
+	async function updateStatus(id, status) {
+		const span = document.getElementById(`status-${id}`);
+		if (span) span.textContent = status;
+		try {
+			await api(`/api/reports/${id}/status`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
+		} catch (e) {
+			await loadReports();
+		}
+	}
+
+	document.addEventListener('click', async (e) => {
+		const t = e.target;
+		if (t && t.matches('button[data-action]')) {
+			const id = t.getAttribute('data-id');
+			const action = t.getAttribute('data-action');
+			await updateStatus(id, action);
+		}
+		if (t && t.matches('#claim')) {
+			const assigned_to = document.getElementById('agent').value || 'admin';
+			await api('/api/queue/claim', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ assigned_to }) });
+			await loadQueue();
+		}
+		if (t && t.matches('button[data-release]')) {
+			const id = t.getAttribute('data-release');
+			await api('/api/queue/release', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id }) });
+			await loadQueue();
+		}
+		if (t && t.matches('#next')) {
+			if (nextCursor) {
+				cursorStack.push(nextCursor);
+				await loadReports();
+			}
+		}
+		if (t && t.matches('#prev')) {
+			if (cursorStack.length > 1) {
+				cursorStack.pop();
+				await loadReports();
+			}
+		}
+		if (t && t.matches('#refresh')) {
+			resetPagination();
+			await loadReports();
+		}
+		if (t && t.matches('#refresh-queue')) {
+			await loadQueue();
+		}
+	});
+
+	document.getElementById('status').addEventListener('change', async () => { resetPagination(); await loadReports(); });
+	document.getElementById('limit').addEventListener('change', async () => { resetPagination(); await loadReports(); });
+
 	loadReports();
+	loadQueue();
 	</script>
 </body>
 </html>

@@ -4,6 +4,8 @@ import url from 'url';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, eventLog, onlineUsers, userIdToGroups } from './state';
+import { withTransaction } from './db';
+import { createRepos } from './repos';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -30,6 +32,9 @@ type ServerMessage =
 	| { type: 'presence'; userId: string; state: 'online' | 'offline'; timestamp: number }
 	| { type: 'typing'; from: string; to: string; scope: 'direct' | 'group'; isTyping: boolean; timestamp: number }
 	| { type: 'error'; id?: string; error: string };
+
+const USE_DB = (process.env.USE_DB || '').toLowerCase() === 'true';
+const repos = USE_DB ? createRepos() : null;
 
 export function attachWebSocketServer(server: import('http').Server) {
 	const wss = new WebSocketServer({ server, path: '/ws' });
@@ -100,7 +105,17 @@ export function attachWebSocketServer(server: import('http').Server) {
 						timestamp,
 						replyTo: msg.replyTo,
 					};
-					messageLog.push(envelope);
+					if (USE_DB && repos) {
+						try {
+							await withTransaction(async (client) => {
+								await repos.messages.create(String(msg.to), from, msg.contentType || 'text', { ciphertext: msg.ciphertext, replyTo: msg.replyTo }, client);
+							});
+						} catch (e) {
+							return send(socket, { type: 'error', error: 'db_write_failed' });
+						}
+					} else {
+						messageLog.push(envelope);
+					}
 					deliver(envelope);
 					return;
 				}
@@ -143,6 +158,12 @@ export function attachWebSocketServer(server: import('http').Server) {
 					const original = messageLog.find((m) => m.id === msg.messageId);
 					if (!original) return send(socket, { type: 'error', error: 'message_not_found' });
 					eventLog.push({ type: 'receipt', id, messageId: msg.messageId, userId: userId!, receipt: msg.type, timestamp });
+					if (USE_DB && repos) {
+						try {
+							const atIso = new Date(timestamp).toISOString();
+							await repos.receipts.upsert(msg.messageId, userId!, msg.type, atIso);
+						} catch {}
+					}
 					const sender = userIdToSocket.get(original.from);
 					if (sender) send(sender, { type: 'receipt', messageId: msg.messageId, userId: userId!, receipt: msg.type, timestamp });
 					return;

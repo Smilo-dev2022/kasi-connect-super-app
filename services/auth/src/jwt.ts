@@ -8,9 +8,21 @@ export function signToken(payload: JwtUser): string {
   return jwt.sign(payload as JwtPayload, config.jwtSecret as Secret, { expiresIn: config.jwtExpiresIn } as SignOptions);
 }
 
+export function signRefreshToken(payload: JwtUser): string {
+  return jwt.sign(payload as JwtPayload, config.refreshJwtSecret as Secret, { expiresIn: config.refreshExpiresIn } as SignOptions);
+}
+
 export function verifyToken(token: string): JwtUser | null {
   try {
     return jwt.verify(token, config.jwtSecret) as JwtUser;
+  } catch {
+    return null;
+  }
+}
+
+export function verifyRefreshToken(token: string): JwtUser | null {
+  try {
+    return jwt.verify(token, config.refreshJwtSecret) as JwtUser;
   } catch {
     return null;
   }

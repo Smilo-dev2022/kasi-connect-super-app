@@ -30,6 +30,7 @@ const DB_NAME = "kasilink-media-db";
 const DB_VERSION = 1;
 const STORE_NAME = "media";
 const FALLBACK_THUMBNAIL = "/placeholder.svg";
+const mediaApiBase = ((import.meta as any).env?.VITE_MEDIA_API as string | undefined) || undefined;
 
 function openMediaDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -170,6 +171,38 @@ export async function addMedia(file: File): Promise<MediaSummary> {
   const mimeType = file.type || "application/octet-stream";
   const category = getCategoryFromMime(mimeType);
 
+  // If media API is configured, upload to backend (S3/MinIO) using presigned PUT
+  if (mediaApiBase) {
+    // Request presigned URL
+    const presignRes = await fetch(`${mediaApiBase}/uploads/presign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contentType: mimeType, fileName: file.name, folder: category }),
+    });
+    if (!presignRes.ok) throw new Error("failed-to-presign-upload");
+    const { url, headers, key } = (await presignRes.json()) as { url: string; method: string; key: string; headers: Record<string, string> };
+
+    // Upload file directly to object storage
+    const putRes = await fetch(url, { method: "PUT", headers, body: file });
+    if (!putRes.ok) throw new Error("upload-failed");
+
+    // Build thumbnail URL using media service thumbnail endpoint for images
+    const thumbnailUrl = isImage(mimeType)
+      ? `${mediaApiBase}/thumb?key=${encodeURIComponent(key)}&w=384&format=webp&q=80`
+      : FALLBACK_THUMBNAIL;
+
+    return {
+      id,
+      name: file.name,
+      mimeType,
+      size: file.size,
+      createdAt,
+      category,
+      thumbnailUrl,
+    };
+  }
+
+  // Fallback: client-side only (IndexedDB + generated thumbnails)
   let width: number | undefined;
   let height: number | undefined;
   let duration: number | undefined;
@@ -268,6 +301,11 @@ export async function listMedia(): Promise<MediaSummary[]> {
 }
 
 export async function getMediaObjectUrl(id: string): Promise<string> {
+  if (mediaApiBase) {
+    // When using backend storage, the id is not the storage key; companies often return keys after metadata creation.
+    // For this demo, prompt callers to pass the storage key instead of id for remote fetch, or use /media/proxy when key is known.
+    throw new Error("getMediaObjectUrl is not supported with remote media API in this demo");
+  }
   const record = await withStore<MediaRecord | undefined>("readonly", async (store) => {
     const result: MediaRecord | undefined = await new Promise((resolve, reject) => {
       const req = store.get(id);

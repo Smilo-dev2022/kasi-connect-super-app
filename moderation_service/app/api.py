@@ -73,6 +73,26 @@ async def list_reports(request: Request, status_filter: Optional[ReportStatus] =
     return await store.list_reports(status=status_filter)
 
 
+@router.get("/reports/list")
+async def list_reports_paginated(status_filter: Optional[ReportStatus] = None, limit: int = 50, cursor: Optional[str] = None) -> dict:
+    if os.getenv("MOD_USE_DB", "").lower() == "true":
+        repos = await get_repos()
+        rows, next_cursor = await repos.reports.list(status_filter.value if status_filter else None, limit=limit, cursor=cursor)
+        items = [
+            {
+                "id": str(r["id"]),
+                "reason": r["reason"],
+                "reporter_id": r["reporter_id"],
+                "status": r["status"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            }
+            for r in rows
+        ]
+        return {"items": items, "next_cursor": next_cursor}
+    # Fallback to in-memory
+    return {"items": [], "next_cursor": None}
+
+
 @router.get("/reports/{report_id}", response_model=Report)
 async def get_report(request: Request, report_id: str) -> Report:
     store = get_store(request)
@@ -107,11 +127,51 @@ async def update_report_status(request: Request, report_id: str, payload: Report
 @router.post("/reports/{report_id}/action")
 async def record_action(report_id: str, request: Request) -> dict:
     if os.getenv("MOD_USE_DB", "").lower() != "true":
-        return {"ok": false}
+        return {"ok": False}
     body = await request.json()
     actor_id = body.get("actor_id")
     action = body.get("action")
     notes = body.get("notes")
     repos = await get_repos()
     row = await repos.actions.record_action(report_id, actor_id, action, notes)
+
     return {"ok": True, "id": str(row["id"]) }
+
+
+@router.get("/queue")
+async def list_queue() -> dict:
+    if os.getenv("MOD_USE_DB", "").lower() != "true":
+        return {"items": []}
+    repos = await get_repos()
+    items = await repos.queue.list_open()
+    return {"items": items}
+
+
+@router.post("/queue/enqueue")
+async def enqueue_report(body: dict) -> dict:
+    if os.getenv("MOD_USE_DB", "").lower() != "true":
+        return {"ok": False}
+    report_id = body.get("report_id")
+    repos = await get_repos()
+    row = await repos.queue.enqueue(report_id)
+    return {"ok": True, "id": str(row["id"]) }
+
+
+@router.post("/queue/claim")
+async def claim_queue(body: dict) -> dict:
+    if os.getenv("MOD_USE_DB", "").lower() != "true":
+        return {"ok": False}
+    assigned_to = body.get("assigned_to")
+    repos = await get_repos()
+    row = await repos.queue.claim(assigned_to)
+    return {"ok": True, "item": row}
+
+
+@router.post("/queue/release")
+async def release_queue(body: dict) -> dict:
+    if os.getenv("MOD_USE_DB", "").lower() != "true":
+        return {"ok": False}
+    qid = body.get("id")
+    repos = await get_repos()
+    await repos.queue.release(qid)
+    return {"ok": True}

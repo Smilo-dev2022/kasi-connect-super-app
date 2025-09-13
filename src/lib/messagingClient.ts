@@ -1,4 +1,4 @@
-import { getDevTokenForUser, getMessagingApiBase } from './devAuth';
+import { getDevTokenForUser, getMessagingApiBase, getStoredAuthToken } from './devAuth';
 
 export type OutgoingMessage = {
   to: string;
@@ -26,7 +26,8 @@ export class MessagingClient {
   private token?: string;
 
   async connect(userId: string): Promise<void> {
-    this.token = await getDevTokenForUser(userId);
+    // Prefer Auth JWT if available; otherwise use dev token endpoint
+    this.token = getStoredAuthToken() || await getDevTokenForUser(userId);
     const url = new URL('/ws', getMessagingApiBase());
     url.searchParams.set('token', this.token);
     await new Promise<void>((resolve, reject) => {

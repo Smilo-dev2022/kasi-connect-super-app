@@ -1,6 +1,8 @@
 // Support environments where import.meta typing may not include env
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DEFAULT_MESSAGING_API = ((import.meta as any)?.env?.VITE_MSG_API as string | undefined) || 'http://localhost:8080';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DEFAULT_AUTH_API = ((import.meta as any)?.env?.VITE_AUTH_API as string | undefined) || 'http://localhost:4010';
 
 type StoredTokens = Record<string, string>;
 
@@ -14,6 +16,10 @@ function getStorage(): Storage | undefined {
 
 export function getMessagingApiBase(): string {
   return DEFAULT_MESSAGING_API;
+}
+
+export function getAuthApiBase(): string {
+  return DEFAULT_AUTH_API;
 }
 
 export function getCurrentUserId(): string {
@@ -44,6 +50,41 @@ export async function getDevTokenForUser(userId: string, name?: string): Promise
   const data = (await res.json()) as { token: string };
   map[userId] = data.token;
   storage?.setItem('devTokens', JSON.stringify(map));
+  return data.token;
+}
+
+// OTP Auth service helpers
+const AUTH_JWT_KEY = 'auth.jwt';
+
+export function getStoredAuthToken(): string | undefined {
+  return getStorage()?.getItem(AUTH_JWT_KEY) || undefined;
+}
+
+export function setStoredAuthToken(token: string | undefined): void {
+  const storage = getStorage();
+  if (!storage) return;
+  if (token) storage.setItem(AUTH_JWT_KEY, token);
+  else storage.removeItem(AUTH_JWT_KEY);
+}
+
+export async function requestOtp(channel: 'sms' | 'email', to: string): Promise<void> {
+  const res = await fetch(`${getAuthApiBase()}/auth/otp/request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel, to })
+  });
+  if (!res.ok) throw new Error('otp-request-failed');
+}
+
+export async function verifyOtp(params: { channel: 'sms' | 'email'; to: string; code: string; device?: { platform: 'ios' | 'android' | 'web'; token: string } }): Promise<string> {
+  const res = await fetch(`${getAuthApiBase()}/auth/otp/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+  if (!res.ok) throw new Error('otp-verify-failed');
+  const data = (await res.json()) as { token: string };
+  setStoredAuthToken(data.token);
   return data.token;
 }
 

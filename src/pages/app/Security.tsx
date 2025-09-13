@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, Lock, FileDown, Trash2 } from "lucide-react";
+import { requestOtp, verifyOtp, getStoredAuthToken, setStoredAuthToken } from "@/lib/devAuth";
 
 type ConsentSettings = {
   processingConsent: boolean;
@@ -76,6 +77,12 @@ const Security = () => {
   const [ivB64, setIvB64] = useState("");
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [isDecrypting, setIsDecrypting] = useState(false);
+
+  const [contact, setContact] = useState("");
+  const [channel, setChannel] = useState<"sms" | "email">("sms");
+  const [otpCode, setOtpCode] = useState("");
+  const [authToken, setAuthToken] = useState<string | undefined>(getStoredAuthToken());
+  const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
     try {
@@ -153,6 +160,45 @@ const Security = () => {
     }
   };
 
+  const handleSendOtp = async () => {
+    if (!contact.trim()) {
+      toast({ title: "Enter a phone or email", description: "Provide your destination for OTP.", variant: "destructive" });
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      await requestOtp(channel, contact.trim());
+      toast({ title: "OTP sent", description: "Check your device for the code." });
+    } catch (e) {
+      toast({ title: "OTP request failed", description: String(e), variant: "destructive" });
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpCode.trim()) {
+      toast({ title: "Enter the OTP code", description: "The code is required.", variant: "destructive" });
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      const token = await verifyOtp({ channel, to: contact.trim(), code: otpCode.trim(), device: { platform: 'web', token: 'browser' } });
+      setAuthToken(token);
+      toast({ title: "Signed in", description: "Auth token stored for this browser." });
+    } catch (e) {
+      toast({ title: "OTP verification failed", description: String(e), variant: "destructive" });
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    setStoredAuthToken(undefined);
+    setAuthToken(undefined);
+    toast({ title: "Signed out" });
+  };
+
   const handleEncrypt = async () => {
     if (!canUseWebCrypto) {
       toast({ title: "WebCrypto not supported", description: "Your browser does not support SubtleCrypto.", variant: "destructive" });
@@ -228,6 +274,34 @@ const Security = () => {
                 <Badge variant="outline">GDPR-friendly</Badge>
                 <Badge variant="outline">E2EE demo</Badge>
               </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 bg-card/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Lock className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Sign-in (OTP demo)</h3>
+          </div>
+          <div className="grid md:grid-cols-3 gap-3">
+            <div className="md:col-span-2 grid gap-2">
+              <div className="flex gap-2">
+                <select className="px-2 py-2 border rounded" value={channel} onChange={(e) => setChannel(e.target.value as any)}>
+                  <option value="sms">SMS</option>
+                  <option value="email">Email</option>
+                </select>
+                <Input placeholder={channel === 'sms' ? '+27 82 000 0000' : 'you@example.com'} value={contact} onChange={(e) => setContact(e.target.value)} />
+                <Button onClick={handleSendOtp} disabled={authBusy}>Send OTP</Button>
+              </div>
+              <div className="flex gap-2">
+                <Input placeholder="Enter OTP code" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} />
+                <Button variant="community" onClick={handleVerifyOtp} disabled={authBusy}>Verify</Button>
+                {authToken && <Button variant="outline" onClick={handleSignOut}>Sign out</Button>}
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground break-all">
+              <div className="font-medium mb-1">Auth token (stored locally):</div>
+              <div className="p-2 rounded border bg-muted/40 h-[72px] overflow-auto">{authToken ?? 'Not signed in'}</div>
             </div>
           </div>
         </Card>

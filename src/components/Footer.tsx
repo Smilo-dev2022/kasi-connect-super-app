@@ -13,7 +13,7 @@ const Footer = () => {
               Stay Connected with Your Community
             </h3>
             <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-              Be the first to know when KasiLink launches in your area. 
+              Be the first to know when iKasiLink launches in your area. 
               Join our community of early adopters building the future of township connectivity.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -33,7 +33,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           {/* Brand Section */}
           <div className="md:col-span-2">
-            <h3 className="text-3xl font-bold text-white mb-4">KasiLink</h3>
+            <h3 className="text-3xl font-bold text-white mb-4">iKasiLink</h3>
             <p className="text-white/80 mb-6 leading-relaxed">
               Empowering South African townships through technology. 
               Building bridges between communities, one connection at a time.
@@ -75,7 +75,7 @@ const Footer = () => {
         <div className="border-t border-white/20 pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-white/70 text-sm">
-              © 2024 KasiLink. Made with <Heart className="w-4 h-4 inline text-red-400" /> for South African communities.
+              © 2024 iKasiLink. Made with <Heart className="w-4 h-4 inline text-red-400" /> for South African communities.
             </p>
             <div className="flex gap-6 text-sm text-white/70">
               <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>

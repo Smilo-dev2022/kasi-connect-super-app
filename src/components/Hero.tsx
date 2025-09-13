@@ -19,7 +19,7 @@ const Hero = () => {
           {/* Logo/Brand */}
           <div className="mb-8">
             <h1 className="text-6xl md:text-8xl font-bold text-white mb-4 tracking-tight">
-              KasiLink
+              iKasiLink
             </h1>
             <div className="w-24 h-1 bg-gradient-to-r from-white/80 to-white/40 mx-auto rounded-full" />
           </div>
@@ -33,7 +33,7 @@ const Hero = () => {
           {/* Description */}
           <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
             A safe, verified space where people can talk, pay, save, and grow together. 
-            From stokvel payments to community safety alerts, KasiLink brings township life into one powerful app.
+            From stokvel payments to community safety alerts, iKasiLink brings township life into one powerful app.
           </p>
 
           {/* Feature Cards Row */}

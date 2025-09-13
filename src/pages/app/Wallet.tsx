@@ -23,7 +23,7 @@ import { useState } from "react";
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
   const cards = [
-    { brand: "KasiLink Debit", last4: "4821", balance: 1250.5, gradient: "from-community via-primary to-secondary" },
+    { brand: "iKasiLink Debit", last4: "4821", balance: 1250.5, gradient: "from-community via-primary to-secondary" },
     { brand: "Savings", last4: "9013", balance: 5600, gradient: "from-primary via-secondary to-community" },
     { brand: "Stokvel Pool", last4: "2745", balance: 22500, gradient: "from-secondary via-primary to-community" }
   ];

@@ -51,10 +51,10 @@ async def create_report(request: Request, payload: ReportCreate) -> Report:
 
 
 @router.get("/reports", response_model=List[Report])
-async def list_reports(request: Request, status_filter: Optional[ReportStatus] = None) -> List[Report]:
+async def list_reports(request: Request, status_filter: Optional[ReportStatus] = None, limit: int = 50, cursor: Optional[str] = None) -> List[Report]:
     if os.getenv("MOD_USE_DB", "").lower() == "true":
         repos = await get_repos()
-        rows, _ = await repos.reports.list(status_filter.value if status_filter else None)
+        rows, _ = await repos.reports.list(status_filter.value if status_filter else None, limit=limit, cursor=cursor)
         out: List[Report] = []
         for r in rows:
             out.append(

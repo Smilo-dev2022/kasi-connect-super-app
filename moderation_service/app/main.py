@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+import json
+import time
 from fastapi.staticfiles import StaticFiles
 
 from .api import router as api_router
@@ -40,6 +42,22 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def on_startup() -> None:
         await app.state.abuse_queue.start()
+
+    @app.middleware("http")
+    async def log_requests(request: Request, call_next):  # type: ignore[no-redef]
+        started = time.time()
+        response = await call_next(request)
+        took = int((time.time() - started) * 1000)
+        record = {
+            "ts": int(time.time() * 1000),
+            "request_id": request.headers.get("x-request-id"),
+            "route": request.url.path,
+            "method": request.method,
+            "status": response.status_code,
+            "duration_ms": took,
+        }
+        print(json.dumps(record))
+        return response
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:

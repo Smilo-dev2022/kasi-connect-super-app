@@ -8,18 +8,38 @@
 </head>
 <body>
 	<header>
-		<h1>Moderation Admin – Day 1 Stub</h1>
+		<h1>Moderation Admin</h1>
 	</header>
 	<main>
 		<section>
 			<h2>Reports</h2>
+			<div class="filters">
+				<label>Status:
+					<select id="status">
+						<option value="">All</option>
+						<option value="pending">Pending</option>
+						<option value="queued">Queued</option>
+						<option value="in_review">In Review</option>
+						<option value="action_taken">Action Taken</option>
+						<option value="dismissed">Dismissed</option>
+					</select>
+				</label>
+				<button id="refresh">Refresh</button>
+			</div>
 			<div id="reports"></div>
 		</section>
 	</main>
 	<script>
+	async function api(path, opts) {
+		const res = await fetch(path, opts);
+		if (!res.ok) throw new Error('request_failed');
+		return res.json();
+	}
+
 	async function loadReports() {
-		const res = await fetch('/api/reports');
-		const reports = await res.json();
+		const status = document.getElementById('status').value;
+		const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+		const reports = await api(`/api/reports${qs}`);
 		const container = document.getElementById('reports');
 		if (!Array.isArray(reports) || reports.length === 0) {
 			container.innerHTML = '<p>No reports yet.</p>';
@@ -32,14 +52,40 @@
 			el.innerHTML = `
 				<div class="row">
 					<div><strong>ID</strong>: ${r.id}</div>
-					<div><strong>Status</strong>: ${r.status}</div>
+					<div><strong>Status</strong>: <span id="status-${r.id}">${r.status}</span></div>
 					<div><strong>Reason</strong>: ${r.reason}</div>
 				</div>
-				<div class="content"><strong>Content</strong>: ${r.content_text}</div>
+				<div class="actions">
+					<button data-action="in_review" data-id="${r.id}">Mark In Review</button>
+					<button data-action="action_taken" data-id="${r.id}">Action Taken</button>
+					<button data-action="dismissed" data-id="${r.id}">Dismiss</button>
+				</div>
 			`;
 			container.appendChild(el);
 		});
 	}
+
+	async function updateStatus(id, status) {
+		const span = document.getElementById(`status-${id}`);
+		if (span) span.textContent = status; // optimistic
+		try {
+			await api(`/api/reports/${id}/status`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
+		} catch (e) {
+			await loadReports();
+		}
+	}
+
+	document.addEventListener('click', (e) => {
+		const t = e.target;
+		if (t && t.matches('button[data-action]')) {
+			const id = t.getAttribute('data-id');
+			const action = t.getAttribute('data-action');
+			updateStatus(id, action);
+		}
+	});
+
+	document.getElementById('refresh').addEventListener('click', () => loadReports());
+	document.getElementById('status').addEventListener('change', () => loadReports());
 	loadReports();
 	</script>
 </body>

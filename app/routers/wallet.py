@@ -66,6 +66,27 @@ def _ensure_not_expired(req: WalletRequest) -> None:
         req.status = "expired"
 
 
+@router.post("/maintenance/expire", status_code=202)
+def expire_requests(*, session: Session = Depends(get_session)) -> dict:
+    now = datetime.utcnow()
+    # Minimal sweep: mark requested items with expires_at < now as expired
+    items = session.exec(
+        select(WalletRequest).where(WalletRequest.status == "requested").where(
+            WalletRequest.expires_at != None  # type: ignore[comparison-overlap]
+        )
+    ).all()
+    updated = 0
+    for item in items:
+        if item.expires_at and item.expires_at < now:
+            item.status = "expired"
+            item.updated_at = now
+            session.add(item)
+            updated += 1
+    if updated:
+        session.commit()
+    return {"expired": updated}
+
+
 @router.post("/requests/{request_id}/accept", response_model=WalletRequestRead)
 def accept_request(
     *, request: Request, session: Session = Depends(get_session), request_id: int, actor_id: str
@@ -130,8 +151,13 @@ def mark_paid(
     req.updated_at = datetime.utcnow()
 
     # Ledger entries: requester receives funds, payer pays out
-    _apply_ledger_delta(session, req.group_id, req.requester_id, req.amount_cents, req.id)
-    _apply_ledger_delta(session, req.group_id, payer_id, -req.amount_cents, req.id)
+    # Idempotency: if ledger entries for this request already exist, skip
+    existing_entries = session.exec(
+        select(LedgerEntry).where(LedgerEntry.related_request_id == req.id)
+    ).all()
+    if not existing_entries:
+        _apply_ledger_delta(session, req.group_id, req.requester_id, req.amount_cents, req.id)
+        _apply_ledger_delta(session, req.group_id, payer_id, -req.amount_cents, req.id)
 
     session.add(req)
     session.commit()

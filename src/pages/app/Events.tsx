@@ -17,8 +17,12 @@ import {
   Heart,
   Bell
 } from "lucide-react";
+import { useEffect, useState } from "react";
+const EVENTS_API = (import.meta as any)?.env?.VITE_EVENTS_API || 'http://localhost:3000';
 
 const Events = () => {
+  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
   const upcomingEvents = [
     {
       id: 1,
@@ -114,6 +118,30 @@ const Events = () => {
     }
   };
 
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await fetch(`${EVENTS_API}/api/events`);
+      const data = await res.json();
+      setEvents(Array.isArray(data) ? data : data.events || []);
+    } catch {
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  async function createRsvp(eid: string) {
+    const form = new FormData();
+    form.set('eventId', eid);
+    form.set('name', 'Guest');
+    form.set('email', `guest-${Date.now()}@example.com`);
+    await fetch(`${EVENTS_API}/api/rsvps/with-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId: eid, name: 'Guest', email: `guest-${Date.now()}@example.com` }) });
+    await load();
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title="Events" />
@@ -164,7 +192,7 @@ const Events = () => {
         <div>
           <h3 className="text-lg font-semibold text-foreground mb-4">Upcoming Events</h3>
           <div className="space-y-4">
-            {upcomingEvents.map((event) => {
+            {(events.length ? events : upcomingEvents).map((event) => {
               const eventColor = getEventColor(event.category);
               const colorClasses = getColorClasses(eventColor);
               
@@ -223,6 +251,7 @@ const Events = () => {
                           variant={event.rsvp ? "outline" : "community"} 
                           size="sm" 
                           className="flex-1"
+                          onClick={() => (event.id ? createRsvp(event.id) : null)}
                         >
                           {event.rsvp ? "Cancel RSVP" : "RSVP"}
                         </Button>

@@ -7,6 +7,7 @@ from .db import init_db, get_session
 from .routers.events import router as events_router
 from .routers.rsvps import router as rsvps_router
 from .routers.reminders import router as reminders_router
+from .routers.wallet import router as wallet_router
 
 
 def create_app() -> FastAPI:
@@ -34,6 +35,7 @@ def create_app() -> FastAPI:
     app.include_router(events_router, prefix="/events", tags=["events"]) 
     app.include_router(rsvps_router, tags=["rsvps"]) 
     app.include_router(reminders_router, tags=["reminders"]) 
+    app.include_router(wallet_router)
 
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

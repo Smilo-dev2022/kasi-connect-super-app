@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse
 from sqlmodel import Session, select
 
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/wallet", tags=["wallet"])
 
 
 @router.post("/requests", response_model=WalletRequestRead, status_code=201)
-def create_request(*, session: Session = Depends(get_session), data: WalletRequestCreate) -> WalletRequestRead:
+def create_request(*, request: Request, session: Session = Depends(get_session), data: WalletRequestCreate) -> WalletRequestRead:
     req = WalletRequest(
         group_id=data.group_id,
         requester_id=data.requester_id,
@@ -36,6 +36,12 @@ def create_request(*, session: Session = Depends(get_session), data: WalletReque
     session.add(req)
     session.commit()
     session.refresh(req)
+    # metrics
+    try:
+        request.app.state.wallet_request_total.inc()
+        request.app.state.wallet_state_change_total.inc()
+    except Exception:
+        pass
     return req
 
 
@@ -62,7 +68,7 @@ def _ensure_not_expired(req: WalletRequest) -> None:
 
 @router.post("/requests/{request_id}/accept", response_model=WalletRequestRead)
 def accept_request(
-    *, session: Session = Depends(get_session), request_id: int, actor_id: str
+    *, request: Request, session: Session = Depends(get_session), request_id: int, actor_id: str
 ) -> WalletRequestRead:
     req = session.get(WalletRequest, request_id)
     if not req:
@@ -76,12 +82,16 @@ def accept_request(
     session.add(req)
     session.commit()
     session.refresh(req)
+    try:
+        request.app.state.wallet_state_change_total.inc()
+    except Exception:
+        pass
     return req
 
 
 @router.post("/requests/{request_id}/cancel", response_model=WalletRequestRead)
 def cancel_request(
-    *, session: Session = Depends(get_session), request_id: int, actor_id: str
+    *, request: Request, session: Session = Depends(get_session), request_id: int, actor_id: str
 ) -> WalletRequestRead:
     req = session.get(WalletRequest, request_id)
     if not req:
@@ -95,12 +105,16 @@ def cancel_request(
     session.add(req)
     session.commit()
     session.refresh(req)
+    try:
+        request.app.state.wallet_state_change_total.inc()
+    except Exception:
+        pass
     return req
 
 
 @router.post("/requests/{request_id}/pay", response_model=WalletRequestRead)
 def mark_paid(
-    *, session: Session = Depends(get_session), request_id: int, payer_id: str
+    *, request: Request, session: Session = Depends(get_session), request_id: int, payer_id: str
 ) -> WalletRequestRead:
     req = session.get(WalletRequest, request_id)
     if not req:
@@ -122,6 +136,11 @@ def mark_paid(
     session.add(req)
     session.commit()
     session.refresh(req)
+    try:
+        request.app.state.wallet_mark_paid_total.inc()
+        request.app.state.wallet_state_change_total.inc()
+    except Exception:
+        pass
     return req
 
 

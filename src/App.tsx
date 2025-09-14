@@ -13,6 +13,7 @@ import Rooms from "./pages/app/Rooms";
 import Groups from "./pages/app/Groups";
 import Media from "./pages/app/Media";
 import Events from "./pages/app/Events";
+import GroupLedger from "./pages/app/GroupLedger";
 import Business from "./pages/app/Business";
 import Search from "./pages/app/Search";
 import ChatThread from "./pages/app/ChatThread";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="groups" element={<Groups />} />
             <Route path="media" element={<Media />} />
             <Route path="events" element={<Events />} />
+            <Route path="ledger" element={<GroupLedger />} />
             <Route path="business" element={<Business />} />
             <Route path="search" element={<Search />} />
           </Route>

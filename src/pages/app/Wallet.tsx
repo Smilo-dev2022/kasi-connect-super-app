@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AppHeader from "@/components/AppHeader";
+import { Link } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { 
@@ -22,7 +23,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { getCurrentUserId } from "@/lib/devAuth";
 
-const API_BASE = (import.meta as any)?.env?.VITE_EVENTS_API || "http://localhost:8000";
+const API_BASE = (import.meta as any)?.env?.VITE_WALLET_API || "http://localhost:8000";
 
 type WalletRequest = {
   id: number;
@@ -298,6 +299,9 @@ const Wallet = () => {
                   >
                     <Button variant="ghost" size="sm">Export CSV</Button>
                   </a>
+                  <Link to="/app/ledger">
+                    <Button variant="ghost" size="sm">View Balances</Button>
+                  </Link>
                   <Button
                     variant="default"
                     size="sm"

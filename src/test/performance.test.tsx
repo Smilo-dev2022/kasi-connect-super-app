@@ -246,7 +246,7 @@ const LazyLoadComponent = () => {
 
 // Component with query optimization
 const OptimizedQueryComponent = () => {
-  const [dataCache, setDataCache] = React.useState<Map<string, any>>(new Map());
+  const [dataCache, setDataCache] = React.useState<Map<string, unknown>>(new Map());
   const [loading, setLoading] = React.useState<Set<string>>(new Set());
 
   const fetchData = React.useCallback(async (key: string, force = false) => {

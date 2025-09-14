@@ -40,7 +40,7 @@ class MockWebSocket {
   }
 
   // Method to simulate receiving messages
-  simulateMessage(data: any) {
+  simulateMessage(data: unknown) {
     if (this.readyState === MockWebSocket.OPEN) {
       this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(data) }));
     }
@@ -109,7 +109,7 @@ describe('Messaging Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock global WebSocket
-    global.WebSocket = MockWebSocket as any;
+    global.WebSocket = MockWebSocket as typeof WebSocket;
   });
 
   describe('Message History Pagination', () => {
@@ -264,7 +264,7 @@ describe('Messaging Integration Tests', () => {
     it('should handle WebSocket message reception', async () => {
       const mockWS = new MockWebSocket('ws://localhost:8080/ws');
       
-      let receivedMessage: any = null;
+      let receivedMessage: unknown = null;
       mockWS.onmessage = (event) => {
         receivedMessage = JSON.parse(event.data);
       };

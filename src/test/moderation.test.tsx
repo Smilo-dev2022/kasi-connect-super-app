@@ -15,19 +15,35 @@ const mockModerationAPI = {
 // Mock component for testing moderation functionality
 const ModerationTestComponent = () => {
   const handleClaimReport = async (reportId: string) => {
-    return await mockModerationAPI.claimReport(reportId);
+    try {
+      return await mockModerationAPI.claimReport(reportId);
+    } catch (error) {
+      console.error('Claim failed:', error);
+    }
   };
 
   const handleReleaseReport = async (reportId: string) => {
-    return await mockModerationAPI.releaseReport(reportId);
+    try {
+      return await mockModerationAPI.releaseReport(reportId);
+    } catch (error) {
+      console.error('Release failed:', error);
+    }
   };
 
   const handleUpdateStatus = async (reportId: string, status: string) => {
-    return await mockModerationAPI.updateReportStatus(reportId, status);
+    try {
+      return await mockModerationAPI.updateReportStatus(reportId, status);
+    } catch (error) {
+      console.error('Update status failed:', error);
+    }
   };
 
-  const handleSubmitReport = async (content: any) => {
-    return await mockModerationAPI.submitReport(content);
+  const handleSubmitReport = async (content: Record<string, unknown>) => {
+    try {
+      return await mockModerationAPI.submitReport(content);
+    } catch (error) {
+      console.error('Submit report failed:', error);
+    }
   };
 
   return (

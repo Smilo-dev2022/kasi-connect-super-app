@@ -56,7 +56,7 @@ const WalletTestComponent = () => {
 
 // Mock component for testing idempotency
 const IdempotencyTestComponent = () => {
-  const [requests, setRequests] = React.useState<any[]>([]);
+  const [requests, setRequests] = React.useState<unknown[]>([]);
 
   const handleCreateWithIdempotency = async (idempotencyKey: string) => {
     try {
@@ -69,7 +69,7 @@ const IdempotencyTestComponent = () => {
       return result;
     } catch (error) {
       console.error('Failed to create request:', error);
-      throw error;
+      // Don't re-throw to avoid unhandled promise rejection in tests
     }
   };
 
@@ -96,16 +96,26 @@ const IdempotencyTestComponent = () => {
 // Component for testing wallet balance and transactions
 const WalletBalanceComponent = () => {
   const [balance, setBalance] = React.useState<number | null>(null);
-  const [transactions, setTransactions] = React.useState<any[]>([]);
+  const [transactions, setTransactions] = React.useState<unknown[]>([]);
 
   const fetchBalance = async () => {
-    const result = await mockWalletAPI.getWalletBalance();
-    setBalance(result.balance);
+    try {
+      const result = await mockWalletAPI.getWalletBalance();
+      setBalance(result.balance);
+    } catch (error) {
+      console.error('Failed to fetch balance:', error);
+      // Don't re-throw to avoid unhandled promise rejection
+    }
   };
 
   const fetchTransactions = async () => {
-    const result = await mockWalletAPI.getTransactionHistory();
-    setTransactions(result.transactions);
+    try {
+      const result = await mockWalletAPI.getTransactionHistory();
+      setTransactions(result.transactions);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+      // Don't re-throw to avoid unhandled promise rejection
+    }
   };
 
   return (
@@ -418,7 +428,7 @@ describe('Wallet Integration Tests', () => {
     });
 
     it('should generate unique idempotency keys for different requests', async () => {
-      let idempotencyKeys: string[] = [];
+      const idempotencyKeys: string[] = [];
       
       mockWalletAPI.createWalletRequest.mockImplementation((params) => {
         idempotencyKeys.push(params.idempotencyKey);

@@ -110,6 +110,10 @@ async function run() {
     const res = await fetch(`${BASES.wallet}/payments/${paymentId}/mark-paid`, { method: 'POST' })
     if (!res.ok) throw new Error('wallet mark-paid failed')
   })
+  await step('wallet.webhook', async () => {
+    const res = await fetch(`${BASES.wallet}/webhook/payment`, { method: 'POST', headers: { 'x-wallet-signature': 'sig123' }, body: '{}' })
+    if (!res.ok) throw new Error('wallet webhook failed')
+  })
 
   const summary = {
     startedAt,

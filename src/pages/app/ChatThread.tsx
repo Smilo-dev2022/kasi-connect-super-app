@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { MessagingClient, IncomingMessage } from '@/lib/messagingClient';
 import { getCurrentUserId, setCurrentUserId } from '@/lib/devAuth';
 import { Check, X, ShoppingBag } from 'lucide-react';
-import { requestPayment } from '@/lib/wallet';
+import { requestPayment, listPayments, markPaid } from '@/lib/wallet';
 
 type OrderPayload = {
   kind: 'order';
@@ -39,6 +39,8 @@ export default function ChatThread() {
   const [activeUserId, setActiveUserId] = useState<string>(getCurrentUserId());
   const [messages, setMessages] = useState<IncomingMessage[]>([]);
   const [text, setText] = useState('');
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<'requested' | 'paid' | 'failed' | 'pending' | 'canceled' | 'expired' | null>(null);
 
   const peerId = useMemo(() => threadId || 'business-1', [threadId]);
 
@@ -90,8 +92,31 @@ export default function ChatThread() {
 
   async function requestPaymentDemo() {
     try {
-      await requestPayment(peerId, 120, 'ZAR');
+      const p = await requestPayment(peerId, 120, 'ZAR');
+      setPaymentId(p.id);
+      setPaymentStatus(p.status);
     } catch {}
+  }
+
+  async function refreshPayments() {
+    try {
+      const items = await listPayments();
+      if (paymentId) {
+        const p = items.find(i => i.id === paymentId);
+        if (p) setPaymentStatus(p.status as any);
+      }
+    } catch {}
+  }
+
+  async function onMarkPaid() {
+    if (!paymentId) return;
+    const prev = paymentStatus;
+    setPaymentStatus('paid');
+    try {
+      await markPaid(paymentId);
+    } catch {
+      setPaymentStatus(prev ?? null);
+    }
   }
 
   function respondToOrder(source: IncomingMessage, status: 'accepted' | 'declined') {
@@ -152,6 +177,19 @@ export default function ChatThread() {
             );
           })}
         </div>
+        {/* Wallet banner */}
+        {paymentStatus && (
+          <Card className="p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Badge variant={paymentStatus === 'paid' ? 'community' : 'outline'}>{paymentStatus.toUpperCase()}</Badge>
+              <span>Payment {paymentId}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {paymentStatus !== 'paid' && <Button size="sm" onClick={onMarkPaid}>Mark paid</Button>}
+              <Button size="sm" variant="outline" onClick={refreshPayments}>Refresh</Button>
+            </div>
+          </Card>
+        )}
         <div className="fixed bottom-16 left-0 right-0 p-3 bg-background/80 backdrop-blur border-t">
           <div className="mx-auto max-w-2xl flex gap-2">
             <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message" />

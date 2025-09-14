@@ -616,9 +616,9 @@ describe('RSVP Endpoints Tests', () => {
 
     const EventsLoggingComponent = () => {
       const [logs, setLogs] = React.useState<string[]>([]);
-      const [events, setEvents] = React.useState<any[]>([]);
+      const [events, setEvents] = React.useState<Array<{ id: string; title: string; date: string }>>([]);
 
-      const createEventWithLogging = async (eventData: any) => {
+      const createEventWithLogging = async (eventData: { title: string; date: string }) => {
         const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
         try {

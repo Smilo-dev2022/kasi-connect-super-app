@@ -582,7 +582,7 @@ describe('Wallet Integration Tests', () => {
   describe('Wallet Optimistic UI and Error Handling', () => {
     // Mock component for testing optimistic UI updates
     const OptimisticWalletComponent = () => {
-      const [requests, setRequests] = React.useState<any[]>([]);
+      const [requests, setRequests] = React.useState<Array<{ id: string; amount: number; status: string }>>([]);
       const [optimisticUpdates, setOptimisticUpdates] = React.useState<Set<string>>(new Set());
 
       const handleOptimisticMarkPaid = async (requestId: string) => {

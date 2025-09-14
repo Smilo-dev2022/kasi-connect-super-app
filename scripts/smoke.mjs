@@ -58,6 +58,17 @@ async function run() {
       ws.on('error', reject)
     })
   })
+  await step('messaging.ws.send', async () => {
+    await new Promise((resolve, reject) => {
+      const ws = new WebSocket(`${BASES.messaging.replace('http', 'ws')}/ws?token=${token}`)
+      ws.on('open', () => {
+        const id = `smoke_${Date.now()}`
+        ws.send(JSON.stringify({ type: 'msg', id, to: 'c1', scope: 'direct', ciphertext: 'hello' }))
+        setTimeout(() => { ws.close(); resolve() }, 100)
+      })
+      ws.on('error', reject)
+    })
+  })
   await step('messaging.db.fetch', async () => {
     // For demo: assumes conversation_id 'c1' has at least one message after send
     const res = await fetch(`${BASES.messaging}/messages/since/c1?limit=1`)
@@ -113,6 +124,25 @@ async function run() {
   await step('wallet.webhook', async () => {
     const res = await fetch(`${BASES.wallet}/webhook/payment`, { method: 'POST', headers: { 'x-wallet-signature': 'sig123' }, body: '{}' })
     if (!res.ok) throw new Error('wallet webhook failed')
+  })
+
+  // Optional DB checks if DATABASE_URL is provided and pg is available
+  await step('db.counts', async () => {
+    const url = process.env.DATABASE_URL || process.env.DB_URL
+    if (!url) return
+    let pg
+    try { pg = await import('pg') } catch { return }
+    const pool = new pg.Pool({ connectionString: url })
+    try {
+      const m = await pool.query('select count(*)::int as c from messages')
+      const r = await pool.query('select count(*)::int as c from receipts')
+      const rp = await pool.query('select count(*)::int as c from reports')
+      if ((m.rows[0]?.c ?? 0) <= 0) throw new Error('messages count == 0')
+      // receipts may be 0 depending on client behavior; accept >= 0
+      if ((rp.rows[0]?.c ?? 0) <= 0) throw new Error('reports count == 0')
+    } finally {
+      await pool.end()
+    }
   })
 
   const summary = {

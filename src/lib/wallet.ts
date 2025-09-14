@@ -19,3 +19,9 @@ export async function listPayments(): Promise<Payment[]> {
   if (!res.ok) throw new Error('wallet-list-failed');
   return res.json() as Promise<Payment[]>;
 }
+
+export async function markPaid(id: string): Promise<Payment> {
+  const res = await fetch(`${WALLET_BASE}/payments/${id}/mark-paid`, { method: 'POST' });
+  if (!res.ok) throw new Error('wallet-mark-paid-failed');
+  return res.json() as Promise<Payment>;
+}

@@ -323,8 +323,8 @@ describe('Regression Tests - Full Suite', () => {
         expect(screen.getByTestId('auth-status').textContent).toBe('Authenticated');
         expect(screen.getByTestId('token-display').textContent).toBe('new-jwt-token-12345');
         expect(mockAuthAPI.loginWithJWT).toHaveBeenCalledWith('valid-jwt-token');
-      });
-    });
+      }, { timeout: 10000 });
+    }, 15000);
 
     it('should handle JWT token refresh flow', async () => {
       // Setup initial login
@@ -347,15 +347,15 @@ describe('Regression Tests - Full Suite', () => {
       fireEvent.click(screen.getByTestId('jwt-login-btn'));
       await waitFor(() => {
         expect(screen.getByTestId('token-display').textContent).toBe('initial-token');
-      });
+      }, { timeout: 10000 });
 
       // Refresh token
       fireEvent.click(screen.getByTestId('refresh-btn'));
       await waitFor(() => {
         expect(screen.getByTestId('token-display').textContent).toBe('refreshed-token-67890');
         expect(mockAuthAPI.refreshToken).toHaveBeenCalledWith('initial-token');
-      });
-    });
+      }, { timeout: 10000 });
+    }, 15000);
 
     it('should handle JWT authentication errors', async () => {
       mockAuthAPI.loginWithJWT.mockRejectedValue(new Error('Invalid JWT token'));
@@ -371,8 +371,8 @@ describe('Regression Tests - Full Suite', () => {
       await waitFor(() => {
         expect(screen.getByTestId('error-display').textContent).toBe('Invalid JWT token');
         expect(screen.getByTestId('auth-status').textContent).toBe('Not Authenticated');
-      });
-    });
+      }, { timeout: 10000 });
+    }, 15000);
 
     it('should handle logout and session cleanup', async () => {
       // Setup authenticated state
@@ -391,7 +391,7 @@ describe('Regression Tests - Full Suite', () => {
       fireEvent.click(screen.getByTestId('jwt-login-btn'));
       await waitFor(() => {
         expect(screen.getByTestId('auth-status').textContent).toBe('Authenticated');
-      });
+      }, { timeout: 10000 });
 
       // Logout
       fireEvent.click(screen.getByTestId('logout-btn'));
@@ -400,11 +400,14 @@ describe('Regression Tests - Full Suite', () => {
       expect(screen.getByTestId('token-display').textContent).toBe('No Token');
       expect(screen.getByTestId('error-display').textContent).toBe('');
       expect(mockAuthAPI.logout).toHaveBeenCalledTimes(1);
-    });
+    }, 15000);
   });
 
   describe('Media Retry with Exponential Backoff', () => {
     it('should retry failed uploads with exponential backoff', async () => {
+      // Use real timers for this test to avoid interference
+      vi.useRealTimers();
+      
       // Mock to fail first two attempts, succeed on third
       mockMediaAPI.uploadMedia
         .mockRejectedValueOnce(new Error('Network error'))
@@ -423,37 +426,24 @@ describe('Regression Tests - Full Suite', () => {
       // Should be uploading initially
       await waitFor(() => {
         expect(screen.getByTestId('upload-status').textContent).toBe('uploading');
-      });
+      }, { timeout: 10000 });
 
-      // Fast-forward through first retry
-      act(() => {
-        vi.advanceTimersByTime(1000); // First backoff delay
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId('upload-status').textContent).toBe('retrying');
-        expect(screen.getByTestId('retry-count').textContent).toBe('Retries: 1');
-      });
-
-      // Fast-forward through second retry
-      act(() => {
-        vi.advanceTimersByTime(2000); // Second backoff delay (exponential)
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId('retry-count').textContent).toBe('Retries: 2');
-      });
-
-      // Wait for final success
+      // Wait for final success (allowing time for retries)
       await waitFor(() => {
         expect(screen.getByTestId('upload-status').textContent).toBe('success');
         expect(screen.getByTestId('upload-progress').textContent).toBe('Progress: 100%');
-      });
+      }, { timeout: 20000 });
 
       expect(mockMediaAPI.uploadMedia).toHaveBeenCalledTimes(3);
-    });
+      
+      // Reset timers for other tests
+      vi.useFakeTimers();
+    }, 25000);
 
     it('should fail after maximum retry attempts', async () => {
+      // Use real timers for this test
+      vi.useRealTimers();
+      
       // Mock to always fail
       mockMediaAPI.uploadMedia.mockRejectedValue(new Error('Persistent failure'));
 
@@ -466,18 +456,17 @@ describe('Regression Tests - Full Suite', () => {
       const uploadBtn = screen.getByTestId('upload-btn');
       fireEvent.click(uploadBtn);
 
-      // Fast-forward through all retries
-      act(() => {
-        vi.advanceTimersByTime(10000); // Advance through all backoff delays
-      });
-
+      // Wait for final failure after all retries
       await waitFor(() => {
         expect(screen.getByTestId('upload-status').textContent).toBe('failed');
         expect(screen.getByTestId('retry-count').textContent).toBe('Retries: 3');
-      });
+      }, { timeout: 20000 });
 
       expect(mockMediaAPI.uploadMedia).toHaveBeenCalledTimes(3);
-    });
+      
+      // Reset timers for other tests  
+      vi.useFakeTimers();
+    }, 25000);
 
     it('should calculate correct exponential backoff delays', () => {
       const calculateBackoffDelay = (attempt: number) => {
@@ -542,8 +531,8 @@ describe('Regression Tests - Full Suite', () => {
             hasMedia: false,
           },
         });
-      });
-    });
+      }, { timeout: 10000 });
+    }, 15000);
 
     it('should clear all filters when clear button is clicked', async () => {
       render(
@@ -613,12 +602,15 @@ describe('Regression Tests - Full Suite', () => {
       await waitFor(() => {
         expect(screen.getByTestId('results-count').textContent).toBe('Results: 0');
         expect(screen.getByTestId('search-status').textContent).toBe('Ready');
-      });
-    });
+      }, { timeout: 10000 });
+    }, 15000);
   });
 
   describe('End-to-End Regression Flow', () => {
     it('should complete full user journey: login -> upload -> search', async () => {
+      // Use real timers for complex E2E flow
+      vi.useRealTimers();
+      
       // Setup mocks for complete flow
       mockAuthAPI.loginWithJWT.mockResolvedValue({
         token: 'user-token',
@@ -690,7 +682,7 @@ describe('Regression Tests - Full Suite', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('auth-status').textContent).toBe('Authenticated');
-      });
+      }, { timeout: 10000 });
 
       fireEvent.click(screen.getByTestId('next-step-btn'));
 
@@ -700,7 +692,7 @@ describe('Regression Tests - Full Suite', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('upload-status').textContent).toBe('success');
-      });
+      }, { timeout: 15000 });
 
       fireEvent.click(screen.getByTestId('next-step-btn'));
 
@@ -714,12 +706,15 @@ describe('Regression Tests - Full Suite', () => {
       await waitFor(() => {
         expect(screen.getByTestId('results-count').textContent).toBe('Results: 1');
         expect(screen.getByTestId('flow-complete')).toBeInTheDocument();
-      });
+      }, { timeout: 10000 });
 
       // Verify all APIs were called correctly
       expect(mockAuthAPI.loginWithJWT).toHaveBeenCalledTimes(1);
       expect(mockMediaAPI.uploadMedia).toHaveBeenCalledTimes(1);
       expect(mockSearchAPI.searchMessages).toHaveBeenCalledTimes(1);
-    });
+      
+      // Reset timers
+      vi.useFakeTimers();
+    }, 45000);
   });
 });

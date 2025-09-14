@@ -172,4 +172,129 @@ describe('Auth Service Tests', () => {
       expect(mockAuthService.validateJWTForWebSocket).toHaveReturnedWith(false);
     });
   });
+
+  describe('Auth Metrics Route', () => {
+    // Mock metrics API
+    const mockMetricsAPI = {
+      getMetrics: vi.fn(),
+    };
+
+    const MetricsTestComponent = () => {
+      const [metrics, setMetrics] = React.useState<string>('');
+      const [contentType, setContentType] = React.useState<string>('');
+
+      const fetchMetrics = async () => {
+        try {
+          const response = await mockMetricsAPI.getMetrics();
+          setMetrics(response.data);
+          setContentType(response.headers['content-type']);
+        } catch (error) {
+          console.error('Failed to fetch metrics:', error);
+        }
+      };
+
+      return (
+        <div>
+          <button onClick={fetchMetrics} data-testid="fetch-metrics-btn">
+            Fetch Metrics
+          </button>
+          <div data-testid="metrics-data">{metrics}</div>
+          <div data-testid="content-type">{contentType}</div>
+        </div>
+      );
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should return text/plain content-type for metrics endpoint', async () => {
+      mockMetricsAPI.getMetrics.mockResolvedValue({
+        data: 'auth_request_count 1234\nauth_response_time_p95 0.125',
+        headers: {
+          'content-type': 'text/plain; charset=utf-8',
+        },
+      });
+
+      render(
+        <TestWrapper>
+          <MetricsTestComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-metrics-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('content-type').textContent).toBe('text/plain; charset=utf-8');
+      });
+    });
+
+    it('should contain request_count in metrics response', async () => {
+      mockMetricsAPI.getMetrics.mockResolvedValue({
+        data: 'auth_request_count 1234\nauth_login_attempts 567\nauth_successful_logins 500',
+        headers: {
+          'content-type': 'text/plain',
+        },
+      });
+
+      render(
+        <TestWrapper>
+          <MetricsTestComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-metrics-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        const metricsData = screen.getByTestId('metrics-data').textContent;
+        expect(metricsData).toContain('request_count');
+        expect(metricsData).toContain('1234');
+      });
+    });
+
+    it('should contain p95 metrics in response', async () => {
+      mockMetricsAPI.getMetrics.mockResolvedValue({
+        data: 'auth_response_time_p95 0.125\nauth_jwt_validation_time_p95 0.015\nauth_request_count 1000',
+        headers: {
+          'content-type': 'text/plain',
+        },
+      });
+
+      render(
+        <TestWrapper>
+          <MetricsTestComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-metrics-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        const metricsData = screen.getByTestId('metrics-data').textContent;
+        expect(metricsData).toContain('p95');
+        expect(metricsData).toContain('0.125');
+      });
+    });
+
+    it('should handle metrics endpoint errors gracefully', async () => {
+      mockMetricsAPI.getMetrics.mockRejectedValue(new Error('Metrics service unavailable'));
+
+      render(
+        <TestWrapper>
+          <MetricsTestComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-metrics-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        expect(mockMetricsAPI.getMetrics).toHaveBeenCalledTimes(1);
+        // Component should handle error gracefully
+        expect(screen.getByTestId('metrics-data').textContent).toBe('');
+      });
+    });
+  });
 });

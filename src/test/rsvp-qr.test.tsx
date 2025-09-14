@@ -596,4 +596,254 @@ describe('RSVP Endpoints Tests', () => {
       });
     });
   });
+
+  describe('Events Service Request ID Logging', () => {
+    // Mock logger for events service
+    const mockEventsLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn(),
+    };
+
+    // Mock events API with logging
+    const mockEventsAPI = {
+      createEvent: vi.fn(),
+      getEventById: vi.fn(),
+      updateEvent: vi.fn(),
+      deleteEvent: vi.fn(),
+    };
+
+    const EventsLoggingComponent = () => {
+      const [logs, setLogs] = React.useState<string[]>([]);
+      const [events, setEvents] = React.useState<any[]>([]);
+
+      const createEventWithLogging = async (eventData: any) => {
+        const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        try {
+          mockEventsLogger.info(`Creating event with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'create_event',
+            event_title: eventData.title,
+          });
+
+          const result = await mockEventsAPI.createEvent(eventData);
+          
+          mockEventsLogger.info(`Event created successfully with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'create_event_success',
+            event_id: result.id,
+          });
+
+          setEvents(prev => [...prev, result]);
+          setLogs(prev => [...prev, `create_success:${requestId}`]);
+        } catch (error) {
+          mockEventsLogger.error(`Event creation failed with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'create_event_error',
+            error: (error as Error).message,
+          });
+          setLogs(prev => [...prev, `create_error:${requestId}`]);
+        }
+      };
+
+      const getEventWithLogging = async (eventId: string) => {
+        const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        try {
+          mockEventsLogger.info(`Fetching event with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'get_event',
+            event_id: eventId,
+          });
+
+          const result = await mockEventsAPI.getEventById(eventId);
+          
+          mockEventsLogger.info(`Event fetched successfully with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'get_event_success',
+            event_id: result.id,
+          });
+
+          setLogs(prev => [...prev, `get_success:${requestId}`]);
+        } catch (error) {
+          mockEventsLogger.error(`Event fetch failed with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'get_event_error',
+            event_id: eventId,
+            error: (error as Error).message,
+          });
+          setLogs(prev => [...prev, `get_error:${requestId}`]);
+        }
+      };
+
+      return (
+        <div>
+          <button 
+            onClick={() => createEventWithLogging({ title: 'Test Event', date: '2024-02-01' })} 
+            data-testid="create-event-logging-btn"
+          >
+            Create Event with Logging
+          </button>
+          <button 
+            onClick={() => getEventWithLogging('event-123')} 
+            data-testid="get-event-logging-btn"
+          >
+            Get Event with Logging
+          </button>
+          <div data-testid="events-logs-count">{logs.length}</div>
+          <div data-testid="events-count">{events.length}</div>
+          {logs.map((log, index) => (
+            <div key={index} data-testid={`events-log-${index}`}>{log}</div>
+          ))}
+        </div>
+      );
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should include request_id in event creation logs', async () => {
+      mockEventsAPI.createEvent.mockResolvedValue({
+        id: 'event-456',
+        title: 'Test Event',
+        date: '2024-02-01',
+        createdAt: '2024-01-01T10:00:00Z',
+      });
+
+      render(
+        <TestWrapper>
+          <EventsLoggingComponent />
+        </TestWrapper>
+      );
+
+      const createBtn = screen.getByTestId('create-event-logging-btn');
+      fireEvent.click(createBtn);
+
+      await waitFor(() => {
+        expect(mockEventsLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('Creating event with request_id:'),
+          expect.objectContaining({
+            request_id: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            action: 'create_event',
+            event_title: 'Test Event',
+          })
+        );
+      });
+    });
+
+    it('should include request_id in event fetch logs', async () => {
+      mockEventsAPI.getEventById.mockResolvedValue({
+        id: 'event-123',
+        title: 'Existing Event',
+        date: '2024-01-15',
+      });
+
+      render(
+        <TestWrapper>
+          <EventsLoggingComponent />
+        </TestWrapper>
+      );
+
+      const getBtn = screen.getByTestId('get-event-logging-btn');
+      fireEvent.click(getBtn);
+
+      await waitFor(() => {
+        expect(mockEventsLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('Fetching event with request_id:'),
+          expect.objectContaining({
+            request_id: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            action: 'get_event',
+            event_id: 'event-123',
+          })
+        );
+      });
+    });
+
+    it('should maintain consistent request_id across success logs', async () => {
+      mockEventsAPI.createEvent.mockResolvedValue({
+        id: 'event-789',
+        title: 'Test Event',
+        date: '2024-02-01',
+      });
+
+      render(
+        <TestWrapper>
+          <EventsLoggingComponent />
+        </TestWrapper>
+      );
+
+      const createBtn = screen.getByTestId('create-event-logging-btn');
+      fireEvent.click(createBtn);
+
+      await waitFor(() => {
+        const infoCalls = mockEventsLogger.info.mock.calls;
+        expect(infoCalls).toHaveLength(2);
+        
+        const startLog = infoCalls[0][1];
+        const successLog = infoCalls[1][1];
+        
+        expect(startLog.request_id).toBe(successLog.request_id);
+        expect(startLog.action).toBe('create_event');
+        expect(successLog.action).toBe('create_event_success');
+      });
+    });
+
+    it('should log errors with request_id in events service', async () => {
+      mockEventsAPI.getEventById.mockRejectedValue(new Error('Event not found'));
+
+      render(
+        <TestWrapper>
+          <EventsLoggingComponent />
+        </TestWrapper>
+      );
+
+      const getBtn = screen.getByTestId('get-event-logging-btn');
+      fireEvent.click(getBtn);
+
+      await waitFor(() => {
+        expect(mockEventsLogger.error).toHaveBeenCalledWith(
+          expect.stringContaining('Event fetch failed with request_id:'),
+          expect.objectContaining({
+            request_id: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            action: 'get_event_error',
+            event_id: 'event-123',
+            error: 'Event not found',
+          })
+        );
+      });
+    });
+
+    it('should generate unique request_ids for concurrent requests', async () => {
+      mockEventsAPI.createEvent.mockResolvedValue({ id: 'event-new' });
+
+      render(
+        <TestWrapper>
+          <EventsLoggingComponent />
+        </TestWrapper>
+      );
+
+      const createBtn = screen.getByTestId('create-event-logging-btn');
+      
+      // Fire multiple requests quickly
+      fireEvent.click(createBtn);
+      await new Promise(resolve => setTimeout(resolve, 5)); // Small delay
+      fireEvent.click(createBtn);
+
+      await waitFor(() => {
+        const infoCalls = mockEventsLogger.info.mock.calls;
+        expect(infoCalls.length).toBeGreaterThanOrEqual(4); // 2 start + 2 success calls
+        
+        // Extract request_ids from start calls
+        const requestIds = infoCalls
+          .filter(call => call[1].action === 'create_event')
+          .map(call => call[1].request_id);
+        
+        expect(requestIds).toHaveLength(2);
+        expect(requestIds[0]).not.toBe(requestIds[1]);
+      });
+    });
+  });
 });

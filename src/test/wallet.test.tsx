@@ -15,19 +15,32 @@ const mockWalletAPI = {
 // Mock component for testing wallet functionality
 const WalletTestComponent = () => {
   const handleCreateRequest = async (amount: number, description: string) => {
-    return await mockWalletAPI.createWalletRequest({
-      amount,
-      description,
-      idempotencyKey: `req_${Date.now()}`,
-    });
+    try {
+      return await mockWalletAPI.createWalletRequest({
+        amount,
+        description,
+        idempotencyKey: `req_${Date.now()}`,
+      });
+    } catch (error) {
+      // Handle error silently for test purposes
+      return null;
+    }
   };
 
   const handleListRequests = async () => {
-    return await mockWalletAPI.listWalletRequests();
+    try {
+      return await mockWalletAPI.listWalletRequests();
+    } catch (error) {
+      return null;
+    }
   };
 
   const handleMarkPaid = async (requestId: string) => {
-    return await mockWalletAPI.markAsPaid(requestId);
+    try {
+      return await mockWalletAPI.markAsPaid(requestId);
+    } catch (error) {
+      return null;
+    }
   };
 
   return (
@@ -562,6 +575,170 @@ describe('Wallet Integration Tests', () => {
         expect(mockWalletAPI.getWalletBalance).toHaveBeenCalledTimes(1);
         // Balance should remain in loading state
         expect(screen.getByTestId('balance-display').textContent).toBe('Balance: Loading...');
+      });
+    });
+  });
+
+  describe('Wallet Optimistic UI and Error Handling', () => {
+    // Mock component for testing optimistic UI updates
+    const OptimisticWalletComponent = () => {
+      const [requests, setRequests] = React.useState<any[]>([]);
+      const [optimisticUpdates, setOptimisticUpdates] = React.useState<Set<string>>(new Set());
+
+      const handleOptimisticMarkPaid = async (requestId: string) => {
+        try {
+          // Optimistically update UI
+          setOptimisticUpdates(prev => new Set(prev).add(requestId));
+          setRequests(prev => prev.map(req => 
+            req.id === requestId ? { ...req, status: 'paid' } : req
+          ));
+
+          await mockWalletAPI.markAsPaid(requestId);
+          
+          // Success: remove optimistic flag
+          setOptimisticUpdates(prev => {
+            const updated = new Set(prev);
+            updated.delete(requestId);
+            return updated;
+          });
+        } catch (error) {
+          // Revert optimistic update on error
+          setOptimisticUpdates(prev => {
+            const updated = new Set(prev);
+            updated.delete(requestId);
+            return updated;
+          });
+          setRequests(prev => prev.map(req => 
+            req.id === requestId ? { ...req, status: 'pending' } : req
+          ));
+        }
+      };
+
+      React.useEffect(() => {
+        // Initialize with test data
+        setRequests([
+          { id: 'req-1', amount: 100, status: 'pending' },
+          { id: 'req-2', amount: 200, status: 'pending' },
+        ]);
+      }, []);
+
+      return (
+        <div>
+          {requests.map(req => (
+            <div key={req.id} data-testid={`request-${req.id}`}>
+              <span data-testid={`status-${req.id}`}>{req.status}</span>
+              <span data-testid={`optimistic-${req.id}`}>
+                {optimisticUpdates.has(req.id) ? 'updating' : 'stable'}
+              </span>
+              <button
+                onClick={() => handleOptimisticMarkPaid(req.id)}
+                data-testid={`mark-paid-${req.id}`}
+              >
+                Mark as Paid
+              </button>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    it('should revert optimistic UI updates on 4xx errors', async () => {
+      // Mock 400 Bad Request error
+      mockWalletAPI.markAsPaid.mockRejectedValue(
+        Object.assign(new Error('Bad Request'), { status: 400 })
+      );
+
+      render(
+        <TestWrapper>
+          <OptimisticWalletComponent />
+        </TestWrapper>
+      );
+
+      const markPaidBtn = screen.getByTestId('mark-paid-req-1');
+      const statusElement = screen.getByTestId('status-req-1');
+      const optimisticElement = screen.getByTestId('optimistic-req-1');
+
+      // Initially pending and stable
+      expect(statusElement.textContent).toBe('pending');
+      expect(optimisticElement.textContent).toBe('stable');
+
+      // Click to trigger optimistic update
+      fireEvent.click(markPaidBtn);
+
+      // Should show optimistic state immediately
+      await waitFor(() => {
+        expect(statusElement.textContent).toBe('paid');
+        expect(optimisticElement.textContent).toBe('updating');
+      });
+
+      // Should revert after API error
+      await waitFor(() => {
+        expect(statusElement.textContent).toBe('pending');
+        expect(optimisticElement.textContent).toBe('stable');
+      });
+    });
+
+    it('should revert optimistic UI updates on 5xx errors', async () => {
+      // Mock 500 Internal Server Error
+      mockWalletAPI.markAsPaid.mockRejectedValue(
+        Object.assign(new Error('Internal Server Error'), { status: 500 })
+      );
+
+      render(
+        <TestWrapper>
+          <OptimisticWalletComponent />
+        </TestWrapper>
+      );
+
+      const markPaidBtn = screen.getByTestId('mark-paid-req-2');
+      const statusElement = screen.getByTestId('status-req-2');
+      const optimisticElement = screen.getByTestId('optimistic-req-2');
+
+      // Initially pending and stable
+      expect(statusElement.textContent).toBe('pending');
+      expect(optimisticElement.textContent).toBe('stable');
+
+      // Click to trigger optimistic update
+      fireEvent.click(markPaidBtn);
+
+      // Should show optimistic state immediately
+      await waitFor(() => {
+        expect(statusElement.textContent).toBe('paid');
+        expect(optimisticElement.textContent).toBe('updating');
+      });
+
+      // Should revert after API error
+      await waitFor(() => {
+        expect(statusElement.textContent).toBe('pending');
+        expect(optimisticElement.textContent).toBe('stable');
+      });
+    });
+
+    it('should maintain optimistic updates on successful requests', async () => {
+      mockWalletAPI.markAsPaid.mockResolvedValue({ success: true });
+
+      render(
+        <TestWrapper>
+          <OptimisticWalletComponent />
+        </TestWrapper>
+      );
+
+      const markPaidBtn = screen.getByTestId('mark-paid-req-1');
+      const statusElement = screen.getByTestId('status-req-1');
+      const optimisticElement = screen.getByTestId('optimistic-req-1');
+
+      fireEvent.click(markPaidBtn);
+
+      // Should show optimistic state
+      await waitFor(() => {
+        expect(statusElement.textContent).toBe('paid');
+        expect(optimisticElement.textContent).toBe('updating');
+      });
+
+      // Should remain paid and stable after success
+      await waitFor(() => {
+        expect(statusElement.textContent).toBe('paid');
+        expect(optimisticElement.textContent).toBe('stable');
       });
     });
   });

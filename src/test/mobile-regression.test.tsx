@@ -131,13 +131,16 @@ const MobileMediaComponent = () => {
         
         // Simulate network failure at 50%
         if (shouldFail && i === 50) {
-          throw new Error('Network error');
+          const error = new Error('Network error');
+          setLastError(error.message);
+          setRetryCount(prev => prev + 1);
+          return; // Don't throw, just return
         }
       }
     } catch (error) {
       setLastError((error as Error).message);
-      setRetryCount(prev => prev + 1);
-      throw error;
+      // retryCount already incremented in the failure case above
+      // Don't re-throw to avoid unhandled promise rejection
     } finally {
       setIsUploading(false);
     }
@@ -471,7 +474,7 @@ describe('Mobile UI Regression Tests', () => {
       // Test retry functionality
       const retryBtn = screen.getByTestId('retry-btn');
       expect(retryBtn).toBeInTheDocument();
-      expect(retryBtn.textContent).toContain('Attempt 2'); // Should be attempt 2 since retryCount is incremented
+      expect(retryBtn.textContent).toContain('Attempt 2'); // Should be attempt 2 since retryCount is 1 and we show retryCount + 1
 
       fireEvent.click(retryBtn);
 

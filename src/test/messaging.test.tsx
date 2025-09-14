@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 // Mock messaging service API calls
 const mockMessagingAPI = {
@@ -286,6 +287,202 @@ describe('Messaging Integration Tests', () => {
       mockWS.simulateMessage(testMessage);
 
       expect(receivedMessage).toEqual(testMessage);
+    });
+  });
+
+  describe('Messaging Request ID Logging', () => {
+    // Mock logging utility
+    const mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+    };
+
+    const MessageLoggingComponent = () => {
+      const [logs, setLogs] = React.useState<string[]>([]);
+
+      const sendMessageWithLogging = async (message: string) => {
+        const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        try {
+          mockLogger.info(`Sending message with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'send_message',
+            message_length: message.length,
+          });
+
+          await mockMessagingAPI.getMessageHistory({ page: 1, limit: 20 });
+          
+          mockLogger.info(`Message sent successfully with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'send_message_success',
+          });
+
+          setLogs(prev => [...prev, `send_success:${requestId}`]);
+        } catch (error) {
+          mockLogger.error(`Message send failed with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'send_message_error',
+            error: (error as Error).message,
+          });
+        }
+      };
+
+      const fetchHistoryWithLogging = async () => {
+        const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        try {
+          mockLogger.info(`Fetching message history with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'fetch_history',
+          });
+
+          await mockMessagingAPI.getMessageHistory({ page: 1, limit: 20 });
+          
+          mockLogger.info(`History fetched successfully with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'fetch_history_success',
+          });
+
+          setLogs(prev => [...prev, `fetch_success:${requestId}`]);
+        } catch (error) {
+          mockLogger.error(`History fetch failed with request_id: ${requestId}`, {
+            request_id: requestId,
+            action: 'fetch_history_error',
+            error: (error as Error).message,
+          });
+        }
+      };
+
+      return (
+        <div>
+          <button 
+            onClick={() => sendMessageWithLogging('Hello')} 
+            data-testid="send-with-logging-btn"
+          >
+            Send Message
+          </button>
+          <button 
+            onClick={fetchHistoryWithLogging} 
+            data-testid="fetch-with-logging-btn"
+          >
+            Fetch History
+          </button>
+          <div data-testid="logs-count">{logs.length}</div>
+          {logs.map((log, index) => (
+            <div key={index} data-testid={`log-${index}`}>{log}</div>
+          ))}
+        </div>
+      );
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should include request_id in send message logs', async () => {
+      mockMessagingAPI.getMessageHistory.mockResolvedValue({
+        messages: [],
+        hasMore: false,
+      });
+
+      render(
+        <TestWrapper>
+          <MessageLoggingComponent />
+        </TestWrapper>
+      );
+
+      const sendBtn = screen.getByTestId('send-with-logging-btn');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('Sending message with request_id:'),
+          expect.objectContaining({
+            request_id: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            action: 'send_message',
+          })
+        );
+      });
+    });
+
+    it('should include request_id in history fetch logs', async () => {
+      mockMessagingAPI.getMessageHistory.mockResolvedValue({
+        messages: [{ id: '1', content: 'test' }],
+        hasMore: false,
+      });
+
+      render(
+        <TestWrapper>
+          <MessageLoggingComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-with-logging-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          expect.stringContaining('Fetching message history with request_id:'),
+          expect.objectContaining({
+            request_id: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            action: 'fetch_history',
+          })
+        );
+      });
+    });
+
+    it('should log success with matching request_id', async () => {
+      mockMessagingAPI.getMessageHistory.mockResolvedValue({
+        messages: [],
+        hasMore: false,
+      });
+
+      render(
+        <TestWrapper>
+          <MessageLoggingComponent />
+        </TestWrapper>
+      );
+
+      const sendBtn = screen.getByTestId('send-with-logging-btn');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        // Check that both info calls were made with the same request_id
+        const calls = mockLogger.info.mock.calls;
+        expect(calls).toHaveLength(2);
+        
+        const startLog = calls[0][1];
+        const successLog = calls[1][1];
+        
+        expect(startLog.request_id).toBe(successLog.request_id);
+        expect(startLog.action).toBe('send_message');
+        expect(successLog.action).toBe('send_message_success');
+      });
+    });
+
+    it('should log errors with request_id', async () => {
+      mockMessagingAPI.getMessageHistory.mockRejectedValue(new Error('Network error'));
+
+      render(
+        <TestWrapper>
+          <MessageLoggingComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-with-logging-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          expect.stringContaining('History fetch failed with request_id:'),
+          expect.objectContaining({
+            request_id: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            action: 'fetch_history_error',
+            error: 'Network error',
+          })
+        );
+      });
     });
   });
 });

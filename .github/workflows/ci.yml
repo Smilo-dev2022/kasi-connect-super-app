@@ -64,6 +64,8 @@ jobs:
           ./moderation_service/scripts/migrate.sh || true
 
       - name: Smoke tests (shell + node)
+        env:
+          DATABASE_URL: postgresql://kasilink:kasilink@postgres:5432/kasilink
         run: |
           chmod +x scripts/smoke.sh
           ./scripts/smoke.sh

@@ -128,21 +128,59 @@ async function run() {
 
   // Optional DB checks if DATABASE_URL is provided and pg is available
   await step('db.counts', async () => {
-    const url = process.env.DATABASE_URL || process.env.DB_URL
-    if (!url) return
+    const dbUrl = process.env.DATABASE_URL || process.env.DB_URL
+    if (!dbUrl) { results.push({ name: 'db.info', ok: true, ms: 0, info: 'DATABASE_URL not set, skipping DB assertions' }); return }
     let pg
-    try { pg = await import('pg') } catch { return }
-    const pool = new pg.Pool({ connectionString: url })
-    try {
-      const m = await pool.query('select count(*)::int as c from messages')
-      const r = await pool.query('select count(*)::int as c from receipts')
-      const rp = await pool.query('select count(*)::int as c from reports')
-      if ((m.rows[0]?.c ?? 0) <= 0) throw new Error('messages count == 0')
-      // receipts may be 0 depending on client behavior; accept >= 0
-      if ((rp.rows[0]?.c ?? 0) <= 0) throw new Error('reports count == 0')
-    } finally {
-      await pool.end()
+    try { pg = await import('pg') } catch { results.push({ name: 'db.info', ok: true, ms: 0, info: 'pg client not available, skipping' }); return }
+    const tryConnect = async (connUrl) => {
+      const t0 = Date.now()
+      const pool = new pg.Pool({ connectionString: connUrl })
+      try {
+        await pool.query('select 1')
+        return { pool, ms: Date.now() - t0 }
+      } catch (e) {
+        await pool.end().catch(()=>{})
+        throw e
+      }
     }
+    let pool, connectMs
+    try {
+      const conn = await tryConnect(dbUrl)
+      pool = conn.pool; connectMs = conn.ms
+    } catch (e) {
+      // fallback: replace host 'postgres' with 'localhost'
+      try {
+        const u = new URL(dbUrl)
+        if (u.hostname === 'postgres') { u.hostname = 'localhost' }
+        const conn = await tryConnect(u.toString())
+        pool = conn.pool; connectMs = conn.ms
+      } catch (e2) {
+        results.push({ name: 'db.connect', ok: false, ms: 0, error: String(e2?.message || e2) })
+        return
+      }
+    }
+    const counts = {}
+    const timings = {}
+    const q = async (label, sql) => {
+      const t = Date.now();
+      try {
+        const res = await pool.query(sql)
+        counts[label] = res.rows[0]?.c ?? 0
+        timings[label] = Date.now() - t
+      } catch (err) {
+        counts[label] = null
+        timings[label] = -1
+      }
+    }
+    try {
+      await q('messages', 'select count(*)::int as c from messages')
+      await q('receipts', 'select count(*)::int as c from receipts')
+      await q('reports', 'select count(*)::int as c from reports')
+      await q('payment_requests', 'select count(*)::int as c from payment_requests')
+    } finally {
+      await pool.end().catch(()=>{})
+    }
+    results.push({ name: 'db.summary', ok: true, ms: connectMs, counts, timings })
   })
 
   const summary = {

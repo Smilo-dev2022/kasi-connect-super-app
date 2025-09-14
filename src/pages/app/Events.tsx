@@ -18,11 +18,17 @@ import {
   Bell
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button as UIButton } from "@/components/ui/button";
 const EVENTS_API = (import.meta as any)?.env?.VITE_EVENTS_API || 'http://localhost:3000';
 
 const Events = () => {
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
+  const [lastTicket, setLastTicket] = useState<{ token: string } | null>(null);
+  const [tokenInput, setTokenInput] = useState("");
+  const [verifyResult, setVerifyResult] = useState<string>("");
+  const [checkinResult, setCheckinResult] = useState<string>("");
   const upcomingEvents = [
     {
       id: 1,
@@ -134,12 +140,26 @@ const Events = () => {
   useEffect(() => { load(); }, []);
 
   async function createRsvp(eid: string) {
-    const form = new FormData();
-    form.set('eventId', eid);
-    form.set('name', 'Guest');
-    form.set('email', `guest-${Date.now()}@example.com`);
-    await fetch(`${EVENTS_API}/api/rsvps/with-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId: eid, name: 'Guest', email: `guest-${Date.now()}@example.com` }) });
+    const res = await fetch(`${EVENTS_API}/api/rsvps/with-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId: eid, name: 'Guest', email: `guest-${Date.now()}@example.com` }) });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.ticket?.token) setLastTicket({ token: data.ticket.token });
+    }
     await load();
+  }
+
+  async function verifyToken() {
+    setVerifyResult("");
+    const res = await fetch(`${EVENTS_API}/api/checkin/verify?token=${encodeURIComponent(tokenInput)}`);
+    const data = await res.json();
+    setVerifyResult(JSON.stringify(data));
+  }
+
+  async function checkInToken() {
+    setCheckinResult("");
+    const res = await fetch(`${EVENTS_API}/api/checkin`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tokenInput }) });
+    const data = await res.json();
+    setCheckinResult(JSON.stringify(data));
   }
 
   return (
@@ -281,6 +301,35 @@ const Events = () => {
             <Bell className="w-4 h-4" />
             Enable Event Notifications
           </Button>
+        </Card>
+
+        {/* RSVP Ticket & QR (token) */}
+        <Card className="p-4">
+          <h4 className="font-semibold mb-2">RSVP Ticket</h4>
+          {lastTicket ? (
+            <div className="space-y-2">
+              <div className="text-sm">Your ticket token:</div>
+              <div className="font-mono text-xs break-all p-2 bg-muted rounded">{lastTicket.token}</div>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Create an RSVP to get a ticket token.</div>
+          )}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Token</div>
+              <Input value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="paste token" />
+            </div>
+            <div className="flex gap-2">
+              <UIButton onClick={verifyToken}>Verify</UIButton>
+              <UIButton variant="secondary" onClick={checkInToken}>Check-in</UIButton>
+            </div>
+          </div>
+          {(verifyResult || checkinResult) && (
+            <div className="mt-3 text-xs font-mono break-all">
+              {verifyResult && (<div><strong>Verify:</strong> {verifyResult}</div>)}
+              {checkinResult && (<div className="mt-1"><strong>Check-in:</strong> {checkinResult}</div>)}
+            </div>
+          )}
         </Card>
       </div>
     </div>

@@ -24,7 +24,7 @@ const mockMobileEnvironment = () => {
     constructor(type: string, init?: TouchEventInit) {
       super(type, init);
     }
-  } as any;
+  } as typeof Event;
 
   // Mock media query for mobile
   Object.defineProperty(window, 'matchMedia', {
@@ -213,7 +213,7 @@ const MobileSearchComponent = () => {
     dateRange: 'all',
     location: 'all',
   });
-  const [results, setResults] = React.useState<any[]>([]);
+  const [results, setResults] = React.useState<unknown[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
 
   const handleSearch = async () => {

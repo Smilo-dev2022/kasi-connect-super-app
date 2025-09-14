@@ -3,7 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import client, { Counter, Histogram, Registry } from 'prom-client';
+import client from 'prom-client';
+import { httpRequestCounter, httpRequestDurationMs, registry } from './lib/metrics';
 import { eventsRouter } from './routes/events';
 import { rsvpsRouter } from './routes/rsvps';
 import { startReminderScheduler } from './lib/reminderScheduler';
@@ -17,21 +18,7 @@ app.use(helmet());
 app.use(express.json());
 
 // Prometheus metrics registry and collectors
-const metricsRegistry: Registry = new client.Registry();
-client.collectDefaultMetrics({ register: metricsRegistry });
-const httpRequestCounter: Counter<string> = new client.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['service', 'method', 'route', 'status'] as const,
-  registers: [metricsRegistry],
-});
-const httpRequestDurationMs: Histogram<string> = new client.Histogram({
-  name: 'http_request_duration_ms',
-  help: 'HTTP request duration in milliseconds',
-  labelNames: ['service', 'method', 'route', 'status'] as const,
-  buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000],
-  registers: [metricsRegistry],
-});
+// metrics are set up via shared registry in lib/metrics
 
 // Request ID and timing middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -44,8 +31,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Metrics endpoint
 app.get('/metrics', async (_req: Request, res: Response) => {
-  res.setHeader('Content-Type', metricsRegistry.contentType);
-  const body = await metricsRegistry.metrics();
+  res.setHeader('Content-Type', registry.contentType);
+  const body = await registry.metrics();
   res.send(body);
 });
 

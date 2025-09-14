@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { getRsvpById, getTicketByToken, markTicketCheckedIn, getEventById } from '../lib/storage';
+import { checkinTotal } from '../lib/metrics';
 
 export const checkinRouter = Router();
 
@@ -30,6 +31,7 @@ checkinRouter.post('/', (req: Request, res: Response) => {
   const token = (req.body?.token as string) || (req.query.token as string) || '';
   try {
     const { ticket, already } = markTicketCheckedIn(token);
+    checkinTotal.inc();
     return res.json({ ok: true, ticketId: ticket.id, already, checkedInAt: ticket.checkedInAt });
   } catch (err: any) {
     if (err.message === 'ticket_not_found') return res.status(404).json({ ok: false, error: 'ticket_not_found' });

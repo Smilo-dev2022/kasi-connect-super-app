@@ -1,12 +1,8 @@
 import dayjs from 'dayjs';
-import client, { Registry, Counter, Histogram } from 'prom-client';
+import { reminderRuns, reminderDuration } from './metrics';
 import { listEvents } from './storage';
 
 let intervalHandle: NodeJS.Timeout | null = null;
-const registry: Registry = new client.Registry();
-client.collectDefaultMetrics({ register: registry });
-const reminderRuns = new client.Counter({ name: 'reminder_runs_total', help: 'Reminder job runs', labelNames: ['window'] as const, registers: [registry] });
-const reminderDuration = new client.Histogram({ name: 'reminder_job_duration_ms', help: 'Reminder job duration ms', buckets: [5,10,25,50,100,250,500,1000,2000], registers: [registry] });
 
 export function startReminderScheduler(): void {
   if (intervalHandle) return;

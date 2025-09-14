@@ -8,6 +8,7 @@ import {
   getRsvpById,
 } from '../lib/storage';
 import { NewRsvpInputSchema, UpdateRsvpInputSchema } from '../models/rsvp';
+import { rsvpTotal } from '../lib/metrics';
 import { createTicketForRsvp, getTicketByRsvpId } from '../lib/storage';
 
 export const rsvpsRouter = Router();
@@ -37,6 +38,7 @@ rsvpsRouter.post('/', (req: Request, res: Response) => {
   if (!parsed.success) return res.status(400).json(parsed.error.flatten());
   try {
     const created = createRsvp(parsed.data);
+    rsvpTotal.inc();
     res.status(201).json(created);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
@@ -50,6 +52,7 @@ rsvpsRouter.post('/with-ticket', (req: Request, res: Response) => {
   try {
     const rsvp = createRsvp(parsed.data);
     const ticket = createTicketForRsvp(rsvp.id);
+    rsvpTotal.inc();
     res.status(201).json({ rsvp, ticket });
   } catch (err: any) {
     res.status(400).json({ error: err.message });

@@ -61,6 +61,10 @@ async def escalate_report(request: Request, report_id: str, level_delta: int = 1
     updated = await store.escalate(report_id, level_delta=level_delta, sla_minutes=sla_minutes, note=note)
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    try:
+        request.app.state.moderation_escalations_total.inc()
+    except Exception:
+        pass
     return updated
 
 

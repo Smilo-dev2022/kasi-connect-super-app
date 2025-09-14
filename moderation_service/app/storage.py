@@ -7,6 +7,8 @@ import json
 import os
 
 from .models import Report, ReportCreate, ReportStatus
+from .db import get_session
+from .sqlmodels import ReportRow
 
 
 class InMemoryReportStore:
@@ -103,3 +105,141 @@ class InMemoryReportStore:
         except Exception:
             # best-effort audit; ignore errors in dev
             pass
+
+
+class PostgresReportStore:
+    """SQL-backed report store using SQLModel/SQLAlchemy."""
+
+    def __init__(self) -> None:
+        # No state; sessions are per-call
+        ...
+
+    async def create_report(self, data: ReportCreate) -> Report:
+        for session in get_session():
+            row = ReportRow(
+                id=str(uuid4()),
+                content_id=data.content_id,
+                content_text=data.content_text,
+                reason=data.reason,
+                reporter_id=data.reporter_id,
+                status=ReportStatus.PENDING.value,
+            )
+            session.add(row)
+            session.commit()
+            return Report(
+                id=row.id,
+                content_id=row.content_id,
+                content_text=row.content_text,
+                reason=row.reason,
+                reporter_id=row.reporter_id,
+                status=ReportStatus(row.status),
+                admin_notes=[],
+                escalation_level=row.escalation_level,
+                sla_minutes=row.sla_minutes,
+                escalated_at=row.escalated_at,
+                closed_at=row.closed_at,
+                created_at=row.created_at,
+                updated_at=row.updated_at,
+            )
+
+    async def get_report(self, report_id: str) -> Optional[Report]:
+        for session in get_session():
+            row = session.get(ReportRow, report_id)
+            if not row:
+                return None
+            return Report(
+                id=row.id,
+                content_id=row.content_id,
+                content_text=row.content_text,
+                reason=row.reason,
+                reporter_id=row.reporter_id,
+                status=ReportStatus(row.status),
+                admin_notes=[],
+                escalation_level=row.escalation_level,
+                sla_minutes=row.sla_minutes,
+                escalated_at=row.escalated_at,
+                closed_at=row.closed_at,
+                created_at=row.created_at,
+                updated_at=row.updated_at,
+            )
+
+    async def list_reports(self, status: Optional[ReportStatus] = None) -> List[Report]:
+        for session in get_session():
+            query = session.query(ReportRow)
+            if status is not None:
+                query = query.filter(ReportRow.status == status.value)
+            rows = query.order_by(ReportRow.created_at.desc()).all()
+            results: List[Report] = []
+            for row in rows:
+                results.append(
+                    Report(
+                        id=row.id,
+                        content_id=row.content_id,
+                        content_text=row.content_text,
+                        reason=row.reason,
+                        reporter_id=row.reporter_id,
+                        status=ReportStatus(row.status),
+                        admin_notes=[],
+                        escalation_level=row.escalation_level,
+                        sla_minutes=row.sla_minutes,
+                        escalated_at=row.escalated_at,
+                        closed_at=row.closed_at,
+                        created_at=row.created_at,
+                        updated_at=row.updated_at,
+                    )
+                )
+            return results
+
+    async def update_status(self, report_id: str, status: ReportStatus, admin_note: Optional[str] = None) -> Optional[Report]:
+        report = await self.get_report(report_id)
+        if report is None:
+            return None
+        for session in get_session():
+            row = session.get(ReportRow, report_id)
+            if not row:
+                return None
+            row.status = status.value
+            row.updated_at = datetime.now(timezone.utc)
+            session.add(row)
+            session.commit()
+            if admin_note:
+                # In SQL path, we don't persist notes text list for brevity
+                pass
+            return await self.get_report(report_id)
+
+    async def escalate(self, report_id: str, level_delta: int = 1, sla_minutes: Optional[int] = None, note: Optional[str] = None) -> Optional[Report]:
+        for session in get_session():
+            row = session.get(ReportRow, report_id)
+            if not row:
+                return None
+            row.escalation_level = max(0, (row.escalation_level or 0) + level_delta)
+            row.sla_minutes = sla_minutes if sla_minutes is not None else row.sla_minutes
+            row.escalated_at = datetime.now(timezone.utc)
+            row.updated_at = datetime.now(timezone.utc)
+            session.add(row)
+            session.commit()
+            return await self.get_report(report_id)
+
+    async def deescalate(self, report_id: str, note: Optional[str] = None) -> Optional[Report]:
+        for session in get_session():
+            row = session.get(ReportRow, report_id)
+            if not row:
+                return None
+            row.escalation_level = max(0, (row.escalation_level or 0) - 1)
+            row.updated_at = datetime.now(timezone.utc)
+            session.add(row)
+            session.commit()
+            return await self.get_report(report_id)
+
+    async def close(self, report_id: str, note: Optional[str] = None) -> Optional[Report]:
+        for session in get_session():
+            row = session.get(ReportRow, report_id)
+            if not row:
+                return None
+            if row.status != ReportStatus.ACTION_TAKEN.value:
+                row.status = ReportStatus.DISMISSED.value
+            row.closed_at = datetime.now(timezone.utc)
+            row.updated_at = datetime.now(timezone.utc)
+            session.add(row)
+            session.commit()
+            return await self.get_report(report_id)

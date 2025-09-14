@@ -34,11 +34,32 @@
 					<div><strong>ID</strong>: ${r.id}</div>
 					<div><strong>Status</strong>: ${r.status}</div>
 					<div><strong>Reason</strong>: ${r.reason}</div>
+					<div><strong>Escalation</strong>: L${r.escalation_level} ${r.sla_minutes ? `(SLA ${r.sla_minutes}m)` : ''}</div>
 				</div>
 				<div class="content"><strong>Content</strong>: ${r.content_text}</div>
+				<div class="actions">
+					<button onclick="escalate('${r.id}', 1)">Escalate</button>
+					<button onclick="deescalate('${r.id}')">De-escalate</button>
+					<button onclick="closeReport('${r.id}')">Close</button>
+				</div>
 			`;
 			container.appendChild(el);
 		});
+	}
+
+	async function escalate(id, levelDelta) {
+		await fetch(`/api/reports/${id}/escalate?level_delta=${levelDelta}`, { method: 'POST' });
+		loadReports();
+	}
+
+	async function deescalate(id) {
+		await fetch(`/api/reports/${id}/deescalate`, { method: 'POST' });
+		loadReports();
+	}
+
+	async function closeReport(id) {
+		await fetch(`/api/reports/${id}/close`, { method: 'POST' });
+		loadReports();
 	}
 	loadReports();
 	</script>

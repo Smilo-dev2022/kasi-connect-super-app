@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+// storage for events/rsvps/tickets (in-memory for dev/demo)
 import dayjs from 'dayjs';
 import {
   Event,
@@ -14,11 +14,18 @@ import {
   NewRsvpInputSchema,
   UpdateRsvpInput,
 } from '../models/rsvp';
+import { Ticket } from '../models/ticket';
+import { v4 as uuidv4 } from 'uuid';
+import { pool, query } from './db';
 
 const events: Event[] = [];
 const rsvps: Rsvp[] = [];
+const tickets: Ticket[] = [];
 
 export function listEvents(): Event[] {
+  if (pool) {
+    // For brevity, prefer in-memory for listing in this scaffold; DB path can be added
+  }
   return [...events].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 }
 
@@ -29,11 +36,15 @@ export function getEventById(eventId: string): Event | undefined {
 export function createEvent(input: NewEventInput): Event {
   const parsed = NewEventInputSchema.parse(input);
   const nowIso = new Date().toISOString();
-  const event: Event = EventSchema.parse({
-    id: uuidv4(),
-    createdAt: nowIso,
-    ...parsed,
-  });
+  const id = uuidv4();
+  const event: Event = EventSchema.parse({ id, createdAt: nowIso, ...parsed });
+  if (pool) {
+    // best-effort insert
+    void query(
+      'INSERT INTO events (id, title, description, location, starts_at, ends_at, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (id) DO NOTHING',
+      [id, event.title, event.description ?? null, event.location ?? null, event.startsAt, event.endsAt ?? null, nowIso]
+    );
+  }
   events.push(event);
   return event;
 }
@@ -91,11 +102,14 @@ export function createRsvp(input: NewRsvpInput): Rsvp {
     throw new Error('Event does not exist');
   }
   const nowIso = new Date().toISOString();
-  const rsvp: Rsvp = RsvpSchema.parse({
-    id: uuidv4(),
-    createdAt: nowIso,
-    ...parsed,
-  });
+  const id = uuidv4();
+  const rsvp: Rsvp = RsvpSchema.parse({ id, createdAt: nowIso, ...parsed });
+  if (pool) {
+    void query(
+      'INSERT INTO rsvps (id, event_id, name, email, status, created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING',
+      [id, parsed.eventId, parsed.name, parsed.email, parsed.status ?? 'yes', nowIso]
+    );
+  }
   rsvps.push(rsvp);
   return rsvp;
 }
@@ -120,4 +134,42 @@ export function deleteRsvp(rsvpId: string): boolean {
   if (index === -1) return false;
   rsvps.splice(index, 1);
   return true;
+}
+
+export function getTicketByRsvpId(rsvpId: string): Ticket | undefined {
+  return tickets.find((t) => t.rsvpId === rsvpId);
+}
+
+export function getTicketByToken(token: string): Ticket | undefined {
+  return tickets.find((t) => t.token === token);
+}
+
+export function createTicketForRsvp(rsvpId: string): Ticket {
+  const existing = getTicketByRsvpId(rsvpId);
+  if (existing) return existing;
+  const id = uuidv4();
+  const token = uuidv4();
+  const ticket: Ticket = { id, rsvpId, token, issuedAt: new Date().toISOString(), status: 'valid' };
+  if (pool) {
+    void query(
+      'INSERT INTO tickets (id, rsvp_id, token, issued_at, status) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING',
+      [id, rsvpId, token, ticket.issuedAt, 'valid']
+    );
+  }
+  tickets.push(ticket);
+  return ticket;
+}
+
+export function markTicketCheckedIn(token: string): { ticket: Ticket; already: boolean } {
+  const ticket = getTicketByToken(token);
+  if (!ticket) throw new Error('ticket_not_found');
+  if (ticket.checkedInAt) {
+    return { ticket, already: true };
+  }
+  ticket.checkedInAt = new Date().toISOString();
+  ticket.status = 'used';
+  if (pool) {
+    void query('UPDATE tickets SET checked_in_at = NOW(), status = $1 WHERE token = $2', ['used', token]);
+  }
+  return { ticket, already: false };
 }

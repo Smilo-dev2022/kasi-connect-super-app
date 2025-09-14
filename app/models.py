@@ -71,3 +71,64 @@ class RSVPUpdate(SQLModel):
     email: Optional[str] = None
     status: Optional[str] = None
 
+
+# ----------------------
+# Wallet V2
+# ----------------------
+
+
+class WalletRequestBase(SQLModel):
+    group_id: str = Field(index=True, description="Group identifier")
+    requester_id: str = Field(index=True, description="User who requested payment")
+    amount_cents: int = Field(ge=1, description="Amount in cents")
+    currency: str = Field(default="ZAR", description="ISO currency code")
+    status: str = Field(
+        default="requested",
+        description="requested|accepted|paid|canceled|expired",
+        index=True,
+    )
+    expires_at: Optional[datetime] = Field(default=None, description="Expiry time")
+
+
+class WalletRequest(WalletRequestBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    accepted_by: Optional[str] = Field(default=None, index=True)
+    paid_by: Optional[str] = Field(default=None, index=True)
+    canceled_by: Optional[str] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+
+class WalletRequestCreate(SQLModel):
+    group_id: str
+    requester_id: str
+    amount_cents: int
+    currency: Optional[str] = None
+    expires_at: Optional[datetime] = None
+
+
+class WalletRequestRead(WalletRequestBase):
+    id: int
+    accepted_by: Optional[str]
+    paid_by: Optional[str]
+    canceled_by: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+
+class GroupLedger(SQLModel, table=True):
+    group_id: str = Field(primary_key=True)
+    member_id: str = Field(primary_key=True)
+    balance_cents: int = Field(default=0, description="Member balance in cents (can be negative)")
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LedgerEntry(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    group_id: str = Field(index=True)
+    member_id: str = Field(index=True)
+    amount_cents: int
+    reason: str = Field(default="payment")
+    related_request_id: Optional[int] = Field(default=None, index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+

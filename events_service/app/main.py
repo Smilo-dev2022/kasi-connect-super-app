@@ -4,6 +4,10 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse, PlainTextResponse
+from prometheus_client import Counter, Histogram, CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST
+import uuid
+import time
+import json
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +44,55 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limiter)
 app.add_middleware(SlowAPIMiddleware)
 
+
+metrics_registry: CollectorRegistry = CollectorRegistry()
+http_requests_total: Counter = Counter(
+    "http_requests_total",
+    "Total number of HTTP requests",
+    labelnames=("service", "method", "route", "status"),
+    registry=metrics_registry,
+)
+http_request_duration_ms: Histogram = Histogram(
+    "http_request_duration_ms",
+    "HTTP request duration in milliseconds",
+    labelnames=("service", "method", "route", "status"),
+    buckets=(5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000),
+    registry=metrics_registry,
+)
+
+
+@app.middleware("http")
+async def metrics_and_logging(request: Request, call_next):
+    service = "events_py"
+    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000.0
+    route = request.url.path
+    status = str(response.status_code)
+    http_requests_total.labels(service, request.method, route, status).inc()
+    http_request_duration_ms.labels(service, request.method, route, status).observe(duration_ms)
+    response.headers["x-request-id"] = request_id
+    print(
+        json.dumps(
+            {
+                "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "level": "info",
+                "service": service,
+                "request_id": request_id,
+                "route": route,
+                "method": request.method,
+                "status": int(status),
+                "latency_ms": round(duration_ms, 3),
+            }
+        )
+    )
+    return response
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    return Response(generate_latest(metrics_registry), media_type=CONTENT_TYPE_LATEST)
 
 @app.on_event("startup")
 def on_startup() -> None:

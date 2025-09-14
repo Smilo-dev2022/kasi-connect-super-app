@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { MessagingClient, IncomingMessage } from '@/lib/messagingClient';
 import { getCurrentUserId, setCurrentUserId } from '@/lib/devAuth';
-import { Check, X, ShoppingBag } from 'lucide-react';
+import { Check, X, ShoppingBag, CreditCard } from 'lucide-react';
+const WALLET_API = (import.meta as any)?.env?.VITE_WALLET_API || 'http://localhost:8000';
 
 type OrderPayload = {
   kind: 'order';
@@ -94,6 +95,11 @@ export default function ChatThread() {
     clientRef.current?.send({ to: peerId, scope: 'direct', ciphertext: encode(response), contentType: 'application/order+json' });
   }
 
+  async function createWalletRequest(price: number) {
+    const body = { group_id: 'group-demo', requester_id: activeUserId, amount_cents: Math.round(price * 100) };
+    await fetch(`${WALLET_API}/wallet/requests`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title={`Chat with ${peerId}`} onBack={() => navigate(-1)} />
@@ -105,6 +111,9 @@ export default function ChatThread() {
         <div className="flex gap-2">
           <Button variant="community" onClick={sendOrderRequest}>
             <ShoppingBag className="w-4 h-4 mr-2" /> Send Order Request
+          </Button>
+          <Button variant="outline" onClick={() => createWalletRequest(120)}>
+            <CreditCard className="w-4 h-4 mr-2" /> Request Wallet Payment
           </Button>
         </div>
         <div className="space-y-2">

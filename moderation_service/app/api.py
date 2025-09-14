@@ -53,3 +53,34 @@ async def update_report_status(request: Request, report_id: str, payload: Report
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
     return updated
+
+
+@router.post("/reports/{report_id}/escalate", response_model=Report)
+async def escalate_report(request: Request, report_id: str, level_delta: int = 1, sla_minutes: Optional[int] = None, note: Optional[str] = None) -> Report:
+    store = get_store(request)
+    updated = await store.escalate(report_id, level_delta=level_delta, sla_minutes=sla_minutes, note=note)
+    if updated is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    try:
+        request.app.state.moderation_escalations_total.inc()
+    except Exception:
+        pass
+    return updated
+
+
+@router.post("/reports/{report_id}/deescalate", response_model=Report)
+async def deescalate_report(request: Request, report_id: str, note: Optional[str] = None) -> Report:
+    store = get_store(request)
+    updated = await store.deescalate(report_id, note=note)
+    if updated is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    return updated
+
+
+@router.post("/reports/{report_id}/close", response_model=Report)
+async def close_report(request: Request, report_id: str, note: Optional[str] = None) -> Report:
+    store = get_store(request)
+    updated = await store.close(report_id, note=note)
+    if updated is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    return updated

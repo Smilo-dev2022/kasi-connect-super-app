@@ -36,6 +36,10 @@ class Report(BaseModel):
     reporter_id: Optional[str] = None
     status: ReportStatus = Field(default=ReportStatus.PENDING)
     admin_notes: List[str] = Field(default_factory=list)
+    escalation_level: int = Field(default=0)
+    sla_minutes: Optional[int] = None
+    escalated_at: Optional[datetime] = None
+    closed_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

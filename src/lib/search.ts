@@ -16,7 +16,16 @@ export type SearchResponse = {
   provider: string;
 };
 
-const serpApiKey = ((import.meta as any).env?.VITE_SERPAPI_KEY as string | undefined);
+// Define interface for import.meta.env to add type safety
+interface ImportMetaEnv {
+  VITE_SERPAPI_KEY?: string;
+}
+
+interface ImportMeta {
+  env: ImportMetaEnv;
+}
+
+const serpApiKey = (import.meta as ImportMeta).env?.VITE_SERPAPI_KEY;
 
 async function searchSerpApi(query: string, category: SearchCategory): Promise<SearchResult[]> {
   const base = "https://serpapi.com/search.json";
@@ -31,10 +40,25 @@ async function searchSerpApi(query: string, category: SearchCategory): Promise<S
   if (!response.ok) {
     throw new Error(`SerpAPI request failed: ${response.status}`);
   }
-  const data = await response.json();
+  const data = await response.json() as {
+    images_results?: Array<{
+      title?: string;
+      source?: string;
+      original?: string;
+      link?: string;
+      thumbnail?: string;
+    }>;
+    organic_results?: Array<{
+      title?: string;
+      link?: string;
+      snippet?: string;
+      source?: string;
+    }>;
+  };
+  
   if (category === "media") {
-    const images: any[] = data.images_results ?? [];
-    return images.map((img: any) => ({
+    const images = data.images_results ?? [];
+    return images.map((img) => ({
       title: img.title ?? img.source ?? "Image",
       url: img.original ?? img.link ?? img.thumbnail ?? "",
       thumbnailUrl: img.thumbnail,
@@ -43,8 +67,8 @@ async function searchSerpApi(query: string, category: SearchCategory): Promise<S
     }));
   }
   // text or links share organic_results
-  const organic: any[] = data.organic_results ?? [];
-  return organic.map((item: any) => ({
+  const organic = data.organic_results ?? [];
+  return organic.map((item) => ({
     title: item.title ?? "",
     url: item.link ?? "",
     snippet: item.snippet ?? item.snippet_highlighted_words?.join(" ") ?? "",

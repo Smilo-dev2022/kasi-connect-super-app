@@ -8,6 +8,16 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/agent*/**', // Exclude service-specific tests
+      '**/services/**', // Exclude service-specific tests
+      '**/events_service/**', // Exclude service-specific tests
+      '**/moderation_service/**', // Exclude service-specific tests
+    ]
   },
   resolve: {
     alias: {

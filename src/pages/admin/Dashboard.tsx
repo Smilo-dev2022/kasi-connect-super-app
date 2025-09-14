@@ -24,7 +24,11 @@ const chartConfig = {
   },
 } as const;
 
-const Stat = ({ icon: Icon, label, value }: { icon: React.ComponentType<any>; label: string; value: string }) => (
+const Stat = ({ icon: Icon, label, value }: { 
+  icon: React.ComponentType<{ className?: string }>; 
+  label: string; 
+  value: string 
+}) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>

@@ -122,7 +122,7 @@ async function createVideoThumbnail(file: File, maxSize = 384): Promise<{ blob: 
   const video = document.createElement("video");
   video.src = objectUrl;
   video.muted = true;
-  (video as any).playsInline = true;
+  (video as HTMLVideoElement & { playsInline: boolean }).playsInline = true;
   await new Promise<void>((resolve) => {
     const onLoaded = async () => {
       try {
@@ -232,7 +232,7 @@ export async function listMedia(): Promise<MediaSummary[]> {
   const records = await withStore<MediaRecord[]>("readonly", async (store) => {
     if ("getAll" in store) {
       const all: MediaRecord[] = await new Promise((resolve, reject) => {
-        const req = (store as any).getAll();
+        const req = (store as IDBObjectStore).getAll();
         req.onsuccess = () => resolve(req.result as MediaRecord[]);
         req.onerror = () => reject(req.error);
       });
@@ -303,7 +303,12 @@ export async function clearAllMedia(): Promise<void> {
 export function revokeSummaryUrls(summaries: MediaSummary[]): void {
   for (const item of summaries) {
     if (item.thumbnailUrl && item.thumbnailUrl !== FALLBACK_THUMBNAIL) {
-      try { URL.revokeObjectURL(item.thumbnailUrl); } catch {}
+      try { 
+        URL.revokeObjectURL(item.thumbnailUrl); 
+      } catch (error) {
+        // Silently ignore revokeObjectURL errors as they are not critical
+        console.debug('Failed to revoke object URL:', error);
+      }
     }
   }
 }

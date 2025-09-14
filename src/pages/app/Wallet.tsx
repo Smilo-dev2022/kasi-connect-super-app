@@ -138,11 +138,11 @@ const Wallet = () => {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case 'active': return 'bg-community text-community-foreground';
-      case 'pending': return 'bg-yellow-500 text-white';
-      default: return 'bg-muted text-muted-foreground';
+      case 'active': return 'default';
+      case 'pending': return 'secondary';
+      default: return 'outline';
     }
   };
 
@@ -164,6 +164,40 @@ const Wallet = () => {
       await refresh();
     } catch {
       toast({ title: "Action failed", variant: "destructive" as any });
+    }
+  }
+
+  function optimisticUpdate(requestId: number, updates: Partial<WalletRequest>) {
+    setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, ...updates } : r)));
+  }
+
+  async function onAccept(r: WalletRequest) {
+    const prev = r.status;
+    optimisticUpdate(r.id, { status: "accepted", accepted_by: currentUserId });
+    try {
+      await act(`${API_BASE}/wallet/requests/${r.id}/accept?actor_id=${encodeURIComponent(currentUserId)}`, "Accepted");
+    } catch {
+      optimisticUpdate(r.id, { status: prev });
+    }
+  }
+
+  async function onCancel(r: WalletRequest) {
+    const prev = r.status;
+    optimisticUpdate(r.id, { status: "canceled", canceled_by: currentUserId });
+    try {
+      await act(`${API_BASE}/wallet/requests/${r.id}/cancel?actor_id=${encodeURIComponent(currentUserId)}`, "Canceled");
+    } catch {
+      optimisticUpdate(r.id, { status: prev, canceled_by: undefined });
+    }
+  }
+
+  async function onPay(r: WalletRequest) {
+    const prev = r.status;
+    optimisticUpdate(r.id, { status: "paid", paid_by: currentUserId });
+    try {
+      await act(`${API_BASE}/wallet/requests/${r.id}/pay?payer_id=${encodeURIComponent(currentUserId)}`, "Paid");
+    } catch {
+      optimisticUpdate(r.id, { status: prev, paid_by: undefined });
     }
   }
 
@@ -257,6 +291,13 @@ const Wallet = () => {
                   <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
                     Refresh
                   </Button>
+                  <a
+                    href={`${API_BASE}/wallet/groups/${encodeURIComponent(demoGroupId)}/ledger.csv`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Button variant="ghost" size="sm">Export CSV</Button>
+                  </a>
                   <Button
                     variant="default"
                     size="sm"
@@ -284,6 +325,14 @@ const Wallet = () => {
                   </Button>
                 </div>
               </div>
+              {/* Banner */}
+              <div className="mb-2 text-sm text-muted-foreground">
+                {(() => {
+                  const pending = requests.filter((r) => r.status === 'requested').length;
+                  const accepted = requests.filter((r) => r.status === 'accepted').length;
+                  return (<span>Pending: {pending} • Accepted: {accepted}</span>);
+                })()}
+              </div>
               <div className="space-y-2">
                 {requests.map((r) => (
                   <Card key={r.id} className="p-4 bg-card/80 backdrop-blur-sm">
@@ -293,18 +342,18 @@ const Wallet = () => {
                         <div className="text-xs text-muted-foreground">{r.group_id} • by {r.requester_id}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge>
+                        <Badge variant={r.status === 'canceled' ? 'destructive' : r.status === 'accepted' ? 'secondary' : 'default'}>
                           {r.status}
                         </Badge>
                         {r.status === 'requested' && (
                           <>
-                            <Button size="sm" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/accept?actor_id=${encodeURIComponent(currentUserId)}`, 'Accepted')}>Accept</Button>
-                            <Button size="sm" variant="destructive" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/cancel?actor_id=${encodeURIComponent(currentUserId)}`, 'Canceled')}>Cancel</Button>
-                            <Button size="sm" variant="secondary" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/pay?payer_id=${encodeURIComponent(currentUserId)}`, 'Paid')}>Mark Paid</Button>
+                            <Button size="sm" onClick={() => onAccept(r)}>Accept</Button>
+                            <Button size="sm" variant="destructive" onClick={() => onCancel(r)}>Cancel</Button>
+                            <Button size="sm" variant="secondary" onClick={() => onPay(r)}>Mark Paid</Button>
                           </>
                         )}
                         {r.status === 'accepted' && (
-                          <Button size="sm" variant="secondary" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/pay?payer_id=${encodeURIComponent(currentUserId)}`, 'Paid')}>Mark Paid</Button>
+                          <Button size="sm" variant="secondary" onClick={() => onPay(r)}>Mark Paid</Button>
                         )}
                       </div>
                     </div>
@@ -332,7 +381,7 @@ const Wallet = () => {
                         <h4 className="font-semibold text-foreground">{stokvel.name}</h4>
                         <p className="text-sm text-muted-foreground">{stokvel.members} members</p>
                       </div>
-                      <Badge className={getStatusColor(stokvel.status)}>
+                      <Badge variant={getStatusVariant(stokvel.status)}>
                         {stokvel.status}
                       </Badge>
                     </div>
@@ -410,7 +459,10 @@ const Wallet = () => {
                       <h4 className="font-semibold text-foreground">{stokvel.name}</h4>
                       <p className="text-sm text-muted-foreground">{stokvel.members} members</p>
                     </div>
-                    <Badge className={getStatusColor(stokvel.status)}>
+                    <Badge variant={getStatusVariant(stokvel.status)}>
+                      {stokvel.status}
+                    </Badge>
+                    <Badge variant={getStatusVariant(stokvel.status)}>
                       {stokvel.status}
                     </Badge>
                   </div>

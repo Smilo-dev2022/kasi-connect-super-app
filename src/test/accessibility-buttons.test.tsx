@@ -815,8 +815,8 @@ describe('Accessibility Tests for New UI Buttons', () => {
       const confirmBtn = screen.getByTestId('confirm-escalation-btn');
       expect(confirmBtn).toBeDisabled();
       
-      // Select an option
-      fireEvent.change(screen.getByTestId('complex-radio'), { target: { checked: true } });
+      // Select an option by clicking the radio button
+      fireEvent.click(screen.getByTestId('complex-radio'));
       
       expect(confirmBtn).not.toBeDisabled();
     });

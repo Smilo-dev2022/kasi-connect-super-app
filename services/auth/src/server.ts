@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import authRouter from './routes/auth';
 import devicesRouter from './routes/devices';
+import { randomUUID } from 'node:crypto';
 
 const app = express();
 
@@ -19,6 +20,31 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 app.use(limiter);
+
+// JSON logging with request_id and latency; expose simple /metrics
+const durations: number[] = [];
+let reqCount = 0;
+function p95(values: number[]): number {
+  if (values.length === 0) return 0;
+  const s = [...values].sort((a, b) => a - b);
+  return s[Math.floor(0.95 * (s.length - 1))];
+}
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const started = Date.now();
+  const reqId = (req.header('x-request-id') as string) || randomUUID();
+  const corrId = (req.header('x-correlation-id') as string) || reqId;
+  res.setHeader('x-request-id', reqId);
+  res.setHeader('x-correlation-id', corrId);
+  res.on('finish', () => {
+    const ms = Date.now() - started;
+    durations.push(ms);
+    reqCount += 1;
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify({ ts: Date.now(), request_id: reqId, correlation_id: corrId, method: req.method, route: req.originalUrl, status: res.statusCode, duration_ms: ms }));
+    if (durations.length > 2000) durations.splice(0, durations.length - 1000);
+  });
+  next();
+});
 
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });
@@ -40,6 +66,13 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Error:', err);
   }
   res.status(statusCode).json({ error: message });
+});
+
+app.get('/metrics', (_req: Request, res: Response) => {
+  res.type('text/plain').send(
+    `http_requests_total ${reqCount}\n` +
+    `http_latency_ms_p95 ${p95(durations)}\n`
+  );
 });
 
 function start() {

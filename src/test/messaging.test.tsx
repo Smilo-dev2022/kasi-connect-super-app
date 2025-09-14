@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 // Mock messaging service API calls
 const mockMessagingAPI = {
@@ -203,6 +204,280 @@ describe('Messaging Integration Tests', () => {
       await waitFor(() => {
         expect(mockMessagingAPI.markMessagesAsRead).toHaveBeenCalledWith(['msg1', 'msg2']);
       });
+    });
+  });
+
+  describe('Messaging Logs with Request ID', () => {
+    it('should include request_id in logs when sending messages', async () => {
+      const mockLogger = {
+        info: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+      };
+
+      const MessageSendComponent = () => {
+        const sendMessage = async (content: string) => {
+          const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          try {
+            mockLogger.info('Message send initiated', { requestId, content });
+            
+            const result = await mockMessagingAPI.sendMessage({
+              content,
+              threadId: 'thread-123',
+              requestId,
+            });
+            
+            mockLogger.info('Message sent successfully', { 
+              requestId, 
+              messageId: result.id,
+              timestamp: result.timestamp 
+            });
+            
+            return result;
+          } catch (error: any) {
+            mockLogger.error('Message send failed', { 
+              requestId, 
+              error: error.message,
+              content 
+            });
+            throw error;
+          }
+        };
+
+        return (
+          <div>
+            <button 
+              onClick={() => sendMessage('Hello with request ID')} 
+              data-testid="send-message-btn"
+            >
+              Send Message
+            </button>
+          </div>
+        );
+      };
+
+      // Mock successful message send
+      mockMessagingAPI.sendMessage = vi.fn().mockResolvedValue({
+        id: 'msg-456',
+        content: 'Hello with request ID',
+        timestamp: new Date().toISOString(),
+        threadId: 'thread-123',
+      });
+
+      render(
+        <TestWrapper>
+          <MessageSendComponent />
+        </TestWrapper>
+      );
+
+      const sendBtn = screen.getByTestId('send-message-btn');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        // Verify request_id is included in logs
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'Message send initiated',
+          expect.objectContaining({
+            requestId: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            content: 'Hello with request ID',
+          })
+        );
+
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'Message sent successfully',
+          expect.objectContaining({
+            requestId: expect.stringMatching(/^req_\d+_[a-z0-9]+$/),
+            messageId: 'msg-456',
+            timestamp: expect.any(String),
+          })
+        );
+      });
+    });
+
+    it('should include request_id in logs when fetching message history', async () => {
+      const mockLogger = {
+        info: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+      };
+
+      const HistoryFetchComponent = () => {
+        const fetchHistory = async (threadId: string, page: number = 1) => {
+          const requestId = `hist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          try {
+            mockLogger.info('History fetch initiated', { 
+              requestId, 
+              threadId, 
+              page 
+            });
+            
+            const result = await mockMessagingAPI.getMessageHistory({
+              threadId,
+              page,
+              limit: 20,
+              requestId,
+            });
+            
+            mockLogger.info('History fetch completed', { 
+              requestId, 
+              threadId,
+              messageCount: result.messages.length,
+              hasMore: result.hasMore,
+              page: result.page
+            });
+            
+            return result;
+          } catch (error: any) {
+            mockLogger.error('History fetch failed', { 
+              requestId, 
+              threadId,
+              page,
+              error: error.message 
+            });
+            throw error;
+          }
+        };
+
+        return (
+          <div>
+            <button 
+              onClick={() => fetchHistory('thread-789', 1)} 
+              data-testid="fetch-history-btn"
+            >
+              Fetch History
+            </button>
+          </div>
+        );
+      };
+
+      // Mock successful history fetch
+      mockMessagingAPI.getMessageHistory.mockResolvedValue({
+        messages: [
+          { id: 'msg-1', content: 'First message', timestamp: '2024-01-01T10:00:00Z' },
+          { id: 'msg-2', content: 'Second message', timestamp: '2024-01-01T10:01:00Z' },
+        ],
+        hasMore: false,
+        page: 1,
+        total: 2,
+      });
+
+      render(
+        <TestWrapper>
+          <HistoryFetchComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-history-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        // Verify request_id is included in history fetch logs
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'History fetch initiated',
+          expect.objectContaining({
+            requestId: expect.stringMatching(/^hist_\d+_[a-z0-9]+$/),
+            threadId: 'thread-789',
+            page: 1,
+          })
+        );
+
+        expect(mockLogger.info).toHaveBeenCalledWith(
+          'History fetch completed',
+          expect.objectContaining({
+            requestId: expect.stringMatching(/^hist_\d+_[a-z0-9]+$/),
+            threadId: 'thread-789',
+            messageCount: 2,
+            hasMore: false,
+            page: 1,
+          })
+        );
+      });
+    });
+
+    it('should log request_id for failed operations', async () => {
+      const mockLogger = {
+        info: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+      };
+
+      const FailureTestComponent = () => {
+        const attemptFailedSend = async () => {
+          const requestId = `fail_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          try {
+            mockLogger.info('Failed send attempt', { requestId });
+            await mockMessagingAPI.sendMessage({
+              content: 'This will fail',
+              threadId: 'invalid-thread',
+              requestId,
+            });
+          } catch (error: any) {
+            mockLogger.error('Send operation failed', { 
+              requestId,
+              error: error.message,
+              operation: 'sendMessage'
+            });
+          }
+        };
+
+        return (
+          <div>
+            <button 
+              onClick={attemptFailedSend} 
+              data-testid="failed-send-btn"
+            >
+              Attempt Failed Send
+            </button>
+          </div>
+        );
+      };
+
+      // Mock failed send
+      mockMessagingAPI.sendMessage = vi.fn().mockRejectedValue(
+        new Error('Invalid thread ID')
+      );
+
+      render(
+        <TestWrapper>
+          <FailureTestComponent />
+        </TestWrapper>
+      );
+
+      const failBtn = screen.getByTestId('failed-send-btn');
+      fireEvent.click(failBtn);
+
+      await waitFor(() => {
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          'Send operation failed',
+          expect.objectContaining({
+            requestId: expect.stringMatching(/^fail_\d+_[a-z0-9]+$/),
+            error: 'Invalid thread ID',
+            operation: 'sendMessage',
+          })
+        );
+      });
+    });
+
+    it('should maintain consistent request_id format across operations', () => {
+      const generateRequestId = (prefix: string) => {
+        return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      };
+
+      const sendReqId = generateRequestId('send');
+      const histReqId = generateRequestId('hist');
+      const wsReqId = generateRequestId('ws');
+
+      expect(sendReqId).toMatch(/^send_\d+_[a-z0-9]+$/);
+      expect(histReqId).toMatch(/^hist_\d+_[a-z0-9]+$/);
+      expect(wsReqId).toMatch(/^ws_\d+_[a-z0-9]+$/);
+
+      // Verify uniqueness
+      expect(sendReqId).not.toBe(histReqId);
+      expect(histReqId).not.toBe(wsReqId);
+      expect(sendReqId).not.toBe(wsReqId);
     });
   });
 

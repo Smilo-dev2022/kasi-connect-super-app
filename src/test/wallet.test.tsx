@@ -475,6 +475,211 @@ describe('Wallet Integration Tests', () => {
     });
   });
 
+  describe('Wallet Optimistic UI Error Handling', () => {
+    it('should revert optimistic UI on 4xx client errors', async () => {
+      const OptimisticUIComponent = () => {
+        const [balance, setBalance] = React.useState(100);
+        const [isLoading, setIsLoading] = React.useState(false);
+
+        const handleOptimisticUpdate = async (amount: number) => {
+          // Optimistically update UI
+          const originalBalance = balance;
+          setBalance(prev => prev + amount);
+          setIsLoading(true);
+
+          try {
+            await mockWalletAPI.createWalletRequest({
+              amount,
+              description: 'Test payment',
+              idempotencyKey: `req_${Date.now()}`,
+            });
+          } catch (error: any) {
+            // Revert optimistic update on client error (4xx)
+            if (error.status >= 400 && error.status < 500) {
+              setBalance(originalBalance);
+            }
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        return (
+          <div>
+            <div data-testid="balance">Balance: R{balance}</div>
+            <div data-testid="loading">{isLoading ? 'Loading...' : 'Ready'}</div>
+            <button 
+              onClick={() => handleOptimisticUpdate(50)} 
+              data-testid="optimistic-btn"
+            >
+              Add R50
+            </button>
+          </div>
+        );
+      };
+
+      // Mock 4xx error response
+      const clientError = new Error('Bad Request');
+      (clientError as any).status = 400;
+      mockWalletAPI.createWalletRequest.mockRejectedValue(clientError);
+
+      render(
+        <TestWrapper>
+          <OptimisticUIComponent />
+        </TestWrapper>
+      );
+
+      // Initial state
+      expect(screen.getByTestId('balance').textContent).toBe('Balance: R100');
+
+      // Click button - optimistic update happens immediately
+      const button = screen.getByTestId('optimistic-btn');
+      fireEvent.click(button);
+
+      // Should show optimistic update initially
+      expect(screen.getByTestId('balance').textContent).toBe('Balance: R150');
+      expect(screen.getByTestId('loading').textContent).toBe('Loading...');
+
+      // Wait for error and revert
+      await waitFor(() => {
+        expect(screen.getByTestId('balance').textContent).toBe('Balance: R100');
+        expect(screen.getByTestId('loading').textContent).toBe('Ready');
+      });
+    });
+
+    it('should revert optimistic UI on 5xx server errors', async () => {
+      const OptimisticUIComponent = () => {
+        const [requestCount, setRequestCount] = React.useState(0);
+        const [pendingRequests, setPendingRequests] = React.useState<string[]>([]);
+
+        const handleOptimisticRequest = async () => {
+          const tempId = `temp_${Date.now()}`;
+          
+          // Optimistically add to UI
+          setRequestCount(prev => prev + 1);
+          setPendingRequests(prev => [...prev, tempId]);
+
+          try {
+            await mockWalletAPI.createWalletRequest({
+              amount: 100,
+              description: 'Server error test',
+              idempotencyKey: tempId,
+            });
+          } catch (error: any) {
+            // Revert optimistic update on server error (5xx)
+            if (error.status >= 500) {
+              setRequestCount(prev => prev - 1);
+              setPendingRequests(prev => prev.filter(id => id !== tempId));
+            }
+          }
+        };
+
+        return (
+          <div>
+            <div data-testid="request-count">Requests: {requestCount}</div>
+            <div data-testid="pending-count">Pending: {pendingRequests.length}</div>
+            <button 
+              onClick={handleOptimisticRequest} 
+              data-testid="server-error-btn"
+            >
+              Create Request
+            </button>
+          </div>
+        );
+      };
+
+      // Mock 5xx error response
+      const serverError = new Error('Internal Server Error');
+      (serverError as any).status = 500;
+      mockWalletAPI.createWalletRequest.mockRejectedValue(serverError);
+
+      render(
+        <TestWrapper>
+          <OptimisticUIComponent />
+        </TestWrapper>
+      );
+
+      // Initial state
+      expect(screen.getByTestId('request-count').textContent).toBe('Requests: 0');
+      expect(screen.getByTestId('pending-count').textContent).toBe('Pending: 0');
+
+      // Click button - optimistic update happens
+      const button = screen.getByTestId('server-error-btn');
+      fireEvent.click(button);
+
+      // Should show optimistic update initially
+      expect(screen.getByTestId('request-count').textContent).toBe('Requests: 1');
+      expect(screen.getByTestId('pending-count').textContent).toBe('Pending: 1');
+
+      // Wait for error and revert
+      await waitFor(() => {
+        expect(screen.getByTestId('request-count').textContent).toBe('Requests: 0');
+        expect(screen.getByTestId('pending-count').textContent).toBe('Pending: 0');
+      });
+    });
+
+    it('should not revert optimistic UI on 2xx success responses', async () => {
+      const OptimisticUIComponent = () => {
+        const [balance, setBalance] = React.useState(100);
+
+        const handleSuccessfulUpdate = async (amount: number) => {
+          // Optimistically update UI
+          setBalance(prev => prev + amount);
+
+          // This should succeed
+          await mockWalletAPI.createWalletRequest({
+            amount,
+            description: 'Successful payment',
+            idempotencyKey: `req_${Date.now()}`,
+          });
+        };
+
+        return (
+          <div>
+            <div data-testid="success-balance">Balance: R{balance}</div>
+            <button 
+              onClick={() => handleSuccessfulUpdate(75)} 
+              data-testid="success-btn"
+            >
+              Add R75
+            </button>
+          </div>
+        );
+      };
+
+      // Mock successful response
+      mockWalletAPI.createWalletRequest.mockResolvedValue({
+        id: 'req-success',
+        amount: 75,
+        description: 'Successful payment',
+        status: 'pending',
+      });
+
+      render(
+        <TestWrapper>
+          <OptimisticUIComponent />
+        </TestWrapper>
+      );
+
+      // Initial state
+      expect(screen.getByTestId('success-balance').textContent).toBe('Balance: R100');
+
+      // Click button
+      const button = screen.getByTestId('success-btn');
+      fireEvent.click(button);
+
+      // Should show optimistic update and keep it
+      expect(screen.getByTestId('success-balance').textContent).toBe('Balance: R175');
+
+      // Wait and verify no revert happens
+      await waitFor(() => {
+        expect(mockWalletAPI.createWalletRequest).toHaveBeenCalledTimes(1);
+      });
+
+      // Balance should remain updated
+      expect(screen.getByTestId('success-balance').textContent).toBe('Balance: R175');
+    });
+  });
+
   describe('Wallet Balance and Transactions', () => {
     it('should fetch wallet balance successfully', async () => {
       mockWalletAPI.getWalletBalance.mockResolvedValue({

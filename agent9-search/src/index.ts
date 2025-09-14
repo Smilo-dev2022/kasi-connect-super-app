@@ -1,10 +1,13 @@
 import Fastify from 'fastify'
+import fastifyMetrics from 'fastify-metrics'
 import { config } from './config.js'
 import { ensureMessagesCollection } from './typesense.js'
 import { registerRoutes } from './routes.js'
 
 async function main(): Promise<void> {
   const app = Fastify({ logger: true })
+
+  await app.register(fastifyMetrics, { endpoint: '/metrics' })
 
   try {
     await ensureMessagesCollection()

@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 
 from fastapi import FastAPI, Request, Depends, Form, HTTPException
+import time
+import json
+from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -73,6 +76,27 @@ def index(request: Request, session=Depends(get_session)):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+# Metrics
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
+# Structured access logs
+@app.middleware("http")
+async def access_log(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = int((time.time() - start) * 1000)
+    log = {
+        "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "level": "info",
+        "service": "events_service",
+        "request_id": request.headers.get("x-request-id") or "-",
+        "route": request.url.path,
+        "status": response.status_code,
+        "latency_ms": duration_ms,
+    }
+    print(json.dumps(log))
+    return response
 
 
 @app.get("/api/events")

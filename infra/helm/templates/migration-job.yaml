@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "kasi-core.fullname" . }}-migrate
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["/bin/sh", "-c", "python -m app.main || true"]
+          env:
+            - name: DATABASE_URL
+              value: {{ .Values.databaseUrl | default "sqlite:///./events.db" | quote }}

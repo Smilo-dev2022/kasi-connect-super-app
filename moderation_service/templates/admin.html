@@ -15,6 +15,17 @@
 			<h2>Reports</h2>
 			<div id="reports"></div>
 		</section>
+    <section>
+      <h2>Actions</h2>
+      <div>
+        <label>Report ID: <input id="rid" /></label>
+        <button onclick="escalate(0)">Escalate L0</button>
+        <button onclick="escalate(1)">Escalate L1</button>
+        <button onclick="escalate(2)">Escalate L2</button>
+        <button onclick="deescalate()">De-escalate</button>
+        <button onclick="closeReport()">Close</button>
+      </div>
+    </section>
 	</main>
 	<script>
 	async function loadReports() {
@@ -33,6 +44,8 @@
 				<div class="row">
 					<div><strong>ID</strong>: ${r.id}</div>
 					<div><strong>Status</strong>: ${r.status}</div>
+					<div><strong>Escalation</strong>: ${r.escalation_level ?? '-'}</div>
+					<div><strong>SLA</strong>: ${r.sla_minutes ?? '-'} min</div>
 					<div><strong>Reason</strong>: ${r.reason}</div>
 				</div>
 				<div class="content"><strong>Content</strong>: ${r.content_text}</div>
@@ -41,6 +54,28 @@
 		});
 	}
 	loadReports();
+
+  async function escalate(level) {
+    const id = (document.getElementById('rid')).value;
+    if (!id) return alert('Enter report ID');
+    const res = await fetch(`/api/reports/${id}/escalate?level=${level}`, { method: 'POST' });
+    if (!res.ok) { alert('Escalate failed'); return; }
+    await loadReports();
+  }
+  async function deescalate() {
+    const id = (document.getElementById('rid')).value;
+    if (!id) return alert('Enter report ID');
+    const res = await fetch(`/api/reports/${id}/deescalate`, { method: 'POST' });
+    if (!res.ok) { alert('De-escalate failed'); return; }
+    await loadReports();
+  }
+  async function closeReport() {
+    const id = (document.getElementById('rid')).value;
+    if (!id) return alert('Enter report ID');
+    const res = await fetch(`/api/reports/${id}/close`, { method: 'POST' });
+    if (!res.ok) { alert('Close failed'); return; }
+    await loadReports();
+  }
 	</script>
 </body>
 </html>

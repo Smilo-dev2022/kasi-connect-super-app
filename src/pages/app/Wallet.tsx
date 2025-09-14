@@ -18,10 +18,25 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+type Tx = {
+  id: number;
+  amount_cents: number;
+  currency: string;
+  description: string | null;
+  counterparty: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [txs, setTxs] = useState<Tx[]>([]);
   const cards = [
     { brand: "iKasiLink Debit", last4: "4821", balance: 1250.5, gradient: "from-community via-primary to-secondary" },
     { brand: "Savings", last4: "9013", balance: 5600, gradient: "from-primary via-secondary to-community" },
@@ -62,40 +77,51 @@ const Wallet = () => {
     }
   ];
 
-  const transactions = [
-    {
-      type: "received",
-      amount: 150,
-      from: "Mama Sarah",
-      description: "Groceries money",
-      time: "2h ago",
-      status: "completed"
-    },
-    {
-      type: "sent",
-      amount: 50,
-      to: "Taxi fare",
-      description: "Daily transport",
-      time: "4h ago",
-      status: "completed"
-    },
-    {
-      type: "stokvel",
-      amount: 150,
-      to: "Thabo's Group",
-      description: "Monthly contribution",
-      time: "1d ago",
-      status: "completed"
-    },
-    {
-      type: "airtime",
-      amount: 30,
-      to: "Vodacom",
-      description: "Data bundle",
-      time: "2d ago",
-      status: "completed"
+  async function refresh() {
+    try {
+      setLoading(true);
+      const res = await fetch("/wallet/transactions");
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      const data = await res.json();
+      setTxs(data);
+      toast({ title: "Wallet updated", description: "Latest transactions fetched" });
+    } catch (e: any) {
+      toast({ title: "Refresh failed", description: String(e?.message || e), variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-  ];
+  }
+
+  async function accept(txId: number) {
+    try {
+      const res = await fetch(`/wallet/transactions/${txId}/accept`, { method: "POST" });
+      if (!res.ok) throw new Error(`Accept failed: ${res.status}`);
+      toast({ title: "Accepted", description: `Transaction #${txId} accepted` });
+      await refresh();
+    } catch (e: any) {
+      toast({ title: "Accept failed", description: String(e?.message || e), variant: "destructive" });
+    }
+  }
+
+  async function cancel(txId: number) {
+    try {
+      const res = await fetch(`/wallet/transactions/${txId}/cancel`, { method: "POST" });
+      if (!res.ok) throw new Error(`Cancel failed: ${res.status}`);
+      toast({ title: "Canceled", description: `Transaction #${txId} canceled` });
+      await refresh();
+    } catch (e: any) {
+      toast({ title: "Cancel failed", description: String(e?.message || e), variant: "destructive" });
+    }
+  }
+
+  function centsToRand(cents: number) {
+    return (cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -187,6 +213,12 @@ const Wallet = () => {
               </Button>
             ))}
           </div>
+          <div className="mt-3 flex gap-2">
+            <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>Refresh</Button>
+            <a href="/wallet/transactions.csv" target="_blank" rel="noreferrer">
+              <Button variant="outline" size="sm">Export CSV</Button>
+            </a>
+          </div>
         </Card>
 
         {/* Segmented Tabs */}
@@ -242,17 +274,17 @@ const Wallet = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Recent Transactions</h3>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={refresh} disabled={loading}>
                   <History className="w-4 h-4 mr-2" />
-                  View All
+                  Refresh
                 </Button>
               </div>
               <div className="space-y-2">
-                {transactions.map((transaction, index) => {
-                  const TransactionIcon = getTransactionIcon(transaction.type);
-                  const isReceived = transaction.type === 'received';
+                {txs.map((tx) => {
+                  const isReceived = tx.amount_cents > 0;
+                  const TransactionIcon = getTransactionIcon(isReceived ? 'received' : 'sent');
                   return (
-                    <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                    <Card key={tx.id} className="p-4 bg-card/80 backdrop-blur-sm">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           isReceived ? 'bg-community/20 text-community' : 'bg-primary/20 text-primary'
@@ -262,17 +294,24 @@ const Wallet = () => {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
                             <h4 className="font-semibold text-foreground">
-                              {isReceived ? transaction.from : transaction.to}
+                              {tx.counterparty || 'Unknown'}
                             </h4>
-                            <span className={`font-bold ${
-                              isReceived ? 'text-community' : 'text-foreground'
-                            }`}>
-                              {isReceived ? '+' : '-'}R{transaction.amount}
+                            <span className={`font-bold ${isReceived ? 'text-community' : 'text-foreground'}`}>
+                              {isReceived ? '+' : '-'}R{centsToRand(Math.abs(tx.amount_cents))}
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">{transaction.description}</p>
-                            <span className="text-xs text-muted-foreground">{transaction.time}</span>
+                            <p className="text-sm text-muted-foreground">{tx.description || 'No description'}</p>
+                            <span className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleString()}</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <Badge>{tx.status}</Badge>
+                            {tx.status === 'requested' && (
+                              <>
+                                <Button size="sm" variant="outline" onClick={() => accept(tx.id)}>Accept</Button>
+                                <Button size="sm" variant="outline" onClick={() => cancel(tx.id)}>Cancel</Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -319,11 +358,11 @@ const Wallet = () => {
           <TabsContent value="history">
             {/* Transactions only */}
             <div className="space-y-2">
-              {transactions.map((transaction, index) => {
-                const TransactionIcon = getTransactionIcon(transaction.type);
-                const isReceived = transaction.type === 'received';
+              {txs.map((tx) => {
+                const isReceived = tx.amount_cents > 0;
+                const TransactionIcon = getTransactionIcon(isReceived ? 'received' : 'sent');
                 return (
-                  <Card key={index} className="p-4 bg-card/80 backdrop-blur-sm">
+                  <Card key={tx.id} className="p-4 bg-card/80 backdrop-blur-sm">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         isReceived ? 'bg-community/20 text-community' : 'bg-primary/20 text-primary'
@@ -333,17 +372,15 @@ const Wallet = () => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-semibold text-foreground">
-                            {isReceived ? transaction.from : transaction.to}
+                            {tx.counterparty || 'Unknown'}
                           </h4>
-                          <span className={`font-bold ${
-                            isReceived ? 'text-community' : 'text-foreground'
-                          }`}>
-                            {isReceived ? '+' : '-'}R{transaction.amount}
+                          <span className={`font-bold ${isReceived ? 'text-community' : 'text-foreground'}`}>
+                            {isReceived ? '+' : '-'}R{centsToRand(Math.abs(tx.amount_cents))}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground">{transaction.description}</p>
-                          <span className="text-xs text-muted-foreground">{transaction.time}</span>
+                          <p className="text-sm text-muted-foreground">{tx.description || 'No description'}</p>
+                          <span className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>

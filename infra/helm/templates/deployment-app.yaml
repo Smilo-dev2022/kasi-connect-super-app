@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kasi-core.fullname" . }}-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "kasi-core.fullname" . }}-app
+  template:
+    metadata:
+      labels:
+        app: {{ include "kasi-core.fullname" . }}-app
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.app.port }}
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kasi-core.fullname" . }}-secrets
+                  key: jwt-secret
+            - name: OTP_PEPPER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kasi-core.fullname" . }}-secrets
+                  key: otp-pepper

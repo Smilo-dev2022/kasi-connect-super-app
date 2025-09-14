@@ -1,0 +1,32 @@
+image:
+  repository: app-backend
+  tag: prod
+  pullPolicy: IfNotPresent
+
+services:
+  app:
+    enabled: true
+    port: 4000
+  events:
+    enabled: true
+    port: 8000
+  search:
+    enabled: true
+    port: 4100
+  media:
+    enabled: true
+    port: 4500
+
+redis:
+  host: redis
+  port: 6379
+
+env:
+  JWT_SECRET: "change-me"
+  OTP_PEPPER: "change-me"
+
+secrets:
+  enabled: true
+  items:
+    - name: jwt-secret
+      value: "change-me"

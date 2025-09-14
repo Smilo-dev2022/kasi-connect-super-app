@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import promBundle from 'express-prom-bundle';
+import { randomUUID } from 'crypto';
 import helmet from 'helmet';
 import { config } from './config';
 import uploadsRouter from './routes/uploads';
@@ -14,6 +16,31 @@ app.use(cors({ origin: config.corsOrigin, credentials: false }));
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
+// Metrics
+const metricsMiddleware = promBundle({ includeMethod: true, includePath: true, includeStatusCode: true, promClient: { collectDefaultMetrics: {} } });
+app.use(metricsMiddleware);
+
+// Structured JSON access logs
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  const rid = req.header('x-request-id') || randomUUID();
+  res.setHeader('x-request-id', rid);
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const log = {
+      time: new Date().toISOString(),
+      level: 'info',
+      service: 'media',
+      request_id: rid,
+      route: req.originalUrl,
+      status: res.statusCode,
+      latency_ms: duration
+    };
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify(log));
+  });
+  next();
+});
 
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });

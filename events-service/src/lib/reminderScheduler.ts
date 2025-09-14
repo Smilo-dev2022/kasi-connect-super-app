@@ -21,14 +21,17 @@ function checkAndLogReminders(): void {
   const now = dayjs();
   const events = listEvents();
   for (const event of events) {
-    const reminderMinutes = event.reminderMinutesBefore ?? 60;
-    const reminderTime = dayjs(event.startsAt).subtract(reminderMinutes, 'minute');
+    const startsAt = dayjs(event.startsAt);
+    const windows = [
+      { label: '24h', time: startsAt.subtract(24, 'hour') },
+      { label: '2h', time: startsAt.subtract(2, 'hour') },
+    ];
     const windowStart = now.startOf('minute');
     const windowEnd = now.endOf('minute');
-    if (reminderTime.isAfter(windowStart) && reminderTime.isBefore(windowEnd)) {
-      console.log(
-        `[Reminder] ${event.title} at ${event.startsAt} (in ${reminderMinutes} min)`
-      );
+    for (const w of windows) {
+      if (w.time.isAfter(windowStart) && w.time.isBefore(windowEnd)) {
+        console.log(`[Reminder ${w.label}] ${event.title} at ${event.startsAt}`);
+      }
     }
   }
 }

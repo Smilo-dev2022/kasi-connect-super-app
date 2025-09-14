@@ -1,4 +1,6 @@
 import Fastify from 'fastify';
+import fastifyMetrics from 'fastify-metrics';
+import { randomUUID } from 'node:crypto';
 import fastifyHelmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import rateLimit from '@fastify/rate-limit';
@@ -8,6 +10,7 @@ import { ulid } from 'ulid';
 import { createHash, timingSafeEqual } from 'node:crypto';
 
 const server = Fastify({ logger: true });
+server.register(fastifyMetrics, { endpoint: '/metrics' });
 server.register(websocket);
 server.register(rateLimit, {
   max: 100,
@@ -54,6 +57,23 @@ function safeEqual(a: string, b: string): boolean {
 
 server.get('/health', async () => {
   return { ok: true };
+});
+
+// Structured JSON logging for requests
+server.addHook('onSend', async (request, reply, payload) => {
+  const rid = request.headers['x-request-id'] || randomUUID();
+  reply.header('x-request-id', String(rid));
+  const log = {
+    time: new Date().toISOString(),
+    level: 'info',
+    service: 'backend',
+    request_id: rid,
+    route: request.url,
+    status: reply.statusCode,
+    latency_ms: reply.getResponseTime ? Math.round((reply as any).getResponseTime()) : undefined
+  };
+  server.log.info(log);
+  return payload;
 });
 // OTP request
 server.post('/auth/otp/request', {

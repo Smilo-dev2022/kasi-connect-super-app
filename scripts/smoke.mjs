@@ -58,6 +58,11 @@ async function run() {
       ws.on('error', reject)
     })
   })
+  await step('messaging.db.fetch', async () => {
+    // For demo: assumes conversation_id 'c1' has at least one message after send
+    const res = await fetch(`${BASES.messaging}/messages/since/c1?limit=1`)
+    if (!res.ok) throw new Error('history failed')
+  })
 
   await step('media.health', async () => httpOk(`${BASES.media}/healthz`))
   await step('media.presign+upload', async () => {
@@ -97,7 +102,7 @@ async function run() {
   await step('wallet.health', async () => httpOk(`${BASES.wallet}/healthz`))
   let paymentId
   await step('wallet.request', async () => {
-    const res = await fetch(`${BASES.wallet}/payments/request`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ to: 'merchant1', amount: 10, currency: 'ZAR' }) })
+    const res = await fetch(`${BASES.wallet}/payments/request`, { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': `smoke-${Date.now()}` }, body: JSON.stringify({ to: 'merchant1', amount: 10, currency: 'ZAR' }) })
     if (!res.ok) throw new Error('wallet request failed')
     const data = await res.json(); paymentId = data.id
   })

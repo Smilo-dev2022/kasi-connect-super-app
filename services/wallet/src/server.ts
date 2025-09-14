@@ -10,6 +10,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 type Payment = { id: string; from: string; to: string; amount: number; currency: string; status: 'requested' | 'paid' | 'failed'; created_at: string };
+const idempotency = new Map<string, string>();
 const payments = new Map<string, Payment>();
 
 app.get('/healthz', (_req: Request, res: Response) => res.json({ ok: true, service: 'wallet' }));
@@ -18,9 +19,15 @@ const RequestBody = z.object({ to: z.string().min(1), amount: z.number().positiv
 app.post('/payments/request', (req: Request, res: Response) => {
   const parsed = RequestBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const idem = req.header('idempotency-key');
+  if (idem && idempotency.has(idem)) {
+    const existingId = idempotency.get(idem)!;
+    return res.status(200).json(payments.get(existingId));
+  }
   const id = ulid();
   const p: Payment = { id, from: 'user', to: parsed.data.to, amount: parsed.data.amount, currency: parsed.data.currency, status: 'requested', created_at: new Date().toISOString() };
   payments.set(id, p);
+  if (idem) idempotency.set(idem, id);
   res.status(201).json(p);
 });
 
@@ -33,6 +40,12 @@ app.post('/payments/:id/mark-paid', (req: Request, res: Response) => {
 
 app.get('/payments', (_req: Request, res: Response) => {
   res.json(Array.from(payments.values()).sort((a, b) => a.created_at.localeCompare(b.created_at)));
+});
+
+app.post('/webhook/payment', (req: Request, res: Response) => {
+  const sig = req.header('x-wallet-signature') || '';
+  console.log(JSON.stringify({ ts: Date.now(), route: '/webhook/payment', signature: sig }));
+  res.json({ ok: true });
 });
 
 app.use((_req: Request, res: Response) => res.status(404).json({ error: 'Not Found' }));

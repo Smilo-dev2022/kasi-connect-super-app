@@ -40,7 +40,7 @@ export function createApp() {
 			durations.push(ms);
 			reqCount += 1;
 			// eslint-disable-next-line no-console
-			console.log(JSON.stringify({ ts: Date.now(), request_id: reqId, method: req.method, route: req.originalUrl, status: res.statusCode, duration_ms: ms }));
+			console.log(JSON.stringify({ time: new Date().toISOString(), level: 'info', service: 'messaging', request_id: reqId, method: req.method, route: req.originalUrl, status: res.statusCode, latency_ms: ms }));
 			if (reqCount % 100 === 0) {
 				const p95 = computeP95(durations);
 				// eslint-disable-next-line no-console

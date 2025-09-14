@@ -97,6 +97,13 @@ const MetricsComponent = () => {
       >
         Fetch Messaging Metrics
       </button>
+      
+      <button 
+        onClick={() => handleFetchMetrics('/wallet/metrics')}
+        data-testid="fetch-wallet-metrics-btn"
+      >
+        Fetch Wallet Metrics
+      </button>
 
       <div data-testid="content-type">{contentType}</div>
       <div data-testid="metrics-data">{metricsData}</div>
@@ -131,10 +138,26 @@ const LoggingValidationComponent = () => {
     service: string;
   }>>([]);
   
+  const [messagingLogs, setMessagingLogs] = React.useState<Array<{
+    timestamp: string;
+    level: string;
+    message: string;
+    request_id?: string;
+    service: string;
+    operation?: string;
+  }>>([]);
+  
   const [validationResults, setValidationResults] = React.useState<{
     searchLogsValid: boolean;
     eventsLogsValid: boolean;
     missingRequestIds: number;
+  } | null>(null);
+
+  const [messagingValidation, setMessagingValidation] = React.useState<{
+    allLogsHaveRequestId: boolean;
+    missingCount: number;
+    totalLogs: number;
+    operations?: string[];
   } | null>(null);
 
   const handleFetchSearchLogs = async () => {
@@ -155,6 +178,15 @@ const LoggingValidationComponent = () => {
     }
   };
 
+  const handleFetchMessagingLogs = async () => {
+    try {
+      const logs = await mockObservabilityAPI.getMessagingLogs();
+      setMessagingLogs(logs);
+    } catch (error) {
+      console.error('Failed to fetch messaging logs:', error);
+    }
+  };
+
   const handleValidateRequestIds = async () => {
     try {
       const searchValidation = await mockObservabilityAPI.checkRequestIdPresence('search');
@@ -167,6 +199,15 @@ const LoggingValidationComponent = () => {
       });
     } catch (error) {
       console.error('Failed to validate request IDs:', error);
+    }
+  };
+
+  const handleValidateMessagingLogs = async () => {
+    try {
+      const validation = await mockObservabilityAPI.validateMessagingRequestIds();
+      setMessagingValidation(validation);
+    } catch (error) {
+      console.error('Failed to validate messaging request IDs:', error);
     }
   };
 
@@ -187,14 +228,29 @@ const LoggingValidationComponent = () => {
       </button>
       
       <button 
+        onClick={handleFetchMessagingLogs}
+        data-testid="fetch-messaging-logs-btn"
+      >
+        Fetch Messaging Logs
+      </button>
+      
+      <button 
         onClick={handleValidateRequestIds}
         data-testid="validate-request-ids-btn"
       >
         Validate Request IDs
       </button>
 
+      <button 
+        onClick={handleValidateMessagingLogs}
+        data-testid="validate-messaging-logs-btn"
+      >
+        Validate Messaging Logs
+      </button>
+
       <div data-testid="search-logs-count">Search Logs: {searchLogs.length}</div>
       <div data-testid="events-logs-count">Events Logs: {eventsLogs.length}</div>
+      <div data-testid="messaging-logs-count">Messaging Logs: {messagingLogs.length}</div>
       
       <div data-testid="search-logs-list">
         {searchLogs.map((log, index) => (
@@ -214,6 +270,15 @@ const LoggingValidationComponent = () => {
         ))}
       </div>
 
+      <div data-testid="messaging-logs-list">
+        {messagingLogs.map((log, index) => (
+          <div key={index} data-testid={`messaging-log-${index}`}>
+            [{log.timestamp}] {log.level}: {log.message}
+            {log.request_id && <span data-testid={`messaging-request-id-${index}`}> (req: {log.request_id})</span>}
+          </div>
+        ))}
+      </div>
+
       {validationResults && (
         <div data-testid="validation-results">
           <div data-testid="search-validation">
@@ -224,6 +289,17 @@ const LoggingValidationComponent = () => {
           </div>
           <div data-testid="missing-count">
             Missing request IDs: {validationResults.missingRequestIds}
+          </div>
+        </div>
+      )}
+
+      {messagingValidation && (
+        <div data-testid="messaging-validation-results">
+          <div data-testid="messaging-validation-result">
+            {messagingValidation.allLogsHaveRequestId ? 'All messaging logs have request_id' : 'Some messaging logs missing request_id'}
+          </div>
+          <div data-testid="messaging-operations-count">
+            Operations covered: {messagingValidation.operations?.length || 0}
           </div>
         </div>
       )}
@@ -422,6 +498,90 @@ http_request_duration_seconds_bucket{le="+Inf"} 10000`;
         expect(screen.getByTestId('metrics-data').textContent).toContain('# HELP http_requests_total');
         expect(screen.getByTestId('metrics-data').textContent).toContain('http_requests_total{method="GET",status="200"} 8567');
       });
+    });
+
+    it('should verify Auth metrics endpoint returns text/plain with request_count and p95', async () => {
+      const authMetricsText = `
+# HELP http_requests_total Total number of HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",route="/auth/login"} 1250
+http_requests_total{method="POST",route="/auth/refresh"} 890
+request_count 2140
+
+# HELP http_request_duration_seconds HTTP request duration in seconds
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.1"} 1000
+http_request_duration_seconds_bucket{le="0.5"} 1800
+http_request_duration_seconds_bucket{le="1.0"} 2000
+http_request_duration_seconds_bucket{le="+Inf"} 2140
+http_request_duration_seconds_sum 425.7
+http_request_duration_seconds_count 2140
+p95_response_time_seconds 0.245
+      `.trim();
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: new Map([['content-type', 'text/plain; charset=utf-8']]),
+        text: () => Promise.resolve(authMetricsText)
+      });
+
+      render(
+        <TestWrapper>
+          <MetricsComponent />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByTestId('fetch-auth-metrics-btn'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('content-type').textContent).toContain('text/plain');
+        expect(screen.getByTestId('metrics-data').textContent).toContain('request_count 2140');
+        expect(screen.getByTestId('metrics-data').textContent).toContain('p95_response_time_seconds 0.245');
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith('/auth/metrics');
+    });
+
+    it('should verify Wallet metrics include optimistic UI revert counters for 4xx and 5xx errors', async () => {
+      const walletMetricsText = `
+# HELP wallet_requests_total Total wallet requests
+# TYPE wallet_requests_total counter
+wallet_requests_total{status="completed"} 450
+wallet_requests_total{status="pending"} 23
+wallet_requests_total{status="failed"} 15
+
+# HELP wallet_ui_reverts_total Optimistic UI reverts due to errors
+# TYPE wallet_ui_reverts_total counter
+wallet_ui_reverts_total{error_type="4xx"} 8
+wallet_ui_reverts_total{error_type="5xx"} 3
+
+request_count 488
+p95_response_time_seconds 0.156
+      `.trim();
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        headers: new Map([['content-type', 'text/plain; charset=utf-8']]),
+        text: () => Promise.resolve(walletMetricsText)
+      });
+
+      render(
+        <TestWrapper>
+          <MetricsComponent />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByTestId('fetch-wallet-metrics-btn'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('content-type').textContent).toContain('text/plain');
+        expect(screen.getByTestId('metrics-data').textContent).toContain('wallet_ui_reverts_total{error_type="4xx"} 8');
+        expect(screen.getByTestId('metrics-data').textContent).toContain('wallet_ui_reverts_total{error_type="5xx"} 3');
+        expect(screen.getByTestId('metrics-data').textContent).toContain('request_count 488');
+        expect(screen.getByTestId('metrics-data').textContent).toContain('p95_response_time_seconds');
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith('/wallet/metrics');
     });
   });
 
@@ -630,6 +790,172 @@ http_request_duration_seconds_bucket{le="+Inf"} 10000`;
       await waitFor(() => {
         expect(screen.getByTestId('request-id-0').textContent).toContain('req-search-uuid-123456');
         expect(screen.getByTestId('events-request-id-0').textContent).toContain('req-events-2024-001');
+      });
+    });
+
+    it('should validate messaging logs include request_id on send operations', async () => {
+      const messagingSendLogs = [
+        {
+          timestamp: '2024-01-01T10:00:00Z',
+          level: 'INFO',
+          message: 'Message sent successfully',
+          request_id: 'req-msg-send-123',
+          service: 'messaging',
+          operation: 'send',
+          messageId: 'msg-456',
+          recipientId: 'user-789'
+        },
+        {
+          timestamp: '2024-01-01T10:01:00Z',
+          level: 'INFO',
+          message: 'Group message sent',
+          request_id: 'req-msg-send-124',
+          service: 'messaging',
+          operation: 'send',
+          messageId: 'msg-457',
+          groupId: 'group-123'
+        },
+        {
+          timestamp: '2024-01-01T10:02:00Z',
+          level: 'ERROR',
+          message: 'Message send failed - rate limit exceeded',
+          request_id: 'req-msg-send-125',
+          service: 'messaging',
+          operation: 'send',
+          error: 'RATE_LIMIT_EXCEEDED'
+        }
+      ];
+
+      mockObservabilityAPI.getMessagingLogs = vi.fn().mockResolvedValue(messagingSendLogs);
+
+      render(
+        <TestWrapper>
+          <LoggingValidationComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-messaging-logs-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('messaging-logs-count').textContent).toBe('Messaging Logs: 3');
+        expect(screen.getByTestId('messaging-log-0').textContent).toContain('Message sent successfully');
+        expect(screen.getByTestId('messaging-log-0').textContent).toContain('req-msg-send-123');
+        expect(screen.getByTestId('messaging-log-1').textContent).toContain('Group message sent');
+        expect(screen.getByTestId('messaging-log-1').textContent).toContain('req-msg-send-124');
+        expect(screen.getByTestId('messaging-log-2').textContent).toContain('Message send failed');
+        expect(screen.getByTestId('messaging-log-2').textContent).toContain('req-msg-send-125');
+      });
+
+      expect(mockObservabilityAPI.getMessagingLogs).toHaveBeenCalledTimes(1);
+    });
+
+    it('should validate messaging logs include request_id on history fetch operations', async () => {
+      const messagingHistoryLogs = [
+        {
+          timestamp: '2024-01-01T11:00:00Z',
+          level: 'INFO',
+          message: 'Message history fetched',
+          request_id: 'req-msg-history-201',
+          service: 'messaging',
+          operation: 'history_fetch',
+          conversationId: 'conv-789',
+          pageSize: 50,
+          fetchedCount: 25
+        },
+        {
+          timestamp: '2024-01-01T11:01:00Z',
+          level: 'INFO',
+          message: 'Group message history paginated',
+          request_id: 'req-msg-history-202',
+          service: 'messaging',
+          operation: 'history_fetch',
+          groupId: 'group-456',
+          pageToken: 'page_abc123',
+          fetchedCount: 50
+        },
+        {
+          timestamp: '2024-01-01T11:02:00Z',
+          level: 'WARN',
+          message: 'History fetch partial failure - some messages unavailable',
+          request_id: 'req-msg-history-203',
+          service: 'messaging',
+          operation: 'history_fetch',
+          conversationId: 'conv-999',
+          partialResults: true
+        }
+      ];
+
+      mockObservabilityAPI.getMessagingLogs = vi.fn().mockResolvedValue(messagingHistoryLogs);
+
+      render(
+        <TestWrapper>
+          <LoggingValidationComponent />
+        </TestWrapper>
+      );
+
+      const fetchBtn = screen.getByTestId('fetch-messaging-logs-btn');
+      fireEvent.click(fetchBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('messaging-logs-count').textContent).toBe('Messaging Logs: 3');
+        expect(screen.getByTestId('messaging-log-0').textContent).toContain('Message history fetched');
+        expect(screen.getByTestId('messaging-log-0').textContent).toContain('req-msg-history-201');
+        expect(screen.getByTestId('messaging-log-1').textContent).toContain('Group message history paginated');
+        expect(screen.getByTestId('messaging-log-1').textContent).toContain('req-msg-history-202');
+        expect(screen.getByTestId('messaging-log-2').textContent).toContain('History fetch partial failure');
+        expect(screen.getByTestId('messaging-log-2').textContent).toContain('req-msg-history-203');
+      });
+    });
+
+    it('should validate all messaging operations include request_id', async () => {
+      const allMessagingLogs = [
+        {
+          timestamp: '2024-01-01T12:00:00Z',
+          level: 'INFO',
+          message: 'WebSocket connection established',
+          request_id: 'req-msg-ws-300',
+          service: 'messaging',
+          operation: 'websocket_connect'
+        },
+        {
+          timestamp: '2024-01-01T12:01:00Z',
+          level: 'INFO',
+          message: 'Message delivered',
+          request_id: 'req-msg-delivery-301',
+          service: 'messaging',
+          operation: 'delivery_confirmation'
+        },
+        {
+          timestamp: '2024-01-01T12:02:00Z',
+          level: 'INFO',
+          message: 'Message read receipt',
+          request_id: 'req-msg-read-302',
+          service: 'messaging',
+          operation: 'read_receipt'
+        }
+      ];
+
+      mockObservabilityAPI.getMessagingLogs = vi.fn().mockResolvedValue(allMessagingLogs);
+      mockObservabilityAPI.validateMessagingRequestIds = vi.fn().mockResolvedValue({
+        allLogsHaveRequestId: true,
+        missingCount: 0,
+        totalLogs: 3,
+        operations: ['websocket_connect', 'delivery_confirmation', 'read_receipt']
+      });
+
+      render(
+        <TestWrapper>
+          <LoggingValidationComponent />
+        </TestWrapper>
+      );
+
+      fireEvent.click(screen.getByTestId('fetch-messaging-logs-btn'));
+      fireEvent.click(screen.getByTestId('validate-messaging-logs-btn'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('messaging-validation-result').textContent).toContain('All messaging logs have request_id');
+        expect(screen.getByTestId('messaging-operations-count').textContent).toBe('Operations covered: 3');
       });
     });
   });

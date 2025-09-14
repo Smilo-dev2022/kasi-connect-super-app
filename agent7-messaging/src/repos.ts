@@ -13,9 +13,10 @@ export interface ConversationsRepo {
 
 export interface MessagesRepo {
   create(conversationId: string, senderId: string, type: string, body: any, client?: PoolClient): Promise<Message>;
-  listSince(conversationId: string, sinceIso: string | null, limit: number, cursor?: string | null): Promise<{ messages: Message[]; next_cursor?: string | null }>;
+  listSince(conversationId: string, sinceIso: string | null, limit: number, cursor?: string | null): Promise<{ messages: (Message & { receipts: { user_id: string; status: string; at: string }[] })[]; next_cursor?: string | null }>;
   softDelete(messageId: string, byUser: string): Promise<void>;
   edit(messageId: string, body: any, byUser: string): Promise<void>;
+  getMessageById(messageId: string): Promise<{ id: string; sender_id: string; conversation_id: string } | null>;
 }
 
 export interface ReceiptsRepo {
@@ -55,19 +56,45 @@ export function createRepos(pool?: Pool) {
     async listSince(conversationId: string, sinceIso: string | null, limit: number, cursor?: string | null) {
       const after = sinceIso || cursor;
       const q = after
-        ? 'select id, conversation_id, sender_id, type, body, created_at, edited_at, deleted_at from messages where conversation_id=$1 and created_at > $2 order by created_at asc limit $3'
-        : 'select id, conversation_id, sender_id, type, body, created_at, edited_at, deleted_at from messages where conversation_id=$1 order by created_at asc limit $2';
+        ? `select m.id, m.conversation_id, m.sender_id, m.type, m.body, m.created_at, m.edited_at, m.deleted_at,
+              coalesce(json_agg(json_build_object('user_id', r.user_id, 'status', r.status, 'at', r.at)) filter (where r.user_id is not null), '[]') as receipts
+           from messages m left join receipts r on r.message_id=m.id
+           where m.conversation_id=$1 and m.created_at > $2
+           group by m.id
+           order by m.created_at asc
+           limit $3`
+        : `select m.id, m.conversation_id, m.sender_id, m.type, m.body, m.created_at, m.edited_at, m.deleted_at,
+              coalesce(json_agg(json_build_object('user_id', r.user_id, 'status', r.status, 'at', r.at)) filter (where r.user_id is not null), '[]') as receipts
+           from messages m left join receipts r on r.message_id=m.id
+           where m.conversation_id=$1
+           group by m.id
+           order by m.created_at asc
+           limit $2`;
       const params = after ? [conversationId, after, limit] : [conversationId, limit];
-      const r = await p.query<Message>(q, params as any);
-      const msgs = r.rows;
-      const next = msgs.length === limit ? msgs[msgs.length - 1].created_at : null;
-      return { messages: msgs, next_cursor: next };
+      const r = await p.query<any>(q, params as any);
+      const msgs = r.rows.map((row) => ({
+        id: row.id,
+        conversation_id: row.conversation_id,
+        sender_id: row.sender_id,
+        type: row.type,
+        body: row.body,
+        created_at: row.created_at,
+        edited_at: row.edited_at,
+        deleted_at: row.deleted_at,
+        receipts: Array.isArray(row.receipts) ? row.receipts : []
+      }));
+      const next = msgs.length === limit ? (msgs[msgs.length - 1] as any).created_at : null;
+      return { messages: msgs as any, next_cursor: next };
     },
     async softDelete(messageId: string, byUser: string) {
       await p.query('update messages set deleted_at=now() where id=$1', [messageId]);
     },
     async edit(messageId: string, body: any, byUser: string) {
       await p.query('update messages set body=$2, edited_at=now() where id=$1', [messageId, body]);
+    }
+    async getMessageById(messageId: string) {
+      const r = await p.query('select id, sender_id, conversation_id from messages where id=$1', [messageId]);
+      return r.rows[0] || null;
     }
   };
 

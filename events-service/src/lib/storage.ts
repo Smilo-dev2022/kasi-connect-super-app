@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+// storage for events/rsvps/tickets (in-memory for dev/demo)
 import dayjs from 'dayjs';
 import {
   Event,
@@ -14,9 +14,12 @@ import {
   NewRsvpInputSchema,
   UpdateRsvpInput,
 } from '../models/rsvp';
+import { Ticket } from '../models/ticket';
+import { v4 as uuidv4 } from 'uuid';
 
 const events: Event[] = [];
 const rsvps: Rsvp[] = [];
+const tickets: Ticket[] = [];
 
 export function listEvents(): Event[] {
   return [...events].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -120,4 +123,37 @@ export function deleteRsvp(rsvpId: string): boolean {
   if (index === -1) return false;
   rsvps.splice(index, 1);
   return true;
+}
+
+export function getTicketByRsvpId(rsvpId: string): Ticket | undefined {
+  return tickets.find((t) => t.rsvpId === rsvpId);
+}
+
+export function getTicketByToken(token: string): Ticket | undefined {
+  return tickets.find((t) => t.token === token);
+}
+
+export function createTicketForRsvp(rsvpId: string): Ticket {
+  const existing = getTicketByRsvpId(rsvpId);
+  if (existing) return existing;
+  const ticket: Ticket = {
+    id: uuidv4(),
+    rsvpId,
+    token: uuidv4(),
+    issuedAt: new Date().toISOString(),
+    status: 'valid',
+  };
+  tickets.push(ticket);
+  return ticket;
+}
+
+export function markTicketCheckedIn(token: string): { ticket: Ticket; already: boolean } {
+  const ticket = getTicketByToken(token);
+  if (!ticket) throw new Error('ticket_not_found');
+  if (ticket.checkedInAt) {
+    return { ticket, already: true };
+  }
+  ticket.checkedInAt = new Date().toISOString();
+  ticket.status = 'used';
+  return { ticket, already: false };
 }

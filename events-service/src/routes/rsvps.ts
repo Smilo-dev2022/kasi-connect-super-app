@@ -8,6 +8,7 @@ import {
   getRsvpById,
 } from '../lib/storage';
 import { NewRsvpInputSchema, UpdateRsvpInputSchema } from '../models/rsvp';
+import { createTicketForRsvp, getTicketByRsvpId } from '../lib/storage';
 
 export const rsvpsRouter = Router();
 
@@ -37,6 +38,19 @@ rsvpsRouter.post('/', (req: Request, res: Response) => {
   try {
     const created = createRsvp(parsed.data);
     res.status(201).json(created);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Create RSVP and ensure a ticket exists; return both
+rsvpsRouter.post('/with-ticket', (req: Request, res: Response) => {
+  const parsed = NewRsvpInputSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+  try {
+    const rsvp = createRsvp(parsed.data);
+    const ticket = createTicketForRsvp(rsvp.id);
+    res.status(201).json({ rsvp, ticket });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

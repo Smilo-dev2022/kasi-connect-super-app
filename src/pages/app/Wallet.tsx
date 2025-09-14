@@ -18,10 +18,51 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "@/components/ui/use-toast";
+import { getCurrentUserId } from "@/lib/devAuth";
+
+const API_BASE = (import.meta as any)?.env?.VITE_EVENTS_API || "http://localhost:8000";
+
+type WalletRequest = {
+  id: number;
+  group_id: string;
+  requester_id: string;
+  amount_cents: number;
+  currency: string;
+  status: "requested" | "accepted" | "paid" | "canceled" | "expired";
+  accepted_by?: string | null;
+  paid_by?: string | null;
+  canceled_by?: string | null;
+  created_at: string;
+  updated_at: string;
+  expires_at?: string | null;
+};
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [requests, setRequests] = useState<WalletRequest[]>([]);
+  const currentUserId = useMemo(() => getCurrentUserId(), []);
+  const demoGroupId = "group-demo";
+
+  async function refresh() {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/wallet/requests?group_id=${encodeURIComponent(demoGroupId)}`);
+      if (!res.ok) throw new Error("failed");
+      const data = (await res.json()) as WalletRequest[];
+      setRequests(data);
+    } catch (err) {
+      toast({ title: "Failed to load", description: "Could not fetch wallet requests", variant: "destructive" as any });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
   const cards = [
     { brand: "iKasiLink Debit", last4: "4821", balance: 1250.5, gradient: "from-community via-primary to-secondary" },
     { brand: "Savings", last4: "9013", balance: 5600, gradient: "from-primary via-secondary to-community" },
@@ -115,6 +156,17 @@ const Wallet = () => {
     }
   };
 
+  async function act(path: string, okTitle: string) {
+    try {
+      const res = await fetch(path, { method: "POST" });
+      if (!res.ok) throw new Error("failed");
+      toast({ title: okTitle });
+      await refresh();
+    } catch {
+      toast({ title: "Action failed", variant: "destructive" as any });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title="Wallet" />
@@ -197,6 +249,72 @@ const Wallet = () => {
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-6">
+            {/* Wallet Requests Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Wallet Requests</h3>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
+                    Refresh
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const body = {
+                          group_id: demoGroupId,
+                          requester_id: currentUserId,
+                          amount_cents: 5000,
+                        };
+                        const res = await fetch(`${API_BASE}/wallet/requests`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(body),
+                        });
+                        if (!res.ok) throw new Error("failed");
+                        toast({ title: "Request created" });
+                        await refresh();
+                      } catch {
+                        toast({ title: "Create failed", variant: "destructive" as any });
+                      }
+                    }}
+                  >
+                    New Request
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {requests.map((r) => (
+                  <Card key={r.id} className="p-4 bg-card/80 backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold">R{(r.amount_cents / 100).toFixed(2)} {r.currency}</div>
+                        <div className="text-xs text-muted-foreground">{r.group_id} • by {r.requester_id}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge>
+                          {r.status}
+                        </Badge>
+                        {r.status === 'requested' && (
+                          <>
+                            <Button size="sm" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/accept?actor_id=${encodeURIComponent(currentUserId)}`, 'Accepted')}>Accept</Button>
+                            <Button size="sm" variant="destructive" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/cancel?actor_id=${encodeURIComponent(currentUserId)}`, 'Canceled')}>Cancel</Button>
+                            <Button size="sm" variant="secondary" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/pay?payer_id=${encodeURIComponent(currentUserId)}`, 'Paid')}>Mark Paid</Button>
+                          </>
+                        )}
+                        {r.status === 'accepted' && (
+                          <Button size="sm" variant="secondary" onClick={() => act(`${API_BASE}/wallet/requests/${r.id}/pay?payer_id=${encodeURIComponent(currentUserId)}`, 'Paid')}>Mark Paid</Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+                {requests.length === 0 && (
+                  <div className="text-sm text-muted-foreground">No requests yet.</div>
+                )}
+              </div>
+            </div>
             {/* Stokvels Section */}
             <div>
               <div className="flex items-center justify-between mb-4">

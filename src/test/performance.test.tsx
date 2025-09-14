@@ -395,59 +395,80 @@ describe('Performance Optimization Tests', () => {
   describe('Debounced Operations', () => {
     it('should debounce search input', async () => {
       vi.useFakeTimers();
+      
+      try {
+        render(
+          <TestWrapper>
+            <DebouncedSearchComponent />
+          </TestWrapper>
+        );
 
-      render(
-        <TestWrapper>
-          <DebouncedSearchComponent />
-        </TestWrapper>
-      );
+        const searchInput = screen.getByTestId('search-input');
 
-      const searchInput = screen.getByTestId('search-input');
+        // Type rapidly
+        fireEvent.change(searchInput, { target: { value: 't' } });
+        fireEvent.change(searchInput, { target: { value: 'te' } });
+        fireEvent.change(searchInput, { target: { value: 'tes' } });
+        fireEvent.change(searchInput, { target: { value: 'test' } });
 
-      // Type rapidly
-      fireEvent.change(searchInput, { target: { value: 't' } });
-      fireEvent.change(searchInput, { target: { value: 'te' } });
-      fireEvent.change(searchInput, { target: { value: 'tes' } });
-      fireEvent.change(searchInput, { target: { value: 'test' } });
-
-      // Should not start searching immediately
-      expect(screen.queryByTestId('search-loading')).not.toBeInTheDocument();
-
-      // Fast-forward debounce delay
-      vi.advanceTimersByTime(300);
-
-      // Now should start searching
-      await waitFor(() => {
-        expect(screen.getByTestId('search-loading')).toBeInTheDocument();
-      });
-
-      // Fast-forward search time
-      vi.advanceTimersByTime(200);
-
-      await waitFor(() => {
+        // Should not start searching immediately
         expect(screen.queryByTestId('search-loading')).not.toBeInTheDocument();
-        expect(screen.getByTestId('result-0')).toBeInTheDocument();
-      });
 
-      vi.useRealTimers();
-    });
+        // Fast-forward debounce delay
+        vi.advanceTimersByTime(300);
+
+        // Now should start searching
+        await waitFor(() => {
+          expect(screen.getByTestId('search-loading')).toBeInTheDocument();
+        }, { timeout: 1000 });
+
+        // Fast-forward search time
+        vi.advanceTimersByTime(200);
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('search-loading')).not.toBeInTheDocument();
+          expect(screen.getByTestId('result-0')).toBeInTheDocument();
+        }, { timeout: 1000 });
+      } finally {
+        vi.useRealTimers();
+      }
+    }, 10000);
 
     it('should cancel previous search when new input comes', async () => {
       vi.useFakeTimers();
+      
+      try {
+        render(
+          <TestWrapper>
+            <DebouncedSearchComponent />
+          </TestWrapper>
+        );
 
-      render(
-        <TestWrapper>
-          <DebouncedSearchComponent />
-        </TestWrapper>
-      );
+        const searchInput = screen.getByTestId('search-input');
 
-      const searchInput = screen.getByTestId('search-input');
+        // First search
+        fireEvent.change(searchInput, { target: { value: 'first' } });
+        vi.advanceTimersByTime(200); // Not enough to trigger
 
-      // First search
-      fireEvent.change(searchInput, { target: { value: 'first' } });
-      vi.advanceTimersByTime(200); // Not enough to trigger
+        // Second search (should cancel first)
+        fireEvent.change(searchInput, { target: { value: 'second' } });
+        vi.advanceTimersByTime(300); // Should trigger second search
 
-      // Second search (should cancel first)
+        await waitFor(() => {
+          expect(screen.getByTestId('search-loading')).toBeInTheDocument();
+        }, { timeout: 1000 });
+
+        vi.advanceTimersByTime(200);
+
+        await waitFor(() => {
+          expect(screen.queryByTestId('search-loading')).not.toBeInTheDocument();
+          // Should show result for 'second', not 'first'
+          expect(screen.getByTestId('result-0')).toBeInTheDocument();
+        }, { timeout: 1000 });
+      } finally {
+        vi.useRealTimers();
+      }
+    }, 10000);
       fireEvent.change(searchInput, { target: { value: 'second' } });
       vi.advanceTimersByTime(300);
 
@@ -557,6 +578,90 @@ describe('Performance Optimization Tests', () => {
       expect(cacheInfo).toHaveTextContent('Cached items: 0');
 
       // Fetch data
+      fireEvent.click(fetchButton);
+
+      await waitFor(() => {
+        expect(cacheInfo).toHaveTextContent('Cached items: 1');
+      }, { timeout: 2000 });
+
+      // Verify data is displayed
+      expect(screen.getByTestId('profile-name')).toHaveTextContent('John Doe');
+    }, 10000);
+
+    it('should prevent duplicate requests', async () => {
+      render(
+        <TestWrapper>
+          <OptimizedQueryComponent />
+        </TestWrapper>
+      );
+
+      const fetchButton = screen.getByTestId('fetch-profile');
+      const requestCount = screen.getByTestId('request-count');
+
+      // Initially no requests
+      expect(requestCount).toHaveTextContent('Requests made: 0');
+
+      // Click multiple times rapidly
+      fireEvent.click(fetchButton);
+      fireEvent.click(fetchButton);
+      fireEvent.click(fetchButton);
+
+      await waitFor(() => {
+        // Should only make one request due to deduplication
+        expect(requestCount).toHaveTextContent('Requests made: 1');
+      }, { timeout: 2000 });
+    }, 10000);
+
+    it('should implement prefetching', async () => {
+      render(
+        <TestWrapper>
+          <OptimizedQueryComponent />
+        </TestWrapper>
+      );
+
+      const prefetchButton = screen.getByTestId('prefetch-friends');
+      const cacheInfo = screen.getByTestId('cache-info');
+
+      // Prefetch data
+      fireEvent.click(prefetchButton);
+
+      await waitFor(() => {
+        expect(cacheInfo).toHaveTextContent('Cached items: 1');
+      }, { timeout: 2000 });
+
+      // Data should be ready when accessed
+      const showFriendsButton = screen.getByTestId('show-friends');
+      fireEvent.click(showFriendsButton);
+
+      expect(screen.getByTestId('friends-list')).toBeInTheDocument();
+    }, 10000);
+
+    it('should allow cache clearing', async () => {
+      render(
+        <TestWrapper>
+          <OptimizedQueryComponent />
+        </TestWrapper>
+      );
+
+      const fetchButton = screen.getByTestId('fetch-profile');
+      const clearButton = screen.getByTestId('clear-cache');
+      const cacheInfo = screen.getByTestId('cache-info');
+
+      // Fetch and cache data
+      fireEvent.click(fetchButton);
+
+      await waitFor(() => {
+        expect(cacheInfo).toHaveTextContent('Cached items: 1');
+      }, { timeout: 2000 });
+
+      // Clear cache
+      fireEvent.click(clearButton);
+
+      await waitFor(() => {
+        expect(cacheInfo).toHaveTextContent('Cached items: 0');
+      }, { timeout: 2000 });
+    }, 10000);
+  });
       fireEvent.click(fetchButton);
 
       await waitFor(() => {

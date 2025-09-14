@@ -1,6 +1,6 @@
 
 <p align="center">
-		<img src="ikasilink.logo.png.png" alt="iKasiLink Logo" width="200"/>
+		<img src="ikasilink-logo.png" alt="iKasiLink Logo" width="200"/>
 </p>
 
 ## Events Service (FastAPI)

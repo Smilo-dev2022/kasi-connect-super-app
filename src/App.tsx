@@ -37,7 +37,7 @@ const App = () => (
       <Toaster />
       <Sonner />
   {/* Main Logo at the top */}
-  <img src="/ikasilink.logo.png.png" alt="iKasiLink Logo" style={logoStyle} />
+  <img src="/ikasilink-logo.png" alt="iKasiLink Logo" style={logoStyle} />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

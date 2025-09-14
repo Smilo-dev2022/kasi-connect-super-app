@@ -7,6 +7,7 @@ import uploadsRouter from './routes/uploads';
 import mediaRouter from './routes/media';
 import thumbnailRouter from './routes/thumbnail';
 import { ensureBucketExists } from './s3';
+import { performance } from 'node:perf_hooks';
 
 const app = express();
 
@@ -52,6 +53,19 @@ if (config.nodeEnv === 'production') {
     return next();
   });
 }
+
+// Simple metrics
+let uploadSuccess = 0;
+let uploadFailure = 0;
+const latencies: number[] = [];
+function p95(values: number[]): number { if (values.length === 0) return 0; const s = [...values].sort((a,b)=>a-b); return s[Math.floor(0.95*(s.length-1))]; }
+app.get('/metrics', (_req, res) => {
+  res.type('text/plain').send(
+    `upload_success_total ${uploadSuccess}\n` +
+    `upload_failure_total ${uploadFailure}\n` +
+    `http_latency_ms_p95 ${p95(latencies)}\n`
+  );
+});
 
 function start() {
   ensureBucketExists().catch((err) => {

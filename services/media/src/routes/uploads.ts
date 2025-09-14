@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import mime from 'mime-types';
 import { presignPutObject } from '../s3';
+import { performance } from 'node:perf_hooks';
 
 const router = Router();
 
@@ -40,8 +41,17 @@ router.post('/presign', async (req, res, next) => {
       return res.status(400).json({ error: 'Unsupported contentType' });
     }
     const key = body.key ?? generateKey({ fileName: body.fileName, contentType: body.contentType, folder: body.folder });
-    const url = await presignPutObject({ key, contentType: body.contentType, expiresInSeconds: body.expiresInSeconds });
-    return res.json({ url, method: 'PUT', key, headers: { 'Content-Type': body.contentType } });
+    const t0 = performance.now();
+    try {
+      const url = await presignPutObject({ key, contentType: body.contentType, expiresInSeconds: body.expiresInSeconds });
+      (global as any).__media_upload_success = ((global as any).__media_upload_success || 0) + 1;
+      (global as any).__media_latencies = ((global as any).__media_latencies || []);
+      (global as any).__media_latencies.push(performance.now() - t0);
+      return res.json({ url, method: 'PUT', key, headers: { 'Content-Type': body.contentType } });
+    } catch (e) {
+      (global as any).__media_upload_failure = ((global as any).__media_upload_failure || 0) + 1;
+      throw e;
+    }
   } catch (err) {
     return next(err);
   }

@@ -52,6 +52,18 @@ export function createApp() {
 		next();
 	});
 
+	app.get('/metrics', (_req, res) => {
+		const p95 = computeP95(durations);
+		res.type('text/plain').send(
+			`# HELP http_requests_total Total HTTP requests\n` +
+			`# TYPE http_requests_total counter\n` +
+			`http_requests_total ${reqCount}\n` +
+			`# HELP http_latency_ms_p95 95th percentile HTTP latency in ms\n` +
+			`# TYPE http_latency_ms_p95 gauge\n` +
+			`http_latency_ms_p95 ${p95}\n`
+		);
+	});
+
 	app.get('/health', (_req, res) => {
 		res.json({ ok: true, service: 'agent7-messaging' });
 	});

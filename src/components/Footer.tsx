@@ -78,9 +78,9 @@ const Footer = () => {
               © 2024 iKasiLink. Made with <Heart className="w-4 h-4 inline text-red-400" /> for South African communities.
             </p>
             <div className="flex gap-6 text-sm text-white/70">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors">Community Guidelines</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
+              <a href="/privacy#community" className="hover:text-white transition-colors">Community Guidelines</a>
             </div>
           </div>
         </div>

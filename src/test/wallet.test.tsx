@@ -187,6 +187,8 @@ describe('Wallet Integration Tests', () => {
     });
 
     it('should handle request creation validation errors', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
       mockWalletAPI.createWalletRequest.mockRejectedValue(
         new Error('Invalid amount: must be positive')
       );
@@ -203,6 +205,10 @@ describe('Wallet Integration Tests', () => {
       await waitFor(() => {
         expect(mockWalletAPI.createWalletRequest).toHaveBeenCalledTimes(1);
       });
+      
+      // Clean up
+      consoleSpy.mockRestore();
+    });
     });
 
     it('should include proper metadata in request', async () => {
@@ -353,6 +359,8 @@ describe('Wallet Integration Tests', () => {
     });
 
     it('should handle already paid requests', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
       mockWalletAPI.markAsPaid.mockRejectedValue(
         new Error('Request already marked as paid')
       );
@@ -369,9 +377,14 @@ describe('Wallet Integration Tests', () => {
       await waitFor(() => {
         expect(mockWalletAPI.markAsPaid).toHaveBeenCalledWith('req-123');
       });
+      
+      // Clean up
+      consoleSpy.mockRestore();
     });
 
     it('should handle non-existent request IDs', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
       mockWalletAPI.markAsPaid.mockRejectedValue(
         new Error('Request not found')
       );
@@ -388,6 +401,9 @@ describe('Wallet Integration Tests', () => {
       await waitFor(() => {
         expect(mockWalletAPI.markAsPaid).toHaveBeenCalledTimes(1);
       });
+      
+      // Clean up
+      consoleSpy.mockRestore();
     });
   });
 

@@ -31,10 +31,10 @@ vi.mock('@/services/messaging', () => ({
 
 // Test component for messaging operations
 const MessagingTestComponent: React.FC = () => {
-  const [messages, setMessages] = React.useState<any[]>([]);
+  const [messages, setMessages] = React.useState<Record<string, unknown>[]>([]);
   const [wsStatus, setWsStatus] = React.useState('disconnected');
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [receipts, setReceipts] = React.useState<any[]>([]);
+  const [receipts, setReceipts] = React.useState<Record<string, unknown>[]>([]);
 
   const sendMessage = async (text: string) => {
     try {

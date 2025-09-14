@@ -21,10 +21,10 @@ vi.mock('@/services/observability', () => ({
 const ObservabilityTestComponent: React.FC = () => {
   const [metrics, setMetrics] = React.useState<string>('');
   const [authMetrics, setAuthMetrics] = React.useState<string>('');
-  const [messagingLogs, setMessagingLogs] = React.useState<any[]>([]);
-  const [searchLogs, setSearchLogs] = React.useState<any[]>([]);
-  const [eventsLogs, setEventsLogs] = React.useState<any[]>([]);
-  const [requestIdValidation, setRequestIdValidation] = React.useState<any>(null);
+  const [messagingLogs, setMessagingLogs] = React.useState<Record<string, unknown>[]>([]);
+  const [searchLogs, setSearchLogs] = React.useState<Record<string, unknown>[]>([]);
+  const [eventsLogs, setEventsLogs] = React.useState<Record<string, unknown>[]>([]);
+  const [requestIdValidation, setRequestIdValidation] = React.useState<Record<string, unknown> | null>(null);
 
   const fetchMetrics = async () => {
     try {

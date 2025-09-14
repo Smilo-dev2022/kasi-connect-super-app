@@ -20,10 +20,10 @@ vi.mock('@/services/rsvp', () => ({
 
 // Test component for RSVP operations
 const RSVPTestComponent: React.FC = () => {
-  const [rsvps, setRSVPs] = React.useState<any[]>([]);
+  const [rsvps, setRSVPs] = React.useState<Record<string, unknown>[]>([]);
   const [qrCode, setQRCode] = React.useState<string>('');
   const [checkInStatus, setCheckInStatus] = React.useState<string>('');
-  const [qrValidation, setQRValidation] = React.useState<any>(null);
+  const [qrValidation, setQRValidation] = React.useState<Record<string, unknown> | null>(null);
 
   const createRSVP = async (eventId: string, status: string) => {
     try {

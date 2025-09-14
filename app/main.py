@@ -14,6 +14,10 @@ from prometheus_client import CollectorRegistry, Counter, Histogram, generate_la
 import time
 import uuid
 import json
+import asyncio
+from datetime import datetime
+from sqlmodel import select
+from .models import WalletRequest
 
 
 def create_app() -> FastAPI:
@@ -81,13 +85,41 @@ def create_app() -> FastAPI:
     @app.get("/metrics")
     def metrics() -> Response:
         return Response(generate_latest(registry), media_type=CONTENT_TYPE_LATEST)
-        # seed data
-        from .seeds import seed_initial_data
-        from sqlmodel import Session
 
-        for session in get_session():
-            seed_initial_data(session)
-            break
+    # seed data and start expiry loop
+    from .seeds import seed_initial_data
+    for session in get_session():
+        seed_initial_data(session)
+        break
+
+    async def _expiry_loop():
+        while True:
+            try:
+                now = datetime.utcnow()
+                for session in get_session():
+                    items = session.exec(
+                        select(WalletRequest).where(WalletRequest.status == "requested").where(
+                            WalletRequest.expires_at != None  # type: ignore[comparison-overlap]
+                        )
+                    ).all()
+                    touched = 0
+                    for item in items:
+                        if item.expires_at and item.expires_at < now:
+                            item.status = "expired"
+                            item.updated_at = now
+                            session.add(item)
+                            touched += 1
+                    if touched:
+                        session.commit()
+            except Exception:
+                pass
+            await asyncio.sleep(60)
+
+    try:
+        loop = asyncio.get_event_loop()
+        loop.create_task(_expiry_loop())
+    except RuntimeError:
+        pass
 
     app.include_router(events_router, prefix="/events", tags=["events"]) 
     app.include_router(rsvps_router, tags=["rsvps"]) 

@@ -28,7 +28,7 @@ MinIO console at `http://localhost:9001` (minioadmin/minioadmin).
 
 ## Environment
 
-See `.env.example`.
+See `.env` for environment configuration.
 
 ## Quickstart with cURL
 
@@ -45,18 +45,18 @@ curl -s -X POST http://localhost:4008/uploads/presign \
   -H 'Content-Type: application/json' \
   -d '{
     "contentType":"image/png",
-    "fileName":"example.png",
+  "fileName":"sample.png",
     "folder":"uploads"
   }'
 ```
 
-Response example:
+Sample response:
 
 ```json
 {
   "url": "http://localhost:9000/media/uploads/173...",
   "method": "PUT",
-  "key": "uploads/173...-example.png",
+  "key": "uploads/173...-sample.png",
   "headers": { "Content-Type": "image/png" }
 }
 ```
@@ -67,7 +67,7 @@ Response example:
 # Assuming you saved the url and key into shell vars
 URL="<presigned_put_url>"
 KEY="<returned_key>"
-curl -s -X PUT -H 'Content-Type: image/png' --data-binary @example.png "$URL" -o /dev/null -w '%{http_code}\n'
+curl -s -X PUT -H 'Content-Type: image/png' --data-binary @sample.png "$URL" -o /dev/null -w '%{http_code}\n'
 ```
 
 4) Get a presigned GET URL to download

@@ -29,7 +29,7 @@ export interface MediaSummary {
 const DB_NAME = "kasilink-media-db";
 const DB_VERSION = 1;
 const STORE_NAME = "media";
-const FALLBACK_THUMBNAIL = "/placeholder.svg";
+const FALLBACK_THUMBNAIL = "/ikasilink.logo.png.png";
 
 function openMediaDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

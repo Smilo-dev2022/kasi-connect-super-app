@@ -17,11 +17,11 @@ type MediaItem = {
 };
 
 const seed: MediaItem[] = [
-  { id: 1, type: "image", src: "/placeholder.svg?height=600&width=800", title: "Community Clean-up" },
-  { id: 2, type: "image", src: "/placeholder.svg?height=600&width=800", title: "Youth Soccer" },
-  { id: 3, type: "video", src: "/placeholder.svg?height=600&width=800", title: "Ward Meeting Highlights" },
-  { id: 4, type: "image", src: "/placeholder.svg?height=600&width=800", title: "Local Market" },
-  { id: 5, type: "video", src: "/placeholder.svg?height=600&width=800", title: "CPF Awareness" },
+  { id: 1, type: "image", src: "/ikasilink.logo.png.png", title: "Community Clean-up" },
+  { id: 2, type: "image", src: "/ikasilink.logo.png.png", title: "Youth Soccer" },
+  { id: 3, type: "video", src: "/ikasilink.logo.png.png", title: "Ward Meeting Highlights" },
+  { id: 4, type: "image", src: "/ikasilink.logo.png.png", title: "Local Market" },
+  { id: 5, type: "video", src: "/ikasilink.logo.png.png", title: "CPF Awareness" },
 ];
 
 const Media = () => {

@@ -5,13 +5,13 @@ Goal: Bring up a minimal TURN server locally to validate connectivity for future
 Deliverables
 - `docker-compose.yml` for coturn
 - `turnserver.conf` with long-term credentials
-- `.env.example` to configure realm, external IP, and credentials
+- `.env` to configure realm, external IP, and credentials
 - Test procedure (Trickle ICE or a simple WebRTC sample)
 
 Steps
 1) Copy env and edit values:
 ```bash
-cp spikes/turn-setup/.env.example spikes/turn-setup/.env
+cp spikes/turn-setup/.env.sample spikes/turn-setup/.env
 # set EXTERNAL_IP to your public IP; set TURN_REALM/USERNAME/PASSWORD
 ```
 2) Start coturn:

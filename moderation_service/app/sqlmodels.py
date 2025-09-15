@@ -20,3 +20,18 @@ class ReportRow(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+
+class AppealRow(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    report_id: str = Field(index=True)
+    user_id: str = Field(index=True)
+    reason: str
+    status: str = Field(default="new", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ModerationRoleRow(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    user_id: str = Field(index=True)
+    role: str = Field(index=True)  # e.g., reviewer, supervisor, auditor, admin
+    created_at: datetime = Field(default_factory=datetime.utcnow)

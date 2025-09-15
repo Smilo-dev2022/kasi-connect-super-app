@@ -16,6 +16,7 @@ from prometheus_client import Counter, Histogram, CollectorRegistry, generate_la
 import time
 import json
 import uuid
+import os
 
 
 def create_app() -> FastAPI:

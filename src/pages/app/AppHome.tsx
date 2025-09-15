@@ -27,7 +27,9 @@ const AppHome = () => {
     { icon: Users, label: "Groups", path: "/app/groups", color: "secondary" },
     { icon: ImageIcon, label: "Media", path: "/app/media", color: "primary" },
     { icon: Calendar, label: "Events", path: "/app/events", color: "primary" },
-    { icon: Store, label: "Business", path: "/app/business", color: "community" }
+    { icon: Store, label: "Business", path: "/app/business", color: "community" },
+    { icon: Shield, label: "Login", path: "/app/login", color: "secondary" },
+    { icon: MessageCircle, label: "Demo Chat", path: "/app/chat/demo-thread", color: "primary" }
   ];
 
   const notifications = [

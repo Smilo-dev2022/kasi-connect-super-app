@@ -1,20 +1,24 @@
+import React, { type ReactNode } from 'react';
+
 export const metadata = {
   title: "Admin",
   description: "Ward verification dashboard"
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const GA_ID = (globalThis as any)?.process?.env?.NEXT_PUBLIC_GA_ID as string | undefined;
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {process.env.NEXT_PUBLIC_GA_ID && (
+        {GA_ID && (
           <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}></script>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
             <script dangerouslySetInnerHTML={{ __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', { 'anonymize_ip': true });
+              gtag('config', '${GA_ID}', { 'anonymize_ip': true });
             ` }} />
           </>
         )}

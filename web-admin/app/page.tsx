@@ -1,6 +1,9 @@
+const EVENTS_BASE = (globalThis as any)?.process?.env?.NEXT_PUBLIC_EVENTS_API_BASE as string | undefined;
+
 async function fetchFreshness() {
   try {
-    const res = await fetch(process.env.NEXT_PUBLIC_EVENTS_API_BASE + '/api/metrics/ward/freshness', { cache: 'no-store' });
+    const base = EVENTS_BASE || '';
+    const res = await fetch(base + '/api/metrics/ward/freshness', { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed to fetch freshness');
     return res.json();
   } catch (e) {

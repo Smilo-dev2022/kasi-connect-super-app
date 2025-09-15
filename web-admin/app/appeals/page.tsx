@@ -1,6 +1,8 @@
+const MOD_BASE = (globalThis as any)?.process?.env?.NEXT_PUBLIC_MOD_API_BASE as string | undefined;
+
 async function fetchAppeals() {
   try {
-    const base = process.env.NEXT_PUBLIC_MOD_API_BASE || 'http://localhost:8002';
+    const base = MOD_BASE || 'http://localhost:8002';
     const res = await fetch(base + '/api/appeals', { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed');
     return res.json();

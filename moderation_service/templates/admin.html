@@ -15,6 +15,28 @@
 			<h2>Reports</h2>
 			<div id="reports"></div>
 		</section>
+		<hr />
+		<section>
+			<h2>Appeals</h2>
+			<div class="row">
+				<input id="appeal-report-id" placeholder="Report ID" />
+				<input id="appeal-user-id" placeholder="User ID" />
+				<input id="appeal-reason" placeholder="Reason" />
+				<button onclick="submitAppeal()">Submit Appeal</button>
+			</div>
+			<div id="appeals"></div>
+		</section>
+		<hr />
+		<section>
+			<h2>Roles</h2>
+			<div class="row">
+				<input id="role-user-id" placeholder="User ID" />
+				<input id="role-role" placeholder="Role (admin|moderator|reviewer)" />
+				<input id="role-scope" placeholder="Scope (optional)" />
+				<button onclick="grantRole()">Grant Role</button>
+			</div>
+			<div id="roles"></div>
+		</section>
 	</main>
 	<script>
 	async function loadReports() {
@@ -61,7 +83,75 @@
 		await fetch(`/api/reports/${id}/close`, { method: 'POST' });
 		loadReports();
 	}
+
+	async function loadAppeals() {
+		const res = await fetch('/api/appeals');
+		const appeals = await res.json();
+		const container = document.getElementById('appeals');
+		if (!Array.isArray(appeals) || appeals.length === 0) {
+			container.innerHTML = '<p>No appeals yet.</p>';
+			return;
+		}
+		container.innerHTML = '';
+		appeals.forEach(a => {
+			const el = document.createElement('div');
+			el.className = 'appeal';
+			el.innerHTML = `
+				<div class="row">
+					<div><strong>ID</strong>: ${a.id}</div>
+					<div><strong>Report</strong>: ${a.report_id}</div>
+					<div><strong>User</strong>: ${a.user_id}</div>
+					<div><strong>Status</strong>: ${a.status}</div>
+				</div>
+				<div class="content"><strong>Reason</strong>: ${a.reason}</div>
+			`;
+			container.appendChild(el);
+		});
+	}
+
+	async function submitAppeal() {
+		const report_id = document.getElementById('appeal-report-id').value;
+		const user_id = document.getElementById('appeal-user-id').value;
+		const reason = document.getElementById('appeal-reason').value;
+		await fetch('/api/appeals', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ report_id, user_id, reason })});
+		loadAppeals();
+	}
+
+	async function loadRoles() {
+		const res = await fetch('/api/roles');
+		const roles = await res.json();
+		const container = document.getElementById('roles');
+		if (!Array.isArray(roles) || roles.length === 0) {
+			container.innerHTML = '<p>No roles granted yet.</p>';
+			return;
+		}
+		container.innerHTML = '';
+		roles.forEach(r => {
+			const el = document.createElement('div');
+			el.className = 'role';
+			el.innerHTML = `
+				<div class="row">
+					<div><strong>User</strong>: ${r.user_id}</div>
+					<div><strong>Role</strong>: ${r.role}</div>
+					<div><strong>Scope</strong>: ${r.scope || ''}</div>
+					<div><strong>Created</strong>: ${r.created_at}</div>
+				</div>
+			`;
+			container.appendChild(el);
+		});
+	}
+
+	async function grantRole() {
+		const user_id = document.getElementById('role-user-id').value;
+		const role = document.getElementById('role-role').value;
+		const scope = document.getElementById('role-scope').value;
+		await fetch('/api/roles', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user_id, role, scope })});
+		loadRoles();
+	}
+
 	loadReports();
+	loadAppeals();
+	loadRoles();
 	</script>
 </body>
 </html>

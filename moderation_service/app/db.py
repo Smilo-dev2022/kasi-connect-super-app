@@ -10,7 +10,7 @@ engine = create_engine(MOD_DB_URL or "sqlite:///./moderation.db", echo=False)
 
 
 def init_db() -> None:
-    from .sqlmodels import ReportRow  # noqa: F401
+    from .sqlmodels import ReportRow, AppealRow, RoleRow  # noqa: F401
     SQLModel.metadata.create_all(engine)
 
 

@@ -9,6 +9,7 @@ import { eventsRouter } from './routes/events';
 import { rsvpsRouter } from './routes/rsvps';
 import { startReminderScheduler } from './lib/reminderScheduler';
 import { checkinRouter } from './routes/checkin';
+import { wardMetricsRouter } from './routes/wardMetrics';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -79,6 +80,7 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/events', eventsRouter);
 app.use('/api/rsvps', rsvpsRouter);
 app.use('/api/checkin', checkinRouter);
+app.use('/api/metrics/ward', wardMetricsRouter);
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 

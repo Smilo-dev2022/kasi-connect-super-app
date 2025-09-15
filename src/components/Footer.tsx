@@ -46,7 +46,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Platform</h4>
+            <h4 className="text-lg font-semibold text-white mb-4">iKasiLink Platform</h4>
             <ul className="space-y-2 text-white/80">
               <li><a href="#" className="hover:text-white transition-colors">Community Chat</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Stokvel Management</a></li>
@@ -75,7 +75,7 @@ const Footer = () => {
         <div className="border-t border-white/20 pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-white/70 text-sm">
-              © 2024 iKasiLink. Made with <Heart className="w-4 h-4 inline text-red-400" /> for South African communities.
+              © 2024 iKasiLink. Proudly built for South African communities.
             </p>
             <div className="flex gap-6 text-sm text-white/70">
               <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>

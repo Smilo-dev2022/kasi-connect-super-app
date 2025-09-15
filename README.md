@@ -1,7 +1,7 @@
 
-<p align="center">
-		<img src="ikasilink.logo.png.png" alt="iKasiLink Logo" width="200"/>
-</p>
+# iKasiLink Project
+
+![iKasiLink Logo](ikasilink.logo.png.png)
 
 ## Events Service (FastAPI)
 
@@ -42,14 +42,15 @@ Then open `http://localhost:8000/` for the UI stub.
 - Minimal static UI lists events and allows RSVP
 
 
-# Welcome to the iKasiLink Project
 
 
 ## Project info (iKasiLink)
 
-**URL**: 
 
-**Use your preferred IDE**
+**Website**: [https://ikasilink.co.za](https://ikasilink.co.za)
+
+
+### Use your preferred IDE
 
 If you want to work locally using your own IDE, you can clone this repo and push changes.
 
@@ -73,14 +74,16 @@ npm run dev
 ```
 
 
-**Edit a file directly in GitHub (iKasiLink)**
+
+### Edit a file directly in GitHub (iKasiLink)
 
 - Navigate to the desired file(s).
 - Click the "Edit" button (pencil icon) at the top right of the file view.
 - Make your changes and commit the changes.
 
 
-**Use GitHub Codespaces (iKasiLink)**
+
+### Use GitHub Codespaces (iKasiLink)
 
 - Navigate to the main page of your repository.
 - Click on the "Code" button (green button) near the top right.
@@ -120,4 +123,4 @@ VITE_SERPAPI_KEY=your_serpapi_key
 
 ---
 
-© 2025 Kasi Connect KC Pty Ltd. All rights reserved.
+© 2025 Kasi Connect KC Pty Ltd. All rights reserved. Visit us at [https://ikasilink.co.za](https://ikasilink.co.za)

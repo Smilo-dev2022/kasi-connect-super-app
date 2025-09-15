@@ -4,17 +4,17 @@ Goal: Stand up a basic sandbox integration with a mainstream payments provider (
 
 Deliverables
 - Sandbox account and API keys stored via environment variables
-- Local webhook receiver (Express) example and manual test using the provider's CLI
+- Local webhook receiver (Express) and manual test using the provider's CLI
 - Notes on event models and what we need to persist
 
 Suggested path (Stripe first)
 1) Install Stripe CLI and log in. Create a test PaymentIntent via CLI.
-2) Run a local webhook receiver (see example snippet below) and forward events with `stripe listen`.
+2) Run a local webhook receiver (see sample snippet below) and forward events with `stripe listen`.
 3) Capture logs and document the minimal fields we need.
 
-Example Express receiver (for reference only; not wired yet)
+Sample Express receiver (for reference only; not wired yet)
 ```ts
-// Example only: integrate into backend when ready
+// Sample only: integrate into backend when ready
 import express from 'express';
 import Stripe from 'stripe';
 

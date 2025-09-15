@@ -502,11 +502,11 @@ components:
         created_at: { type: string, format: date-time }
     Device:
       type: object
-      required: [id, user_id, platform, token]
+  required: [id, user_id, platform, token]
       properties:
         id: { type: string }
         user_id: { type: string }
-        platform: { type: string, enum: [ios, android, web] }
+  platform: { type: string, enum: [ios, android, web] }
         token: { type: string }
         last_seen_at: { type: string, format: date-time, nullable: true }
         created_at: { type: string, format: date-time }

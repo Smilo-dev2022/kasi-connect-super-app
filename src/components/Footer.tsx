@@ -48,10 +48,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">Platform</h4>
             <ul className="space-y-2 text-white/80">
-              <li><a href="#" className="hover:text-white transition-colors">Community Chat</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Stokvel Management</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Local Business</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Safety Alerts</a></li>
+              <li><a href="/app/chats" className="hover:text-white transition-colors">Community Chat</a></li>
+              <li><a href="/app/wallet" className="hover:text-white transition-colors">Stokvel Management</a></li>
+              <li><a href="/app/business" className="hover:text-white transition-colors">Local Business</a></li>
+              <li><a href="/app/rooms" className="hover:text-white transition-colors">Safety Alerts</a></li>
             </ul>
           </div>
 

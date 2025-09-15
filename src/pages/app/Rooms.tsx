@@ -14,8 +14,10 @@ import {
   Clock,
   MapPin
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Rooms = () => {
+  const navigate = useNavigate();
   const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
   const communityRooms = demoMode ? [
     {
@@ -210,7 +212,7 @@ const Rooms = () => {
                         {room.unread}
                       </Badge>
                     )}
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/app/chat/${encodeURIComponent(room.name.replace(/\s+/g, '-').toLowerCase())}`)}>
                       Join Room
                     </Button>
                   </div>

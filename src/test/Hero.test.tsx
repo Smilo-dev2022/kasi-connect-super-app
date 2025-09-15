@@ -27,11 +27,11 @@ describe('Hero Component', () => {
     // Check for the main heading
     expect(screen.getByRole('heading', { name: /iKasiLink/i })).toBeInTheDocument();
     
-    // Check for the tagline
+    // Check for the tagline using the i18n translated text
     expect(screen.getByText(/The Township Super-App for/i)).toBeInTheDocument();
     expect(screen.getByText(/Chat • Money • Community/i)).toBeInTheDocument();
     
-    // Check for main action buttons
+    // Check for main action buttons using the i18n translated text
     expect(screen.getByRole('button', { name: /Join the Community/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Learn More/i })).toBeInTheDocument();
   });
@@ -43,6 +43,7 @@ describe('Hero Component', () => {
       </AllTheProviders>
     );
 
-    expect(screen.getByText(/iKasiLink brings township life into one powerful app/i)).toBeInTheDocument();
+    // Check for the descriptive text using the i18n translated text
+    expect(screen.getByText(/A safe, verified space where people can talk, pay, save, and grow together/i)).toBeInTheDocument();
   });
 });

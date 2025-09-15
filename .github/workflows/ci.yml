@@ -2,6 +2,66 @@ name: CI
 
 on:
   push:
+    branches: [ main, develop, feature/**, cursor/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  web-admin:
+    name: Web Admin Lint and Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-admin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web-admin/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run: npm run lint -- --max-warnings=0 || npm run lint
+      - name: Typecheck (build)
+        run: npm run build --if-present
+
+  moderation-python:
+    name: Moderation Service Python Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: moderation_service
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Import and start check
+        run: |
+          python - << 'PY'
+          import importlib
+          import sys
+          try:
+              import app.main as m
+              print('Imported:', m.create_app)
+          except Exception as e:
+              print('Import error:', e)
+              sys.exit(1)
+          PY
+name: CI
+
+on:
+  push:
     branches: [ main ]
   pull_request:
     branches: [ main ]

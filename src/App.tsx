@@ -23,6 +23,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import WardVerification from "./pages/admin/WardVerification";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="wards" element={<WardVerification />} />
           </Route>
+          <Route path="/login" element={<Login />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

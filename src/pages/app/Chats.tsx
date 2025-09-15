@@ -110,7 +110,7 @@ const Chats = () => {
       
       <div className="p-4 space-y-4">
         {/* Create New Chat */}
-        <Button variant="hero" className="w-full justify-center gap-2 py-6">
+        <Button variant="hero" className="w-full justify-center gap-2 py-6" onClick={() => navigate('/app/chat/business-1')}>
           <Plus className="w-5 h-5" />
           Start New Chat
         </Button>

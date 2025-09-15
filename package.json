@@ -10,7 +10,9 @@
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "validate:production": "tsx scripts/validate-production.ts",
+    "check-demo-data": "grep -r 'demo\\|test\\|mock' src/ --exclude-dir=test || echo 'No demo data found'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.887.0",

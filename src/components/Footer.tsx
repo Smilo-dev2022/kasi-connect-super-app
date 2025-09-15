@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin, Phone, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -78,8 +79,8 @@ const Footer = () => {
               © 2024 iKasiLink. Proudly built for South African communities.
             </p>
             <div className="flex gap-6 text-sm text-white/70">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
               <a href="#" className="hover:text-white transition-colors">Community Guidelines</a>
             </div>
           </div>

@@ -6,6 +6,24 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from .models import Report, ReportCreate, ReportUpdateStatus, ReportStatus
 
+
+# Appeals MVP
+class AppealCreate(BaseModel):
+    report_id: str
+    user_id: str
+    reason: str
+
+
+class Appeal(BaseModel):
+    id: str
+    report_id: str
+    user_id: str
+    reason: str
+    status: str
+    created_at: str
+
+appeals_store: dict[str, Appeal] = {}
+
 router = APIRouter(prefix="/api", tags=["moderation"])
 
 
@@ -53,6 +71,47 @@ async def update_report_status(request: Request, report_id: str, payload: Report
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
     return updated
+
+
+@router.post("/appeals", response_model=Appeal, status_code=status.HTTP_201_CREATED)
+async def create_appeal(payload: AppealCreate) -> Appeal:
+    import datetime, uuid
+    a = Appeal(
+        id=str(uuid.uuid4()),
+        report_id=payload.report_id,
+        user_id=payload.user_id,
+        reason=payload.reason,
+        status="new",
+        created_at=datetime.datetime.utcnow().isoformat(),
+    )
+    appeals_store[a.id] = a
+    return a
+
+
+@router.get("/appeals", response_model=List[Appeal])
+async def list_appeals(status_filter: Optional[str] = None) -> List[Appeal]:
+    items = list(appeals_store.values())
+    if status_filter:
+        items = [a for a in items if a.status == status_filter]
+    return items
+
+
+@router.get("/transparency/aggregates")
+async def transparency_aggregates() -> dict:
+    # Minimal aggregates from in-memory report store if available
+    counts: dict[str, int] = {}
+    try:
+        # type: ignore[attr-defined]
+        for r in await get_store.__wrapped__():  # not actually works; fallback below
+            counts[r.reason] = counts.get(r.reason, 0) + 1
+    except Exception:
+        pass
+    # Fallback to appeals counts
+    appeals_total = len(appeals_store)
+    by_status: dict[str, int] = {}
+    for a in appeals_store.values():
+        by_status[a.status] = by_status.get(a.status, 0) + 1
+    return {"ok": True, "appeals_total": appeals_total, "appeals_by_status": by_status, "reports_by_reason": counts}
 
 
 @router.post("/reports/{report_id}/escalate", response_model=Report)

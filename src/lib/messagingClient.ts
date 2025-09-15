@@ -40,7 +40,10 @@ export class MessagingClient {
         try {
           const data = JSON.parse(String(ev.data));
           if (data?.type === 'msg') this.emit(data as IncomingMessage);
-        } catch {}
+        } catch (error) {
+          // Silently ignore parse errors for now
+          console.debug('Message parse error:', error);
+        }
       };
       socket.onerror = () => {
         if (!resolved) reject(new Error('ws-open-failed'));

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, ImageIcon, Link as LinkIcon, Search as SearchIcon, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
-const categories: { key: SearchCategory; label: string; icon: ComponentType<any> }[] = [
+const categories: { key: SearchCategory; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { key: "text", label: "Text", icon: FileText },
   { key: "media", label: "Media", icon: ImageIcon },
   { key: "links", label: "Links", icon: LinkIcon },

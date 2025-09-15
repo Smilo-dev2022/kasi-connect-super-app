@@ -109,7 +109,7 @@ export default function ChatThread() {
         </div>
         <div className="space-y-2">
           {messages.map((m) => {
-            const decoded = tryDecode(m.ciphertext) as any;
+            const decoded = tryDecode(m.ciphertext) as { kind?: string; [key: string]: unknown } | null;
             const isMine = m.from === activeUserId;
             const align = isMine ? 'items-end' : 'items-start';
             const bg = isMine ? 'bg-primary text-primary-foreground' : 'bg-card';

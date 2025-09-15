@@ -25,7 +25,7 @@ const groupsSeed: Group[] = [
   { id: 6, name: "SMME Tenders", description: "Business tenders and notices", members: 890, verified: true, category: "business" },
 ];
 
-const categoryToIcon: Record<string, any> = {
+const categoryToIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   safety: Shield,
   employment: Briefcase,
   education: GraduationCap,

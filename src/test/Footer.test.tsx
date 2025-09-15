@@ -14,8 +14,9 @@ describe('Footer Component', () => {
       </WithRouter>
     );
 
-    // Check for the brand name
-    expect(screen.getByRole('heading', { name: /iKasiLink/i })).toBeInTheDocument();
+    // Check for the main brand name heading specifically
+    const mainHeading = screen.getByRole('heading', { level: 3, name: /^iKasiLink$/i });
+    expect(mainHeading).toBeInTheDocument();
     
     // Check for copyright notice
     expect(screen.getByText(/© 2024 iKasiLink/i)).toBeInTheDocument();

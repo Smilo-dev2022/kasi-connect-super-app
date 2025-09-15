@@ -16,7 +16,32 @@ export type SearchResponse = {
   provider: string;
 };
 
-const serpApiKey = ((import.meta as any).env?.VITE_SERPAPI_KEY as string | undefined);
+interface SerpApiEnv {
+  VITE_SERPAPI_KEY?: string;
+}
+
+interface SerpApiImageResult {
+  title?: string;
+  source?: string;
+  original?: string;
+  link?: string;
+  thumbnail?: string;
+  snippet?: string;
+}
+
+interface SerpApiOrganicResult {
+  title?: string;
+  link?: string;
+  snippet?: string;
+  snippet_highlighted_words?: string[];
+}
+
+interface SerpApiResponse {
+  images_results?: SerpApiImageResult[];
+  organic_results?: SerpApiOrganicResult[];
+}
+
+const serpApiKey = ((import.meta as { env: SerpApiEnv }).env?.VITE_SERPAPI_KEY as string | undefined);
 
 async function searchSerpApi(query: string, category: SearchCategory): Promise<SearchResult[]> {
   const base = "https://serpapi.com/search.json";
@@ -31,10 +56,10 @@ async function searchSerpApi(query: string, category: SearchCategory): Promise<S
   if (!response.ok) {
     throw new Error(`SerpAPI request failed: ${response.status}`);
   }
-  const data = await response.json();
+  const data: SerpApiResponse = await response.json();
   if (category === "media") {
-    const images: any[] = data.images_results ?? [];
-    return images.map((img: any) => ({
+    const images: SerpApiImageResult[] = data.images_results ?? [];
+    return images.map((img: SerpApiImageResult) => ({
       title: img.title ?? img.source ?? "Image",
       url: img.original ?? img.link ?? img.thumbnail ?? "",
       thumbnailUrl: img.thumbnail,
@@ -43,8 +68,8 @@ async function searchSerpApi(query: string, category: SearchCategory): Promise<S
     }));
   }
   // text or links share organic_results
-  const organic: any[] = data.organic_results ?? [];
-  return organic.map((item: any) => ({
+  const organic: SerpApiOrganicResult[] = data.organic_results ?? [];
+  return organic.map((item: SerpApiOrganicResult) => ({
     title: item.title ?? "",
     url: item.link ?? "",
     snippet: item.snippet ?? item.snippet_highlighted_words?.join(" ") ?? "",

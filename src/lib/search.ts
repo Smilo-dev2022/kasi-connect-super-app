@@ -16,7 +16,7 @@ export type SearchResponse = {
   provider: string;
 };
 
-const serpApiKey = ((import.meta as any).env?.VITE_SERPAPI_KEY as string | undefined);
+const serpApiKey = (import.meta.env?.VITE_SERPAPI_KEY as string | undefined);
 
 async function searchSerpApi(query: string, category: SearchCategory): Promise<SearchResult[]> {
   const base = "https://serpapi.com/search.json";
@@ -33,8 +33,15 @@ async function searchSerpApi(query: string, category: SearchCategory): Promise<S
   }
   const data = await response.json();
   if (category === "media") {
-    const images: any[] = data.images_results ?? [];
-    return images.map((img: any) => ({
+    const images: Array<{
+      title?: string;
+      source?: string;
+      original?: string;
+      link?: string;
+      thumbnail?: string;
+      snippet?: string;
+    }> = data.images_results ?? [];
+    return images.map((img) => ({
       title: img.title ?? img.source ?? "Image",
       url: img.original ?? img.link ?? img.thumbnail ?? "",
       thumbnailUrl: img.thumbnail,
@@ -43,8 +50,13 @@ async function searchSerpApi(query: string, category: SearchCategory): Promise<S
     }));
   }
   // text or links share organic_results
-  const organic: any[] = data.organic_results ?? [];
-  return organic.map((item: any) => ({
+  const organic: Array<{
+    title?: string;
+    link?: string;
+    snippet?: string;
+    snippet_highlighted_words?: string[];
+  }> = data.organic_results ?? [];
+  return organic.map((item) => ({
     title: item.title ?? "",
     url: item.link ?? "",
     snippet: item.snippet ?? item.snippet_highlighted_words?.join(" ") ?? "",

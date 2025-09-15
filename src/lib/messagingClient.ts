@@ -40,12 +40,18 @@ export class MessagingClient {
         try {
           const data = JSON.parse(String(ev.data));
           if (data?.type === 'msg') this.emit(data as IncomingMessage);
-        } catch {}
+        } catch (error) {
+          // Ignore JSON parsing errors for invalid messages
+          console.debug('Failed to parse WebSocket message:', error);
+        }
       };
       socket.onerror = () => {
         if (!resolved) reject(new Error('ws-open-failed'));
       };
-      socket.onclose = () => {};
+      socket.onclose = () => {
+        // Handle WebSocket close event
+        console.debug('WebSocket connection closed');
+      };
       this.socket = socket;
     });
   }

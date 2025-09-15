@@ -87,7 +87,10 @@ const Security = () => {
         if (typeof pass === "string") setPassphrase(pass);
         if (typeof text === "string") setPlaintext(text);
       }
-    } catch {}
+    } catch (error) {
+      // Ignore localStorage errors when parsing draft
+      console.debug('Failed to parse security draft from localStorage:', error);
+    }
   }, []);
 
   useEffect(() => {
@@ -96,7 +99,10 @@ const Security = () => {
         STORAGE_KEYS.e2eeDraft,
         JSON.stringify({ pass: passphrase, text: plaintext })
       );
-    } catch {}
+    } catch (error) {
+      // Ignore localStorage errors when saving draft
+      console.debug('Failed to save security draft to localStorage:', error);
+    }
   }, [passphrase, plaintext]);
 
   const canUseWebCrypto = useMemo(() => typeof window !== "undefined" && !!window.crypto?.subtle, []);

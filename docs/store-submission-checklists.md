@@ -16,6 +16,16 @@
 - Rollout plan: staged % with rollback criteria
 - Release notes include key fixes and known issues
 
+### Internal Track Submission – Steps
+1. Generate release builds
+   - Android: `./gradlew :app:bundleRelease` → upload `app-release.aab`
+   - iOS: Archive in Xcode (Release) → upload via Transporter
+2. Complete data safety/privacy forms in console (collection, sharing, encryption)
+3. Fill content rating questionnaires (Play) and export compliance (App Store)
+4. Configure internal testing (emails or groups) and upload builds
+5. Add reviewer notes with demo creds (email/password, deep links)
+6. Set phased rollout (5–10%) and prepare rollback
+
 ## Apple App Store
 - App Store Connect record complete; bundle ID matches
 - Version and build incremented; archived in Release configuration
@@ -29,6 +39,12 @@
 - TestFlight internal and external groups configured
 - Phased release plan and manual release ready
 - Release notes and What’s New prepared
+
+### TestFlight Submission – Steps
+1. Archive (Release) and upload build (Transporter/Xcode Organizer)
+2. Populate App Privacy and tracking disclosures
+3. Add demo account and review notes; attach screenshots
+4. Start internal testing; then external with compliance questionnaire
 
 ## Common Preflight
 - Crash-free session rate ≥ 99.5% in last 24–48 hours on candidate build

@@ -19,7 +19,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from .db import init_db, get_session, engine
-from .models import Event, RSVP, Ticket, CheckIn
+from .models import Event, RSVP, Ticket, CheckIn, WardIngest
 from .security import sign_ticket_payload, verify_ticket_token
 from .settings import get_settings
 from .utils import generate_qr_base64_png, build_event_ics
@@ -343,6 +343,43 @@ def api_ticket(ticket_id: int, session=Depends(get_session)):
             "email": rsvp.email,
         } if rsvp else None,
     }
+
+
+# Ward metrics ingestion and freshness endpoints
+latest_ward_ingest: dict[str, datetime] = {}
+
+
+@app.post("/api/metrics/ward")
+def ingest_ward_metric(ward: str, source: str | None = None, payload: str | None = None, session=Depends(get_session)):
+    now = datetime.utcnow()
+    latest_ward_ingest[ward] = now
+    rec = WardIngest(ward=ward, source=source, received_at=now, payload=payload)
+    session.add(rec)
+    session.commit()
+    return {"ok": True, "ward": ward, "received_at": now.isoformat()}
+
+
+@app.get("/api/metrics/ward/freshness")
+def ward_freshness(threshold_seconds: int = 900, session=Depends(get_session)):
+    # Compute freshness from latest ingests persisted, fallback to in-memory map
+    results: list[dict] = []
+    wards = set(latest_ward_ingest.keys())
+    db_latest: dict[str, datetime] = {}
+    rows = session.exec(select(WardIngest.ward, WardIngest.received_at)).all()
+    for ward, ts in rows:
+        prev = db_latest.get(ward)
+        if prev is None or (ts and ts > prev):
+            db_latest[ward] = ts
+            wards.add(ward)
+    now = datetime.utcnow()
+    for ward in sorted(wards):
+        ts = latest_ward_ingest.get(ward) or db_latest.get(ward)
+        if not ts:
+            continue
+        age_sec = int((now - ts).total_seconds())
+        healthy = age_sec <= threshold_seconds
+        results.append({"ward": ward, "last_event_at": ts.isoformat(), "age_seconds": age_sec, "healthy": healthy})
+    return {"ok": True, "items": results, "now": now.isoformat(), "threshold_seconds": threshold_seconds}
 
 
 @app.get("/checkin/verify")

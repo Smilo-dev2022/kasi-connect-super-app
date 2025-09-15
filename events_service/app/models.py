@@ -43,3 +43,12 @@ class CheckIn(SQLModel, table=True):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     by_user: Optional[str] = None
     note: Optional[str] = None
+
+
+class WardIngest(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    ward: str = Field(index=True)
+    source: Optional[str] = None
+    received_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    payload: Optional[str] = None
+

@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 
 import { authRouter, requireJwt } from './auth';
+import { requireAllowlist, isFeatureEnabled } from './gates';
 import { keysRouter } from './keys';
 import { groupsRouter } from './groups';
 import { getMissedMessagesRouter } from './messages_http';
@@ -24,10 +25,14 @@ export function createApp() {
 	});
 
 	app.use('/auth', authRouter);
-	app.use('/keys', requireJwt, keysRouter);
-	app.use('/groups', requireJwt, groupsRouter);
-	app.use('/messages', requireJwt, getMissedMessagesRouter);
-	app.use('/safety', requireJwt, safetyRouter);
+	// Dark launch gates for core surfaces when flag is enabled
+	const darkLaunch = isFeatureEnabled('dark_launch');
+	const base = [requireJwt] as const;
+	const gated = darkLaunch ? ([requireJwt, requireAllowlist] as const) : base;
+	app.use('/keys', ...gated, keysRouter);
+	app.use('/groups', ...gated, groupsRouter);
+	app.use('/messages', ...gated, getMissedMessagesRouter);
+	app.use('/safety', ...gated, safetyRouter);
 
 	if (process.env.NODE_ENV === 'production') {
 		app.enable('trust proxy');

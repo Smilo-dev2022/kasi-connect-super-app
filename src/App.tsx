@@ -18,8 +18,12 @@ import Search from "./pages/app/Search";
 import ChatThread from "./pages/app/ChatThread";
 import Navigation from "./components/Navigation";
 import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/Dashboard";
+import Dashboard from "./pages/admin/Dashboard";
 import WardVerification from "./pages/admin/WardVerification";
+import Moderation from "./pages/admin/Moderation";
+import Appeals from "./pages/admin/Appeals";
+import Roles from "./pages/admin/Roles";
+import Analytics from "./pages/admin/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -54,8 +58,12 @@ const App = () => (
             <Route path="search" element={<Search />} />
           </Route>
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<Dashboard />} />
             <Route path="wards" element={<WardVerification />} />
+            <Route path="moderation" element={<Moderation />} />
+            <Route path="appeals" element={<Appeals />} />
+            <Route path="roles" element={<Roles />} />
+            <Route path="analytics" element={<Analytics />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

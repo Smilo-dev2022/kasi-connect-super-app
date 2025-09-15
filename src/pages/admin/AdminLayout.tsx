@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, AlertTriangle, Users, BarChart3, Scale } from "lucide-react";
 
 const AdminLayout = () => {
   return (
@@ -32,6 +32,50 @@ const AdminLayout = () => {
           >
             <ShieldCheck className="h-4 w-4" />
             <span>Ward verification</span>
+          </NavLink>
+          <NavLink
+            to="/admin/moderation"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary" : "hover:bg-accent"
+              }`
+            }
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span>Moderation</span>
+          </NavLink>
+          <NavLink
+            to="/admin/appeals"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary" : "hover:bg-accent"
+              }`
+            }
+          >
+            <Scale className="h-4 w-4" />
+            <span>Appeals</span>
+          </NavLink>
+          <NavLink
+            to="/admin/roles"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary" : "hover:bg-accent"
+              }`
+            }
+          >
+            <Users className="h-4 w-4" />
+            <span>Roles</span>
+          </NavLink>
+          <NavLink
+            to="/admin/analytics"
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                isActive ? "bg-primary/10 text-primary" : "hover:bg-accent"
+              }`
+            }
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span>Analytics</span>
           </NavLink>
         </nav>
       </aside>

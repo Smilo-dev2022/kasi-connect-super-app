@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 const Rooms = () => {
-  const communityRooms = [
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  const communityRooms = demoMode ? [
     {
       id: 1,
       name: "Safety Room",
@@ -65,9 +66,9 @@ const Rooms = () => {
       category: "business",
       color: "secondary"
     }
-  ];
+  ] : [];
 
-  const recentAlerts = [
+  const recentAlerts = demoMode ? [
     {
       type: "safety",
       icon: AlertTriangle,
@@ -95,7 +96,7 @@ const Rooms = () => {
       location: "Various Universities",
       urgent: false
     }
-  ];
+  ] : [];
 
   const getColorClasses = (color: string) => {
     switch (color) {

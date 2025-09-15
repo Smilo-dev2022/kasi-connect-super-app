@@ -30,6 +30,10 @@ export function setCurrentUserId(userId: string) {
 }
 
 export async function getDevTokenForUser(userId: string, name?: string): Promise<string> {
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  if (!demoMode && (typeof window !== 'undefined') && (window.location?.hostname !== 'localhost')) {
+    throw new Error('dev-token-disabled-in-prod');
+  }
   const storage = getStorage();
   const raw = storage?.getItem('devTokens');
   const map: StoredTokens = raw ? JSON.parse(raw) : {};

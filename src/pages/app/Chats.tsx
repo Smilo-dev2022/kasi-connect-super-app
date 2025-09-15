@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 
 const Chats = () => {
-  const chatGroups = [
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  const chatGroups = demoMode ? [
     {
       id: 1,
       name: "Family WhatsApp",
@@ -82,7 +83,7 @@ const Chats = () => {
       verified: true,
       online: false
     }
-  ];
+  ] : [];
 
   const getTypeColor = (type: string) => {
     switch (type) {

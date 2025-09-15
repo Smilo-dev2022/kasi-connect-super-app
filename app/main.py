@@ -86,11 +86,13 @@ def create_app() -> FastAPI:
     def metrics() -> Response:
         return Response(generate_latest(registry), media_type=CONTENT_TYPE_LATEST)
 
-    # seed data and start expiry loop
-    from .seeds import seed_initial_data
-    for session in get_session():
-        seed_initial_data(session)
-        break
+    # seed data in non-production env only
+    import os
+    if os.environ.get("ENV", os.environ.get("NODE_ENV", "development")) != "production":
+        from .seeds import seed_initial_data
+        for session in get_session():
+            seed_initial_data(session)
+            break
 
     async def _expiry_loop():
         while True:

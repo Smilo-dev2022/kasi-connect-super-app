@@ -29,7 +29,8 @@ const Events = () => {
   const [tokenInput, setTokenInput] = useState("");
   const [verifyResult, setVerifyResult] = useState<string>("");
   const [checkinResult, setCheckinResult] = useState<string>("");
-  const upcomingEvents = [
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  const upcomingEvents = demoMode ? [
     {
       id: 1,
       title: "Ward 12 Community Meeting",
@@ -94,7 +95,7 @@ const Events = () => {
       verified: true,
       rsvp: false
     }
-  ];
+  ] : [];
 
   const categories = [
     { name: "All", count: 12, active: true },

@@ -41,6 +41,7 @@ type WalletRequest = {
 };
 
 const Wallet = () => {
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
   const [showBalance, setShowBalance] = useState(true);
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState<WalletRequest[]>([]);
@@ -64,11 +65,11 @@ const Wallet = () => {
   useEffect(() => {
     refresh();
   }, []);
-  const cards = [
+  const cards = demoMode ? [
     { brand: "iKasiLink Debit", last4: "4821", balance: 1250.5, gradient: "from-community via-primary to-secondary" },
     { brand: "Savings", last4: "9013", balance: 5600, gradient: "from-primary via-secondary to-community" },
     { brand: "Stokvel Pool", last4: "2745", balance: 22500, gradient: "from-secondary via-primary to-community" }
-  ];
+  ] : [];
 
   const quickActions = [
     { icon: Send, label: "Send", color: "primary" },
@@ -77,7 +78,7 @@ const Wallet = () => {
     { icon: Smartphone, label: "Airtime", color: "primary" }
   ];
 
-  const stokvels = [
+  const stokvels = demoMode ? [
     {
       name: "Thabo's Investment Group",
       members: 12,
@@ -102,9 +103,9 @@ const Wallet = () => {
       nextPayout: "3 weeks",
       status: "active"
     }
-  ];
+  ] : [];
 
-  const transactions = [
+  const transactions = demoMode ? [
     {
       type: "received",
       amount: 150,
@@ -137,7 +138,7 @@ const Wallet = () => {
       time: "2d ago",
       status: "completed"
     }
-  ];
+  ] : [];
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {

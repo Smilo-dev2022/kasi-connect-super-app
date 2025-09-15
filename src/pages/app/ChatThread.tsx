@@ -52,7 +52,8 @@ export default function ChatThread() {
           setMessages((prev) => [...prev, m]);
         }
       });
-      if (searchParams.get('ord') === '1') {
+      const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+      if (demoMode && searchParams.get('ord') === '1') {
         // auto-send a demo order request on entry
         const order: OrderPayload = {
           kind: 'order',

@@ -1,5 +1,3 @@
-import process from 'node:process';
-
 async function fetchAppeals() {
   try {
     const base = process.env.NEXT_PUBLIC_MOD_API_BASE || 'http://localhost:8002';

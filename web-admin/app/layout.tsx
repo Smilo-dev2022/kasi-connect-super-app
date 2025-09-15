@@ -1,5 +1,3 @@
-import React from 'react';
-import process from 'node:process';
 export const metadata = {
   title: "Admin",
   description: "Ward verification dashboard"

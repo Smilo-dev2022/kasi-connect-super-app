@@ -1,5 +1,3 @@
-import process from 'node:process';
-
 async function fetchFreshness() {
   try {
     const res = await fetch(process.env.NEXT_PUBLIC_EVENTS_API_BASE + '/api/metrics/ward/freshness', { cache: 'no-store' });

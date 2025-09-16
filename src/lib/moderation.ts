@@ -99,3 +99,75 @@ export async function clearQueue(): Promise<void> {
   moderationQueue.length = 0;
 }
 
+// Additional functions for testing
+export async function claimQueueItem(reportId: string, moderatorId: string) {
+  const response = await fetch(`/api/reports/${reportId}/claim`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ moderator_id: moderatorId })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to claim queue item');
+  }
+  
+  return response.json();
+}
+
+export async function releaseQueueItem(reportId: string, moderatorId: string) {
+  const response = await fetch(`/api/reports/${reportId}/release`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ moderator_id: moderatorId })
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to release queue item');
+  }
+  
+  return response.json();
+}
+
+export async function escalateReport(reportId: string, options: { moderator_id: string; reason: string }) {
+  const response = await fetch(`/api/reports/${reportId}/escalate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(options)
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to escalate report');
+  }
+  
+  return response.json();
+}
+
+export async function deEscalateReport(reportId: string, options: { moderator_id: string; reason: string }) {
+  const response = await fetch(`/api/reports/${reportId}/de-escalate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(options)
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to de-escalate report');
+  }
+  
+  return response.json();
+}
+
+export async function closeReport(reportId: string, options: { moderator_id: string; resolution: string; notes?: string }) {
+  const response = await fetch(`/api/reports/${reportId}/close`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(options)
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to close report');
+  }
+  
+  return response.json();
+}
+

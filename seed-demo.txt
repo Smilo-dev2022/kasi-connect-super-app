@@ -1,0 +1,2 @@
+$env:NEXT_PUBLIC_MOD_API_BASE="http://localhost:8082"
+npm run seed:moderation:rest

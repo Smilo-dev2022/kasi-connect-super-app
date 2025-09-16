@@ -74,20 +74,31 @@ describe('Auth Service Integration Tests', () => {
 
     it('should handle JWT WebSocket handshake', async () => {
       const mockToken = 'valid_jwt_token';
+      let onOpenCallback: () => void;
+      
       const mockWebSocket = {
         send: vi.fn(),
         close: vi.fn(),
-        readyState: WebSocket.OPEN
+        readyState: 1,
+        addEventListener: vi.fn((event, callback) => {
+          if (event === 'open') onOpenCallback = callback;
+        }),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn((event) => {
+          if (event.type === 'open' && onOpenCallback) {
+            onOpenCallback();
+          }
+        })
       };
 
       global.WebSocket = vi.fn(() => mockWebSocket);
 
-      const wsService = await import('@/lib/websocket'); // Assuming WS lib exists
+      const wsService = await import('@/lib/websocket');
       
       // Test JWT WebSocket authentication
       const ws = new wsService.AuthenticatedWebSocket('ws://localhost:8080/ws', mockToken);
       
-      // Should send auth message on connection
+      // Should send auth message on connection (triggered by dispatchEvent in constructor)
       expect(mockWebSocket.send).toHaveBeenCalledWith(
         JSON.stringify({
           type: 'auth',

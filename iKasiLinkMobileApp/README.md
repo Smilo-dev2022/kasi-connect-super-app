@@ -64,6 +64,24 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
 
+# Architecture & Folder Structure
+
+```
+iKasiLinkMobileApp/
+  src/
+    api/            # axios client and API modules (auth, moderation, events, messaging)
+    components/     # shared UI components
+    features/       # business logic modules with state/hooks
+    navigation/     # root and tab navigation
+    screens/        # feature screens (Home, Events, Messages, Profile)
+    types/          # shared TypeScript types
+    utils/          # helpers
+```
+
+- Path aliases in `tsconfig.json` and `babel.config.js`: `@api`, `@navigation`, `@screens`, `@components`, `@utils`, `@types`, `@features`.
+- Base navigation: native-stack + bottom-tabs in `src/navigation/RootNavigator.tsx`.
+- API client: `src/api/client.ts` with bearer auth hook point; endpoints in `src/api/modules.ts`.
+
 # Troubleshooting
 
 If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.

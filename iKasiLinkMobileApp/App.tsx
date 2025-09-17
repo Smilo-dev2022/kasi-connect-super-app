@@ -7,12 +7,12 @@
 
 import React from 'react';
 import RootNavigator from '@navigation/RootNavigator';
-import ThemeProvider from '@theme/ThemeProvider';
+import AppProviders from '@api/../AppProviders';
 
 export default function App(): React.JSX.Element {
   return (
-    <ThemeProvider>
+    <AppProviders>
       <RootNavigator />
-    </ThemeProvider>
+    </AppProviders>
   );
 }

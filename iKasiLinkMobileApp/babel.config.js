@@ -12,7 +12,11 @@ module.exports = {
         '@components': './src/components',
         '@utils': './src/utils',
         '@types': './src/types',
-        '@theme': './src/theme'
+        '@theme': './src/theme',
+        '@config': './src/config',
+        '@state': './src/state',
+        '@analytics': './src/analytics',
+        '@notifications': './src/notifications'
       }
     }],
     'react-native-reanimated/plugin'

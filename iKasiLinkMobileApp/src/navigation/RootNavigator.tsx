@@ -9,10 +9,16 @@ import HomeScreen from '@screens/HomeScreen';
 import EventsScreen from '@screens/EventsScreen';
 import MessagesScreen from '@screens/MessagesScreen';
 import ProfileScreen from '@screens/ProfileScreen';
+import SplashScreen from '@screens/SplashScreen';
+import LoginScreen from '@screens/LoginScreen';
+import { useAuthStore } from '@state/authStore';
+import { Analytics } from '@analytics/index';
 
 export type RootStackParamList = {
   MainTabs: undefined;
   Auth: undefined;
+  Splash: undefined;
+  Login: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,6 +54,8 @@ function MainTabs(): React.JSX.Element {
 
 export default function RootNavigator(): React.JSX.Element {
   const colorScheme = useColorScheme();
+  const hydrated = useAuthStore(s => s.hydrated);
+  const token = useAuthStore(s => s.accessToken);
   const linking: LinkingOptions<RootStackParamList> = {
     prefixes: ['ikasilink://', 'https://ikasilink.app'],
     config: {
@@ -65,8 +73,17 @@ export default function RootNavigator(): React.JSX.Element {
   };
   return (
     <NavigationContainer linking={linking} theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack.Navigator>
-        <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
+      <Stack.Navigator screenListeners={{ state: (e) => {
+        const route = e?.data?.state?.routes?.[e?.data?.state?.index ?? 0];
+        if (route?.name) Analytics.trackScreen(route.name.toString());
+      }}}>
+        {!hydrated ? (
+          <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
+        ) : token ? (
+          <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
+        ) : (
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

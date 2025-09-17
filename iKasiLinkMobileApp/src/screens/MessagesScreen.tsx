@@ -36,9 +36,9 @@ export default function MessagesScreen(): React.JSX.Element {
   useEffect(() => {
     AsyncStorage.setItem('chat:messages', JSON.stringify(messages));
   }, [messages]);
-  const listRef = useRef<FlashList<ChatMessage>>(null);
+  const listRef = useRef<any>(null);
 
-  const data = useMemo(() => [...messages].reverse(), [messages]);
+  const data = useMemo(() => messages, [messages]);
 
   function send() {
     if (!input.trim()) return;
@@ -46,7 +46,7 @@ export default function MessagesScreen(): React.JSX.Element {
     setMessages(prev => [...prev, newMsg]);
     setInput('');
     Haptic.trigger('impactLight');
-    requestAnimationFrame(() => listRef.current?.scrollToOffset({ animated: true, offset: 0 }));
+    // Content is bottom-aligned via contentContainerStyle; no explicit scroll needed
   }
 
   async function attach() {
@@ -55,7 +55,6 @@ export default function MessagesScreen(): React.JSX.Element {
     if (asset?.uri) {
       const newMsg: ChatMessage = { id: String(Date.now()), text: '', fromMe: true, imageUri: asset.uri };
       setMessages(prev => [...prev, newMsg]);
-      requestAnimationFrame(() => listRef.current?.scrollToOffset({ animated: true, offset: 0 }));
     }
   }
 
@@ -65,12 +64,10 @@ export default function MessagesScreen(): React.JSX.Element {
         <FlashList
           ref={listRef}
           data={data}
-          inverted
           renderItem={({ item }) => (
             <ChatBubble text={item.text || (item.imageUri ? '📷 Photo' : '')} fromMe={item.fromMe} />
           )}
           keyExtractor={(item) => item.id}
-          estimatedItemSize={64}
           contentContainerStyle={styles.listContent}
         />
 
@@ -94,7 +91,7 @@ export default function MessagesScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  listContent: { padding: 12 },
+  listContent: { padding: 12, flexGrow: 1, justifyContent: 'flex-end' },
   bubble: {
     paddingVertical: 8,
     paddingHorizontal: 12,

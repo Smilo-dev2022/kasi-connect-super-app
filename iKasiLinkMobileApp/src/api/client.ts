@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { ENV } from '@api/../config/env';
 
 export interface ApiClientOptions {
   baseURL: string;
@@ -23,5 +24,5 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
   return instance;
 }
 
-export const api = createApiClient({ baseURL: 'https://api.kasilink.example' });
+export const api = createApiClient({ baseURL: ENV.apiBaseUrl });
 

@@ -10,7 +10,11 @@
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"],
       "@types/*": ["types/*"],
-      "@theme/*": ["theme/*"]
+      "@theme/*": ["theme/*"],
+      "@config/*": ["config/*"],
+      "@state/*": ["state/*"],
+      "@analytics/*": ["analytics/*"],
+      "@notifications/*": ["notifications/*"]
     }
   }
 }

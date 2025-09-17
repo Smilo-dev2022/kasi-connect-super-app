@@ -81,6 +81,9 @@ iKasiLinkMobileApp/
 - Path aliases in `tsconfig.json` and `babel.config.js`: `@api`, `@navigation`, `@screens`, `@components`, `@utils`, `@types`, `@features`.
 - Base navigation: native-stack + bottom-tabs in `src/navigation/RootNavigator.tsx`.
 - API client: `src/api/client.ts` with bearer auth hook point; endpoints in `src/api/modules.ts`.
+ - Theming: `src/theme` with `ThemeProvider` and light/dark palettes.
+ - Icons: Ionicons via `react-native-vector-icons` (Android fonts bundled).
+ - Chat UI: FlashList-based baseline in `src/screens/MessagesScreen.tsx`.
 
 # Troubleshooting
 

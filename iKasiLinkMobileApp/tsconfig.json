@@ -9,7 +9,8 @@
       "@screens/*": ["screens/*"],
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"],
-      "@types/*": ["types/*"]
+      "@types/*": ["types/*"],
+      "@theme/*": ["theme/*"]
     }
   }
 }

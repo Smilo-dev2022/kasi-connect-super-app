@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useColorScheme } from 'react-native';
@@ -48,8 +48,23 @@ function MainTabs(): React.JSX.Element {
 
 export default function RootNavigator(): React.JSX.Element {
   const colorScheme = useColorScheme();
+  const linking: LinkingOptions<RootStackParamList> = {
+    prefixes: ['ikasilink://', 'https://ikasilink.app'],
+    config: {
+      screens: {
+        MainTabs: {
+          screens: {
+            Home: 'home',
+            Events: 'events',
+            Messages: 'messages',
+            Profile: 'profile',
+          },
+        },
+      },
+    },
+  };
   return (
-    <NavigationContainer theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <NavigationContainer linking={linking} theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack.Navigator>
         <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       </Stack.Navigator>

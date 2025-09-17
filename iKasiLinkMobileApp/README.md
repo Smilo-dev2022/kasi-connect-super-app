@@ -84,6 +84,13 @@ iKasiLinkMobileApp/
  - Theming: `src/theme` with `ThemeProvider` and light/dark palettes.
  - Icons: Ionicons via `react-native-vector-icons` (Android fonts bundled).
  - Chat UI: FlashList-based baseline in `src/screens/MessagesScreen.tsx`.
+ - Typography tokens in `src/theme/theme.ts` and app-wide `ThemeProvider`.
+ - Deep linking: `ikasilink://` and `https://ikasilink.app` mapped to tabs; Android intent filter configured.
+
+## Advanced UX
+- Chat persistence with AsyncStorage, haptics on send
+- Media attachments via image picker
+- Long-press reactions on chat bubbles
 
 # Troubleshooting
 

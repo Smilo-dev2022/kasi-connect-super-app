@@ -24,6 +24,22 @@ export interface Theme {
     lg: number;
     xl: number;
   };
+  typography: {
+    fontFamily: string;
+    sizes: {
+      xs: number;
+      sm: number;
+      md: number;
+      lg: number;
+      xl: number;
+    };
+    weights: {
+      regular: '400' | '500' | '600' | '700';
+      medium: '400' | '500' | '600' | '700';
+      semibold: '400' | '500' | '600' | '700';
+      bold: '400' | '500' | '600' | '700';
+    };
+  };
 }
 
 const spacingBase = 8;
@@ -47,6 +63,11 @@ export const lightTheme: Theme = {
   },
   spacing: (f) => f * spacingBase,
   radius: { sm: 8, md: 12, lg: 16, xl: 24 },
+  typography: {
+    fontFamily: 'System',
+    sizes: { xs: 12, sm: 14, md: 16, lg: 20, xl: 24 },
+    weights: { regular: '400', medium: '500', semibold: '600', bold: '700' },
+  },
 };
 
 export const darkTheme: Theme = {
@@ -68,5 +89,10 @@ export const darkTheme: Theme = {
   },
   spacing: (f) => f * spacingBase,
   radius: { sm: 8, md: 12, lg: 16, xl: 24 },
+  typography: {
+    fontFamily: 'System',
+    sizes: { xs: 12, sm: 14, md: 16, lg: 20, xl: 24 },
+    weights: { regular: '400', medium: '500', semibold: '600', bold: '700' },
+  },
 };
 

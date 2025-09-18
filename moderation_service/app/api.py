@@ -3,8 +3,11 @@ from __future__ import annotations
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
+from pydantic import BaseModel
 
 from .models import Report, ReportCreate, ReportUpdateStatus, ReportStatus
+from .db import get_session
+from .sqlmodels import AppealRow, ModerationRoleRow
 
 
 # Appeals MVP
@@ -75,43 +78,75 @@ async def update_report_status(request: Request, report_id: str, payload: Report
 
 @router.post("/appeals", response_model=Appeal, status_code=status.HTTP_201_CREATED)
 async def create_appeal(payload: AppealCreate) -> Appeal:
-    import datetime, uuid
-    a = Appeal(
-        id=str(uuid.uuid4()),
-        report_id=payload.report_id,
-        user_id=payload.user_id,
-        reason=payload.reason,
-        status="new",
-        created_at=datetime.datetime.utcnow().isoformat(),
-    )
-    appeals_store[a.id] = a
-    return a
+    from uuid import uuid4
+    from datetime import datetime
+    appeal_id = str(uuid4())
+    for session in get_session():
+        row = AppealRow(
+            id=appeal_id,
+            report_id=payload.report_id,
+            user_id=payload.user_id,
+            reason=payload.reason,
+            status="new",
+            created_at=datetime.utcnow(),
+        )
+        session.add(row)
+        session.commit()
+        return Appeal(
+            id=row.id,
+            report_id=row.report_id,
+            user_id=row.user_id,
+            reason=row.reason,
+            status=row.status,
+            created_at=row.created_at.isoformat(),
+        )
 
 
 @router.get("/appeals", response_model=List[Appeal])
 async def list_appeals(status_filter: Optional[str] = None) -> List[Appeal]:
-    items = list(appeals_store.values())
-    if status_filter:
-        items = [a for a in items if a.status == status_filter]
-    return items
+    results: List[Appeal] = []
+    for session in get_session():
+        query = session.query(AppealRow)
+        if status_filter:
+            query = query.filter(AppealRow.status == status_filter)
+        rows = query.order_by(AppealRow.created_at.desc()).all()
+        for row in rows:
+            results.append(
+                Appeal(
+                    id=row.id,
+                    report_id=row.report_id,
+                    user_id=row.user_id,
+                    reason=row.reason,
+                    status=row.status,
+                    created_at=row.created_at.isoformat(),
+                )
+            )
+        return results
 
 
 @router.get("/transparency/aggregates")
 async def transparency_aggregates() -> dict:
-    # Minimal aggregates from in-memory report store if available
-    counts: dict[str, int] = {}
-    try:
-        # type: ignore[attr-defined]
-        for r in await get_store.__wrapped__():  # not actually works; fallback below
-            counts[r.reason] = counts.get(r.reason, 0) + 1
-    except Exception:
-        pass
-    # Fallback to appeals counts
-    appeals_total = len(appeals_store)
-    by_status: dict[str, int] = {}
-    for a in appeals_store.values():
-        by_status[a.status] = by_status.get(a.status, 0) + 1
-    return {"ok": True, "appeals_total": appeals_total, "appeals_by_status": by_status, "reports_by_reason": counts}
+    # Simple aggregates from DB: appeals by status, total, roles counts
+    from sqlalchemy import func
+    data: dict = {"ok": True}
+    for session in get_session():
+        # Appeals totals
+        total = session.query(func.count(AppealRow.id)).scalar() or 0
+        data["appeals_total"] = int(total)
+        by_status = (
+            session.query(AppealRow.status, func.count(AppealRow.id))
+            .group_by(AppealRow.status)
+            .all()
+        )
+        data["appeals_by_status"] = {status: int(count) for status, count in by_status}
+        # Roles counts
+        roles = (
+            session.query(ModerationRoleRow.role, func.count(ModerationRoleRow.id))
+            .group_by(ModerationRoleRow.role)
+            .all()
+        )
+        data["roles"] = {role: int(count) for role, count in roles}
+        return data
 
 
 @router.post("/reports/{report_id}/escalate", response_model=Report)
@@ -143,3 +178,45 @@ async def close_report(request: Request, report_id: str, note: Optional[str] = N
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
     return updated
+
+
+# Simple RBAC scaffolding
+class RoleAssignBody(BaseModel):
+    user_id: str
+    role: str
+
+
+@router.get("/roles")
+async def list_roles() -> List[dict]:
+    results: List[dict] = []
+    for session in get_session():
+        rows = (
+            session.query(ModerationRoleRow)
+            .order_by(ModerationRoleRow.created_at.desc())
+            .all()
+        )
+        for row in rows:
+            results.append({"id": row.id, "user_id": row.user_id, "role": row.role, "created_at": row.created_at.isoformat()})
+        return results
+
+
+@router.post("/roles")
+async def assign_role(payload: RoleAssignBody) -> dict:
+    from uuid import uuid4
+    from datetime import datetime
+    for session in get_session():
+        row = ModerationRoleRow(id=str(uuid4()), user_id=payload.user_id, role=payload.role, created_at=datetime.utcnow())
+        session.add(row)
+        session.commit()
+        return {"ok": True, "id": row.id}
+
+
+@router.delete("/roles/{role_id}")
+async def delete_role(role_id: str) -> dict:
+    for session in get_session():
+        row = session.get(ModerationRoleRow, role_id)
+        if not row:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+        session.delete(row)
+        session.commit()
+        return {"ok": True}

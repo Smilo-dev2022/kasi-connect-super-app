@@ -9,6 +9,7 @@ import os
 from .models import Report, ReportCreate, ReportStatus
 from .db import get_session
 from .sqlmodels import ReportRow
+from uuid import uuid4
 
 
 class InMemoryReportStore:

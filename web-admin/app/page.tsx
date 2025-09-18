@@ -1,6 +1,9 @@
+const EVENTS_BASE = (globalThis as any)?.process?.env?.NEXT_PUBLIC_EVENTS_API_BASE as string | undefined;
+
 async function fetchFreshness() {
   try {
-    const res = await fetch(process.env.NEXT_PUBLIC_EVENTS_API_BASE + '/api/metrics/ward/freshness', { cache: 'no-store' });
+    const base = EVENTS_BASE || '';
+    const res = await fetch(base + '/api/metrics/ward/freshness', { cache: 'no-store' });
     if (!res.ok) throw new Error('Failed to fetch freshness');
     return res.json();
   } catch (e) {
@@ -14,6 +17,7 @@ export default async function Page() {
   return (
     <main style={{ padding: 24 }}>
       <h1>Ward Admin Dashboard</h1>
+      <p style={{ color: '#666' }}>Wireframe: add GA/ward funnel events and filters.</p>
       <p>Freshness of ward events ingestion.</p>
       <div style={{ marginTop: 16 }}>
         {items.length === 0 && <p>No data yet.</p>}
@@ -40,6 +44,11 @@ export default async function Page() {
           </table>
         )}
       </div>
+      <script dangerouslySetInnerHTML={{ __html: `
+        if (window && (window as any).gtag) {
+          (window as any).gtag('event', 'ward_dashboard_view', { page: 'dashboard' });
+        }
+      `}} />
     </main>
   );
 }

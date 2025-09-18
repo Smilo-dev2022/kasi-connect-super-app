@@ -17,6 +17,16 @@
 		</section>
 	</main>
 	<script>
+	function slaBadge(r){
+		if(!r.escalated_at || !r.sla_minutes) return '';
+		try{
+			const due = new Date(new Date(r.escalated_at).getTime() + (r.sla_minutes*60*1000));
+			const now = new Date();
+			if(now > due && !r.closed_at){ return '<span class="sla-breach">SLA BREACHED</span>'; }
+		}catch(e){}
+		return '';
+	}
+
 	async function loadReports() {
 		const res = await fetch('/api/reports');
 		const reports = await res.json();
@@ -34,7 +44,7 @@
 					<div><strong>ID</strong>: ${r.id}</div>
 					<div><strong>Status</strong>: ${r.status}</div>
 					<div><strong>Reason</strong>: ${r.reason}</div>
-					<div><strong>Escalation</strong>: L${r.escalation_level} ${r.sla_minutes ? `(SLA ${r.sla_minutes}m)` : ''}</div>
+					<div><strong>Escalation</strong>: L${r.escalation_level} ${r.sla_minutes ? `(SLA ${r.sla_minutes}m)` : ''} ${slaBadge(r)}</div>
 				</div>
 				<div class="content"><strong>Content</strong>: ${r.content_text}</div>
 				<div class="actions">

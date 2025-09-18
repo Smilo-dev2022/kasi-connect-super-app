@@ -16,6 +16,8 @@ from prometheus_client import Counter, Histogram, CollectorRegistry, generate_la
 import time
 import json
 import uuid
+import os
+from datetime import datetime, timezone, timedelta
 
 
 def create_app() -> FastAPI:
@@ -53,6 +55,7 @@ def create_app() -> FastAPI:
         registry=registry,
     )
     moderation_escalations_total = Counter("moderation_escalations_total", "Total escalations", registry=registry)
+    moderation_sla_breaches_total = Counter("moderation_sla_breaches_total", "Total SLA breaches detected", registry=registry)
 
     @app.middleware("http")
     async def metrics_and_logs(request: Request, call_next):
@@ -83,14 +86,48 @@ def create_app() -> FastAPI:
         return Response(generate_latest(registry), media_type=CONTENT_TYPE_LATEST)
 
     app.state.moderation_escalations_total = moderation_escalations_total
+    app.state.moderation_sla_breaches_total = moderation_sla_breaches_total
+    app.state._sla_breached_ids = set()
+
+    async def sla_watcher_loop() -> None:
+        while True:
+            try:
+                # iterate reports and find SLA breaches
+                # using store.list_reports(None)
+                reports = await app.state.store.list_reports()
+                now = datetime.now(timezone.utc)
+                for r in reports:
+                    try:
+                        if r.closed_at is not None:
+                            continue
+                        if r.escalated_at is None:
+                            continue
+                        if r.sla_minutes is None or r.sla_minutes <= 0:
+                            continue
+                        due_at = r.escalated_at + timedelta(minutes=r.sla_minutes)
+                        if now > due_at:
+                            if r.id not in app.state._sla_breached_ids:
+                                app.state._sla_breached_ids.add(r.id)
+                                app.state.moderation_sla_breaches_total.inc()
+                    except Exception:
+                        # ignore per-report errors
+                        pass
+            except Exception:
+                # ignore iteration errors, continue loop
+                pass
+            await asyncio.sleep(60)
 
     @app.on_event("startup")
     async def on_startup() -> None:
         await app.state.abuse_queue.start()
+        app.state._sla_watcher_task = asyncio.create_task(sla_watcher_loop())
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:
         await app.state.abuse_queue.stop()
+        task = getattr(app.state, "_sla_watcher_task", None)
+        if task is not None:
+            task.cancel()
 
     app.include_router(api_router)
     app.include_router(admin_router)

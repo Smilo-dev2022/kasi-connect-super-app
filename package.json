@@ -10,7 +10,9 @@
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "seed:moderation": "python3 -m moderation_service.app.seed || true",
+    "seed:moderation:rest": "node scripts/seed-moderation.mjs || true"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.887.0",

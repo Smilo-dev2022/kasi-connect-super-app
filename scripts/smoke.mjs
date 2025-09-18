@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import fetch from 'node-fetch';
 
 const WALLET = process.env.VITE_WALLET_API || 'http://localhost:8000';
 const EVENTS = process.env.VITE_EVENTS_API || 'http://localhost:3000';

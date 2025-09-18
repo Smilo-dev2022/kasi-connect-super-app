@@ -5,6 +5,8 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Request, status
 
 from .models import Report, ReportCreate, ReportUpdateStatus, ReportStatus
+from pydantic import BaseModel
+from uuid import uuid4
 
 
 # Appeals MVP
@@ -33,6 +35,14 @@ def get_store(request: Request):
 
 def get_queue(request: Request):
     return request.app.state.abuse_queue
+
+
+def get_appeals(request: Request):
+    return request.app.state.appeals
+
+
+def get_roles(request: Request):
+    return request.app.state.roles
 
 
 @router.get("/health")
@@ -74,26 +84,17 @@ async def update_report_status(request: Request, report_id: str, payload: Report
 
 
 @router.post("/appeals", response_model=Appeal, status_code=status.HTTP_201_CREATED)
-async def create_appeal(payload: AppealCreate) -> Appeal:
-    import datetime, uuid
-    a = Appeal(
-        id=str(uuid.uuid4()),
-        report_id=payload.report_id,
-        user_id=payload.user_id,
-        reason=payload.reason,
-        status="new",
-        created_at=datetime.datetime.utcnow().isoformat(),
-    )
-    appeals_store[a.id] = a
-    return a
+async def create_appeal(request: Request, payload: AppealCreate) -> Appeal:
+    store = get_appeals(request)
+    data = await store.create(payload.report_id, payload.user_id, payload.reason)
+    return Appeal(**data)  # type: ignore[arg-type]
 
 
 @router.get("/appeals", response_model=List[Appeal])
-async def list_appeals(status_filter: Optional[str] = None) -> List[Appeal]:
-    items = list(appeals_store.values())
-    if status_filter:
-        items = [a for a in items if a.status == status_filter]
-    return items
+async def list_appeals(request: Request, status_filter: Optional[str] = None) -> List[Appeal]:
+    store = get_appeals(request)
+    items = await store.list(status_filter)
+    return [Appeal(**a) for a in items]  # type: ignore[list-item]
 
 
 @router.get("/transparency/aggregates")
@@ -143,3 +144,32 @@ async def close_report(request: Request, report_id: str, note: Optional[str] = N
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
     return updated
+
+
+class RoleGrant(BaseModel):
+    user_id: str
+    role: str
+    scope: Optional[str] = None
+
+
+class Role(BaseModel):
+    id: str
+    user_id: str
+    role: str
+    scope: Optional[str] = None
+    created_by: Optional[str] = None
+    created_at: str
+
+
+@router.post("/roles", response_model=Role, status_code=status.HTTP_201_CREATED)
+async def grant_role(request: Request, payload: RoleGrant, x_admin_user: Optional[str] = None) -> Role:
+    roles = get_roles(request)
+    data = await roles.grant(payload.user_id, payload.role, payload.scope, x_admin_user)
+    return Role(**data)  # type: ignore[arg-type]
+
+
+@router.get("/roles", response_model=List[Role])
+async def list_roles(request: Request, user_id: Optional[str] = None) -> List[Role]:
+    roles = get_roles(request)
+    items = await roles.list(user_id)
+    return [Role(**r) for r in items]  # type: ignore[list-item]

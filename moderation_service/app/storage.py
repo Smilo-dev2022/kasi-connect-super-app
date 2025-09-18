@@ -8,7 +8,8 @@ import os
 
 from .models import Report, ReportCreate, ReportStatus
 from .db import get_session
-from .sqlmodels import ReportRow
+from .sqlmodels import ReportRow, AppealRow, RoleRow
+from uuid import uuid4
 
 
 class InMemoryReportStore:
@@ -230,6 +231,86 @@ class PostgresReportStore:
             session.add(row)
             session.commit()
             return await self.get_report(report_id)
+
+
+class AppealStore:
+    async def create(self, report_id: str, user_id: str, reason: str) -> dict:
+        for session in get_session():
+            row = AppealRow(
+                id=str(uuid4()),
+                report_id=report_id,
+                user_id=user_id,
+                reason=reason,
+                status="new",
+            )
+            session.add(row)
+            session.commit()
+            return {
+                "id": row.id,
+                "report_id": row.report_id,
+                "user_id": row.user_id,
+                "reason": row.reason,
+                "status": row.status,
+                "created_at": row.created_at.isoformat(),
+            }
+
+    async def list(self, status: Optional[str] = None) -> List[dict]:
+        for session in get_session():
+            query = session.query(AppealRow)
+            if status:
+                query = query.filter(AppealRow.status == status)
+            rows = query.order_by(AppealRow.created_at.desc()).all()
+            return [
+                {
+                    "id": r.id,
+                    "report_id": r.report_id,
+                    "user_id": r.user_id,
+                    "reason": r.reason,
+                    "status": r.status,
+                    "created_at": r.created_at.isoformat(),
+                }
+                for r in rows
+            ]
+
+
+class RoleStore:
+    async def grant(self, user_id: str, role: str, scope: Optional[str], created_by: Optional[str]) -> dict:
+        for session in get_session():
+            row = RoleRow(
+                id=str(uuid4()),
+                user_id=user_id,
+                role=role,
+                scope=scope,
+                created_by=created_by,
+            )
+            session.add(row)
+            session.commit()
+            return {
+                "id": row.id,
+                "user_id": row.user_id,
+                "role": row.role,
+                "scope": row.scope,
+                "created_by": row.created_by,
+                "created_at": row.created_at.isoformat(),
+            }
+
+    async def list(self, user_id: Optional[str] = None) -> List[dict]:
+        for session in get_session():
+            query = session.query(RoleRow)
+            if user_id:
+                query = query.filter(RoleRow.user_id == user_id)
+            rows = query.order_by(RoleRow.created_at.desc()).all()
+            return [
+                {
+                    "id": r.id,
+                    "user_id": r.user_id,
+                    "role": r.role,
+                    "scope": r.scope,
+                    "created_by": r.created_by,
+                    "created_at": r.created_at.isoformat(),
+                }
+                for r in rows
+            ]
 
     async def close(self, report_id: str, note: Optional[str] = None) -> Optional[Report]:
         for session in get_session():

@@ -20,3 +20,22 @@ class ReportRow(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+
+
+class AppealRow(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    report_id: str = Field(index=True)
+    user_id: str = Field(index=True)
+    reason: str
+    status: str = Field(default="new", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RoleRow(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    user_id: str = Field(index=True)
+    role: str = Field(index=True, description="e.g., admin|moderator|reviewer")
+    scope: Optional[str] = Field(default=None, description="optional scope like ward:Ward 48 or global")
+    created_by: Optional[str] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -40,3 +40,28 @@ export const checkinTotal = new client.Counter({
 
 export const registry = client.register;
 
+
+// Ward metrics: track last event timestamps per ward in-memory for MVP
+type WardFreshnessRecord = {
+  ward: string;
+  last_event_at: string; // ISO timestamp
+};
+
+const wardLastEventMap: Map<string, string> = new Map();
+
+export function recordWardEvent(ward: string, time?: Date) {
+  const t = (time ?? new Date()).toISOString();
+  wardLastEventMap.set(ward, t);
+}
+
+export function getWardFreshness(): WardFreshnessRecord[] {
+  const now = Date.now();
+  return Array.from(wardLastEventMap.entries())
+    .map(([ward, iso]) => {
+      const ts = Date.parse(iso);
+      const ageSeconds = Math.max(0, Math.round((now - ts) / 1000));
+      return { ward, last_event_at: iso, age_seconds: ageSeconds, healthy: ageSeconds <= 15 * 60 } as any;
+    })
+    .sort((a, b) => a.ward.localeCompare(b.ward));
+}
+

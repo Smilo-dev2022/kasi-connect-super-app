@@ -10,9 +10,10 @@ from .api import router as api_router
 from .admin import router as admin_router
 from .clients.group_chat import GroupChatClient
 from .queue import AbuseQueueProcessor
-from .storage import InMemoryReportStore, PostgresReportStore
+from .storage import InMemoryReportStore, PostgresReportStore, AppealStore, RoleStore
 from .db import init_db
 from prometheus_client import Counter, Histogram, CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST
+import os
 import time
 import json
 import uuid
@@ -26,8 +27,12 @@ def create_app() -> FastAPI:
     if use_db:
         init_db()
         app.state.store = PostgresReportStore()
+        app.state.appeals = AppealStore()
+        app.state.roles = RoleStore()
     else:
         app.state.store = InMemoryReportStore()
+        app.state.appeals = AppealStore()
+        app.state.roles = RoleStore()
     app.state.group_chat = GroupChatClient()
     app.state.abuse_queue = AbuseQueueProcessor(app.state.store, app.state.group_chat)
 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moderation Admin</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 20px; }
+      h1 { margin-bottom: 8px; }
+      .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
+      tr:hover { background: #fafafa; }
+      .pill { padding: 2px 6px; border-radius: 10px; font-size: 12px; }
+      .pending { background: #fff6cc; }
+      .reviewed { background: #d6ffda; }
+      .dismissed { background: #ffe5e5; }
+      .in_review { background: #d6eaff; }
+      .btn { cursor: pointer; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: #fff; }
+    </style>
+  </head>
+  <body>
+    <h1>Moderation Admin</h1>
+    <div class="controls">
+      <button class="btn" id="refresh">Refresh</button>
+      <button class="btn" id="claim">Claim Next</button>
+      <label>Status filter</label>
+      <select id="status">
+        <option value="">All</option>
+        <option value="pending">Pending</option>
+        <option value="in_review">In Review</option>
+        <option value="reviewed">Reviewed</option>
+        <option value="dismissed">Dismissed</option>
+      </select>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Reason</th>
+          <th>Target</th>
+          <th>Reporter</th>
+          <th>Created</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <script>
+      const api = (path, options) => fetch(`/api${path}`, options).then(r => r.status === 204 ? null : r.json());
+      async function load() {
+        const status = document.getElementById('status').value;
+        const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+        const items = await api(`/reports${qs}`);
+        const rows = document.getElementById('rows');
+        rows.innerHTML = '';
+        for (const r of items) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${r.id}</code></td>
+            <td>${r.reason}</td>
+            <td>${r.targetType}:${r.targetId}</td>
+            <td>${r.reporterId}</td>
+            <td>${new Date(r.createdAt).toLocaleString()}</td>
+            <td><span class="pill ${r.status}">${r.status}</span></td>
+          `;
+          rows.appendChild(tr);
+        }
+      }
+      document.getElementById('refresh').onclick = load;
+      document.getElementById('status').onchange = load;
+      document.getElementById('claim').onclick = async () => { await api('/queue/claim', { method: 'POST' }); await load(); };
+      load();
+    </script>
+  </body>
+  </html>
+

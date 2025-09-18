@@ -42,6 +42,12 @@ This guide describes how to manage secrets across services, how to load them in 
 - `EVENTS_DATABASE_URL`
 - `EVENTS_BASE_URL` (should be https in production)
 
+### Linear Integration
+- Linear API key is stored in `.env.linear` at the repository root
+- File format: `lin_api_<key>` (single line, no variable name)
+- This file is automatically ignored by git to prevent accidental commits
+- Used for project management integration with Linear
+
 ## Rotation
 - Store the rotation runbook in `runbooks/rotate-secrets.md` (create if missing).
 - Rotate on compromise or on a fixed cadence (90 days typical).

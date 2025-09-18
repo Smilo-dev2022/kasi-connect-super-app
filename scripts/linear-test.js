@@ -3,6 +3,13 @@ import dotenv from "dotenv";
 // Load environment from .env.linear (if present)
 dotenv.config({ path: ".env.linear" });
 
+const sanitize = (value) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  // strip surrounding single or double quotes if present
+  return trimmed.replace(/^['"]|['"]$/g, "");
+};
+
 const resolveLinearKey = () => {
   const candidates = [
     "LINEAR_API_KEY",
@@ -15,7 +22,7 @@ const resolveLinearKey = () => {
   ];
 
   for (const name of candidates) {
-    const value = process.env[name];
+    const value = sanitize(process.env[name]);
     if (value && value.trim().length > 0) {
       return { key: value.trim(), name };
     }
@@ -25,7 +32,7 @@ const resolveLinearKey = () => {
   for (const [name, value] of Object.entries(process.env)) {
     if (!name.toUpperCase().includes("LINEAR")) continue;
     if (!value) continue;
-    const trimmed = String(value).trim();
+    const trimmed = String(sanitize(value)).trim();
     if (trimmed.length === 0) continue;
     if (trimmed.startsWith("lin_") || trimmed.startsWith("lin_api_")) {
       return { key: trimmed, name };
@@ -35,8 +42,17 @@ const resolveLinearKey = () => {
   // Last resort: if any LINEAR* has a value, use the first non-empty
   for (const [name, value] of Object.entries(process.env)) {
     if (!name.toUpperCase().includes("LINEAR")) continue;
-    if (value && String(value).trim().length > 0) {
-      return { key: String(value).trim(), name };
+    if (value && String(sanitize(value)).trim().length > 0) {
+      return { key: String(sanitize(value)).trim(), name };
+    }
+  }
+
+  // Ultimate fallback: accept any env var whose value looks like a Linear key
+  for (const [name, value] of Object.entries(process.env)) {
+    if (!value) continue;
+    const trimmed = String(sanitize(value)).trim();
+    if (trimmed.startsWith("lin_") || trimmed.startsWith("lin_api_")) {
+      return { key: trimmed, name };
     }
   }
 

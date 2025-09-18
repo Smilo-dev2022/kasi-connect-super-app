@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "linear:test": "node ./scripts/linear-test.js"
+    "linear:test": "node ./scripts/linear-test.js",
+    "linear:connect": "node ./scripts/linear-connect.js https://linear.app/kasi-connect-kc-pty-ltd/team/KAS/all"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.887.0",

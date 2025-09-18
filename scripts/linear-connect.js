@@ -5,6 +5,13 @@ dotenv.config({ path: ".env.linear", override: true });
 
 const endpoint = "https://api.linear.app/graphql";
 
+const sanitize = (value) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  const unquoted = trimmed.replace(/^['"]|['"]$/g, "");
+  return unquoted.replace(/^Bearer\s+/i, "");
+};
+
 const resolveLinearKey = () => {
   const candidates = [
     "LINEAR_API_KEY",
@@ -16,7 +23,7 @@ const resolveLinearKey = () => {
     "VITE_LINEAR_API_KEY",
   ];
   for (const name of candidates) {
-    const value = process.env[name];
+    const value = sanitize(process.env[name]);
     if (value && value.trim().length > 0) {
       return { key: value.trim(), name };
     }
@@ -24,20 +31,20 @@ const resolveLinearKey = () => {
   for (const [name, value] of Object.entries(process.env)) {
     if (!name.toUpperCase().includes("LINEAR")) continue;
     if (!value) continue;
-    const trimmed = String(value).trim();
+    const trimmed = String(sanitize(value)).trim();
     if (trimmed.startsWith("lin_") || trimmed.startsWith("lin_api_")) {
       return { key: trimmed, name };
     }
   }
   for (const [name, value] of Object.entries(process.env)) {
     if (!name.toUpperCase().includes("LINEAR")) continue;
-    if (value && String(value).trim().length > 0) {
-      return { key: String(value).trim(), name };
+    if (value && String(sanitize(value)).trim().length > 0) {
+      return { key: String(sanitize(value)).trim(), name };
     }
   }
   for (const [name, value] of Object.entries(process.env)) {
     if (!value) continue;
-    const trimmed = String(value).trim();
+    const trimmed = String(sanitize(value)).trim();
     if (trimmed.startsWith("lin_") || trimmed.startsWith("lin_api_")) {
       return { key: trimmed, name };
     }
@@ -88,6 +95,8 @@ async function callLinear(authHeaderValue, body) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
+      "User-Agent": "kasi-connect-linear-connect/1.0 (+https://linear.app)",
       Authorization: authHeaderValue,
     },
     body: JSON.stringify(body),
@@ -127,10 +136,8 @@ async function main() {
     variables: { filter: { key: { eq: teamKey } } },
   };
 
+  // Linear expects the API key directly in Authorization (no Bearer prefix)
   let result = await callLinear(apiKey, query);
-  if (!result.ok && (result.status === 401 || result.status === 403)) {
-    result = await callLinear(`Bearer ${apiKey}`, query);
-  }
 
   if (!result.ok) {
     console.error("Failed to fetch team. Status:", result.status, result.statusText);

@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config({ path: ".env.linear", override: true });
 
@@ -43,6 +44,29 @@ const resolveLinearKey = () => {
   }
   return { key: null, name: null };
 };
+
+// Extra fallback: manual parse
+try {
+  const { key } = resolveLinearKey();
+  if (!key && fs.existsSync(".env.linear")) {
+    const raw = fs.readFileSync(".env.linear", "utf8");
+    const line = raw.split(/\n|\r\n?/).find((l) => /^\s*LINEAR_API_KEY\s*=/.test(l));
+    if (line) {
+      let value = line.replace(/^\s*LINEAR_API_KEY\s*=\s*/, "");
+      value = value.replace(/\s+#.*$/, "").replace(/[\r\n]+$/, "");
+      value = value.replace(/^['"]|['"]$/g, "");
+      if (value && value.trim()) {
+        process.env.LINEAR_API_KEY = value.trim();
+      }
+    }
+    if (!process.env.LINEAR_API_KEY) {
+      const tokenMatch = raw.match(/\b(lin_api_[A-Za-z0-9]+|lin_[A-Za-z0-9]+)\b/);
+      if (tokenMatch && tokenMatch[0]) {
+        process.env.LINEAR_API_KEY = tokenMatch[0];
+      }
+    }
+  }
+} catch {}
 
 function parseTeamKeyFromUrl(raw) {
   try {
@@ -98,8 +122,9 @@ async function main() {
   }
 
   const query = {
-    query: "query TeamByKey($key: String!) { team(key: $key) { id name key url } }",
-    variables: { key: teamKey },
+    query:
+      "query Teams($filter: TeamFilter) { teams(filter: $filter, first: 1) { nodes { id name key } } }",
+    variables: { filter: { key: { eq: teamKey } } },
   };
 
   let result = await callLinear(apiKey, query);
@@ -113,13 +138,13 @@ async function main() {
     process.exit(1);
   }
 
-  const team = result.data?.data?.team;
+  const team = result.data?.data?.teams?.nodes?.[0];
   if (!team) {
     console.error("No team found for key:", teamKey);
     process.exit(1);
   }
 
-  console.log(`Team: ${team.name} (${team.key}) id=${team.id} url=${team.url}`);
+  console.log(`Team: ${team.name} (${team.key}) id=${team.id}`);
 }
 
 await main();

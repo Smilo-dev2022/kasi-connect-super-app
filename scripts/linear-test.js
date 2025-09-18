@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "fs";
 
 // Load environment from .env.linear (override to ensure latest value is used)
 dotenv.config({ path: ".env.linear", override: true });
@@ -7,7 +8,9 @@ const sanitize = (value) => {
   if (typeof value !== "string") return value;
   const trimmed = value.trim();
   // strip surrounding single or double quotes if present
-  return trimmed.replace(/^['"]|['"]$/g, "");
+  const unquoted = trimmed.replace(/^['"]|['"]$/g, "");
+  // strip an accidental Bearer prefix if present
+  return unquoted.replace(/^Bearer\s+/i, "");
 };
 
 const resolveLinearKey = () => {
@@ -59,6 +62,32 @@ const resolveLinearKey = () => {
   return { key: null, name: null };
 };
 
+// Extra fallback: if dotenv did not populate, parse file manually
+try {
+  const { key } = resolveLinearKey();
+  if (!key && fs.existsSync(".env.linear")) {
+    const raw = fs.readFileSync(".env.linear", "utf8");
+    const line = raw.split(/\n|\r\n?/).find((l) => /^\s*LINEAR_API_KEY\s*=/.test(l));
+    if (line) {
+      let value = line.replace(/^\s*LINEAR_API_KEY\s*=\s*/, "");
+      // strip inline comments and trailing whitespace
+      value = value.replace(/\s+#.*$/, "").replace(/[\r\n]+$/, "");
+      // strip surrounding quotes
+      value = value.replace(/^['"]|['"]$/g, "");
+      if (value && value.trim()) {
+        process.env.LINEAR_API_KEY = value.trim();
+      }
+    }
+    // If still not set, attempt to find a token-like value anywhere in the file
+    if (!process.env.LINEAR_API_KEY) {
+      const tokenMatch = raw.match(/\b(lin_api_[A-Za-z0-9]+|lin_[A-Za-z0-9]+)\b/);
+      if (tokenMatch && tokenMatch[0]) {
+        process.env.LINEAR_API_KEY = tokenMatch[0];
+      }
+    }
+  }
+} catch {}
+
 const { key: apiKey, name: keyName } = resolveLinearKey();
 
 if (!apiKey) {
@@ -80,6 +109,8 @@ async function callLinear(authHeaderValue) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
+      "User-Agent": "kasi-connect-linear-check/1.0 (+https://linear.app)",
       Authorization: authHeaderValue,
     },
     body: JSON.stringify(query),
@@ -96,13 +127,12 @@ async function callLinear(authHeaderValue) {
 
 async function main() {
   try {
-    // First try: token directly in Authorization
-    let result = await callLinear(apiKey);
+    // Linear expects the API key directly in the Authorization header (no Bearer prefix)
+    const maskedLen = apiKey ? apiKey.length : 0;
+    const prefix = apiKey?.startsWith("lin_api_") || apiKey?.startsWith("lin_") ? "lin_*" : "unknown";
+    console.log(`Using key ${keyName} (length=${maskedLen}, prefix=${prefix})`);
 
-    // If unauthorized, try Bearer scheme
-    if (!result.ok && (result.status === 401 || result.status === 403)) {
-      result = await callLinear(`Bearer ${apiKey}`);
-    }
+    let result = await callLinear(apiKey);
 
     if (!result.ok) {
       console.error("Failed to connect to Linear.\nStatus:", result.status, result.statusText);

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-dotenv.config({ path: ".env.linear" });
+dotenv.config({ path: ".env.linear", override: true });
 
 const endpoint = "https://api.linear.app/graphql";
 

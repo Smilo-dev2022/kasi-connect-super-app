@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 
-// Load environment from .env.linear (if present)
-dotenv.config({ path: ".env.linear" });
+// Load environment from .env.linear (override to ensure latest value is used)
+dotenv.config({ path: ".env.linear", override: true });
 
 const sanitize = (value) => {
   if (typeof value !== "string") return value;

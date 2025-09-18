@@ -15,6 +15,8 @@ services:
     build: ./app
     environment:
       DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      USE_DB: "true"
+      ENV: production
     depends_on:
       - postgres
 
@@ -22,6 +24,8 @@ services:
     build: ./events_service
     environment:
       EVENTS_DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      USE_DB: "true"
+      ENV: production
     depends_on:
       - postgres
 
@@ -29,6 +33,8 @@ services:
     build: ./events-service
     environment:
       PORT: 3000
+      NODE_ENV: production
+      EVENTS_DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
     depends_on:
       - postgres
 
@@ -36,6 +42,8 @@ services:
     build: ./moderation_service
     environment:
       MOD_DB_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      MOD_USE_DB: "true"
+      ENV: production
     depends_on:
       - postgres
 

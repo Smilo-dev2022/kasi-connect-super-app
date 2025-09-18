@@ -14,9 +14,12 @@ import {
   Clock,
   MapPin
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Rooms = () => {
-  const communityRooms = [
+  const navigate = useNavigate();
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  const communityRooms = demoMode ? [
     {
       id: 1,
       name: "Safety Room",
@@ -65,9 +68,9 @@ const Rooms = () => {
       category: "business",
       color: "secondary"
     }
-  ];
+  ] : [];
 
-  const recentAlerts = [
+  const recentAlerts = demoMode ? [
     {
       type: "safety",
       icon: AlertTriangle,
@@ -95,7 +98,7 @@ const Rooms = () => {
       location: "Various Universities",
       urgent: false
     }
-  ];
+  ] : [];
 
   const getColorClasses = (color: string) => {
     switch (color) {
@@ -209,7 +212,7 @@ const Rooms = () => {
                         {room.unread}
                       </Badge>
                     )}
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/app/chat/${encodeURIComponent(room.name.replace(/\s+/g, '-').toLowerCase())}`)}>
                       Join Room
                     </Button>
                   </div>

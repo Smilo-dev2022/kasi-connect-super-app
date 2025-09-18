@@ -48,10 +48,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">Platform</h4>
             <ul className="space-y-2 text-white/80">
-              <li><a href="#" className="hover:text-white transition-colors">Community Chat</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Stokvel Management</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Local Business</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Safety Alerts</a></li>
+              <li><a href="/app/chats" className="hover:text-white transition-colors">Community Chat</a></li>
+              <li><a href="/app/wallet" className="hover:text-white transition-colors">Stokvel Management</a></li>
+              <li><a href="/app/business" className="hover:text-white transition-colors">Local Business</a></li>
+              <li><a href="/app/rooms" className="hover:text-white transition-colors">Safety Alerts</a></li>
             </ul>
           </div>
 
@@ -78,9 +78,9 @@ const Footer = () => {
               © 2024 iKasiLink. Made with <Heart className="w-4 h-4 inline text-red-400" /> for South African communities.
             </p>
             <div className="flex gap-6 text-sm text-white/70">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors">Community Guidelines</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
+              <a href="/privacy#community" className="hover:text-white transition-colors">Community Guidelines</a>
             </div>
           </div>
         </div>

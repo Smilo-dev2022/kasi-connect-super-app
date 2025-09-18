@@ -33,8 +33,9 @@ export const authRouter = Router();
 const DevTokenBody = z.object({ userId: z.string().min(1), name: z.string().optional() });
 
 authRouter.post('/dev-token', (req: Request, res: Response) => {
-	if (process.env.NODE_ENV === 'production') {
-		return res.status(403).json({ error: 'endpoint disabled in production' });
+	const jwtOnly = (process.env.VITE_JWT_ONLY === 'true') || (process.env.JWT_ONLY === 'true');
+	if (process.env.NODE_ENV === 'production' || jwtOnly) {
+		return res.status(403).json({ error: 'endpoint disabled' });
 	}
 	const parsed = DevTokenBody.safeParse(req.body);
 	if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });

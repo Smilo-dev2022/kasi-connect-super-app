@@ -16,14 +16,15 @@ type Group = {
   unread?: number;
 };
 
-const groupsSeed: Group[] = [
+const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+const groupsSeed: Group[] = demoMode ? [
   { id: 1, name: "Ward 12 CPF", description: "Community policing forum updates", members: 2450, verified: true, category: "safety", unread: 3 },
   { id: 2, name: "Thabo's Stokvel", description: "Monthly savings circle", members: 12, verified: true, category: "stokvel", unread: 1 },
   { id: 3, name: "Jobs Room", description: "Local job posts and career help", members: 1820, verified: true, category: "employment" },
   { id: 4, name: "Education Room", description: "Courses, bursaries and tips", members: 3100, verified: true, category: "education" },
   { id: 5, name: "Sonto (Neighbor)", description: "Personal chat", members: 2, category: "personal" },
   { id: 6, name: "SMME Tenders", description: "Business tenders and notices", members: 890, verified: true, category: "business" },
-];
+]: [];
 
 const categoryToIcon: Record<string, any> = {
   safety: Shield,

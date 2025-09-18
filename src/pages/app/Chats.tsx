@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +14,12 @@ import {
   Clock,
   Star
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const Chats = () => {
-  const chatGroups = [
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  const chatGroups = demoMode ? [
     {
       id: 1,
       name: "Family WhatsApp",
@@ -82,7 +86,7 @@ const Chats = () => {
       verified: true,
       online: false
     }
-  ];
+  ] : [];
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -101,16 +105,27 @@ const Chats = () => {
     }
   };
 
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/30 pb-20">
       <AppHeader title="Chats" showSearch={true} />
       
       <div className="p-4 space-y-4">
         {/* Create New Chat */}
-        <Button variant="hero" className="w-full justify-center gap-2 py-6">
-          <Plus className="w-5 h-5" />
-          Start New Chat
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="hero" className="w-full justify-center gap-2 py-6">
+              <Plus className="w-5 h-5" />
+              Start New Chat
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Start a new chat</DialogTitle>
+            </DialogHeader>
+            <NewChatForm onStart={(id) => navigate(`/app/chat/${encodeURIComponent(id)}`)} />
+          </DialogContent>
+        </Dialog>
 
         {/* Chat Categories */}
         <div className="flex gap-2 overflow-x-auto pb-2">
@@ -131,7 +146,7 @@ const Chats = () => {
             const TypeIcon = getTypeIcon(chat.type);
             
             return (
-              <Card key={chat.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <Card key={chat.id} className="p-4 bg-card/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => navigate(`/app/chat/${encodeURIComponent(chat.name.replace(/\s+/g, '-').toLowerCase())}`)}>
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
                   <div className="relative">
@@ -204,3 +219,28 @@ const Chats = () => {
 };
 
 export default Chats;
+
+function NewChatForm({ onStart }: { onStart: (threadId: string) => void }) {
+  const [query, setQuery] = useState("");
+  const suggestions = ["business-1", "thabo", "mama-sarah", "ward-cpf", "youth-soccer"];
+  const filtered = suggestions.filter((s) => s.toLowerCase().includes(query.toLowerCase()));
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const id = query.trim() || filtered[0] || "chat-" + Date.now();
+    onStart(id);
+  }
+  return (
+    <form className="space-y-3" onSubmit={submit}>
+      <div>
+        <label className="text-sm text-muted-foreground">Recipient or group ID</label>
+        <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="e.g. business-1" />
+      </div>
+      {filtered.length > 0 && (
+        <div className="text-xs text-muted-foreground">Suggestions: {filtered.slice(0,5).join(', ')}</div>
+      )}
+      <div className="flex gap-2 justify-end">
+        <Button type="submit">Start</Button>
+      </div>
+    </form>
+  );
+}

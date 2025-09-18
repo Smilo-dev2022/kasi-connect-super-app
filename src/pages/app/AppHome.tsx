@@ -30,7 +30,8 @@ const AppHome = () => {
     { icon: Store, label: "Business", path: "/app/business", color: "community" }
   ];
 
-  const notifications = [
+  const demoMode = ((import.meta as any)?.env?.VITE_DEMO ?? 'false') === 'true';
+  const notifications = demoMode ? [
     {
       type: "payment",
       icon: Coins,
@@ -55,7 +56,7 @@ const AppHome = () => {
       time: "1d ago",
       color: "primary"
     }
-  ];
+  ] : [];
 
   const getColorClasses = (color: string) => {
     switch (color) {

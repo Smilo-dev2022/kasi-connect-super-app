@@ -9,6 +9,8 @@ module.exports = {
   setupFiles: ['<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
-    '^react-native-vector-icons/(.*)$': '<rootDir>/__mocks__/react-native-vector-icons.js'
+    '^react-native-vector-icons/(.*)$': '<rootDir>/__mocks__/react-native-vector-icons.js',
+    '^react-native-config$': '<rootDir>/__mocks__/react-native-config.js',
+    '^@sentry/react-native$': '<rootDir>/__mocks__/@sentry/react-native.js'
   }
 };

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Footer from '../components/Footer';
@@ -14,8 +15,8 @@ describe('Footer Component', () => {
       </WithRouter>
     );
 
-    // Check for the brand name
-    expect(screen.getByRole('heading', { name: /iKasiLink/i })).toBeInTheDocument();
+    // Check for the brand name (exact match to avoid matching "iKasiLink Platform")
+    expect(screen.getByRole('heading', { name: /^iKasiLink$/i, level: 3 })).toBeInTheDocument();
     
     // Check for copyright notice
     expect(screen.getByText(/© 2024 iKasiLink/i)).toBeInTheDocument();

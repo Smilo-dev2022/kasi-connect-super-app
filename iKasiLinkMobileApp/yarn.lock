@@ -2107,6 +2107,17 @@
   dependencies:
     "@tanstack/query-core" "5.89.0"
 
+"@testing-library/jest-native@^5.4.3":
+  version "5.4.3"
+  resolved "https://registry.npmjs.org/@testing-library/jest-native/-/jest-native-5.4.3.tgz"
+  integrity sha512-/sSDGaOuE+PJ1Z9Kp4u7PQScSVVXGud59I/qsBFFJvIbcn4P6yYw6cBnBmbPF+X9aRIsTJRDl6gzw5ZkJNm66w==
+  dependencies:
+    chalk "^4.1.2"
+    jest-diff "^29.0.1"
+    jest-matcher-utils "^29.0.1"
+    pretty-format "^29.0.3"
+    redent "^3.0.0"
+
 "@types/babel__core@^7.1.14":
   version "7.20.5"
   resolved "https://registry.npmjs.org/@types/babel__core/-/babel__core-7.20.5.tgz"
@@ -4310,6 +4321,11 @@ imurmurhash@^0.1.4:
   resolved "https://registry.npmjs.org/imurmurhash/-/imurmurhash-0.1.4.tgz"
   integrity sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==
 
+indent-string@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/indent-string/-/indent-string-4.0.0.tgz"
+  integrity sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==
+
 inflight@^1.0.4:
   version "1.0.6"
   resolved "https://registry.npmjs.org/inflight/-/inflight-1.0.6.tgz"
@@ -4765,7 +4781,7 @@ jest-config@^29.7.0:
     slash "^3.0.0"
     strip-json-comments "^3.1.1"
 
-jest-diff@^29.7.0:
+jest-diff@^29.0.1, jest-diff@^29.7.0:
   version "29.7.0"
   resolved "https://registry.npmjs.org/jest-diff/-/jest-diff-29.7.0.tgz"
   integrity sha512-LMIgiIrhigmPrs03JHpxUh2yISK3vLFPkAodPeo0+BuF7wA2FoQbkEg1u8gBYBThncu7e1oEDUfIXVuTqLRUjw==
@@ -4837,7 +4853,7 @@ jest-leak-detector@^29.7.0:
     jest-get-type "^29.6.3"
     pretty-format "^29.7.0"
 
-jest-matcher-utils@^29.7.0:
+jest-matcher-utils@^29.0.1, jest-matcher-utils@^29.7.0:
   version "29.7.0"
   resolved "https://registry.npmjs.org/jest-matcher-utils/-/jest-matcher-utils-29.7.0.tgz"
   integrity sha512-sBkD+Xi9DtcChsI3L3u0+N0opgPYnCRPtGcQYrgXmR+hmt/fYfWAL0xRXYU8eWOdfuLgBe0YCW3AFtnRLagq/g==
@@ -5579,6 +5595,11 @@ mimic-fn@^2.1.0:
   resolved "https://registry.npmjs.org/mimic-fn/-/mimic-fn-2.1.0.tgz"
   integrity sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==
 
+min-indent@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/min-indent/-/min-indent-1.0.1.tgz"
+  integrity sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==
+
 minimatch@^3.0.2, minimatch@^3.0.4, minimatch@^3.0.5, minimatch@^3.1.1, minimatch@^3.1.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
@@ -6069,7 +6090,7 @@ pretty-format@^26.6.2:
     ansi-styles "^4.0.0"
     react-is "^17.0.1"
 
-pretty-format@^29.7.0:
+pretty-format@^29.0.3, pretty-format@^29.7.0:
   version "29.7.0"
   resolved "https://registry.npmjs.org/pretty-format/-/pretty-format-29.7.0.tgz"
   integrity sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==
@@ -6339,7 +6360,7 @@ react-shallow-renderer@^16.15.0:
     object-assign "^4.1.1"
     react-is "^16.12.0 || ^17.0.0 || ^18.0.0"
 
-react-test-renderer@18.2.0:
+react-test-renderer@>=16.0.0, react-test-renderer@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react-test-renderer/-/react-test-renderer-18.2.0.tgz"
   integrity sha512-JWD+aQ0lh2gvh4NM3bBM42Kx+XybOxCpgYK7F8ugAlpaTSnWsX+39Z4XkOykGZAHrjwwTZT3x3KxswVWxHPUqA==
@@ -6348,7 +6369,7 @@ react-test-renderer@18.2.0:
     react-shallow-renderer "^16.15.0"
     scheduler "^0.23.0"
 
-react@*, "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.14.0 || 17.x || 18.x || 19.x", "react@^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react@^18 || ^19", react@^18.2.0, "react@>= 18.2.0", react@>=16.8, react@>=17.0.0, react@>=18.0.0, react@18.2.0:
+react@*, "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.14.0 || 17.x || 18.x || 19.x", "react@^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react@^18 || ^19", react@^18.2.0, "react@>= 18.2.0", react@>=16.0.0, react@>=16.8, react@>=17.0.0, react@>=18.0.0, react@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
@@ -6391,6 +6412,14 @@ recast@^0.21.0:
     esprima "~4.0.0"
     source-map "~0.6.1"
     tslib "^2.0.1"
+
+redent@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/redent/-/redent-3.0.0.tgz"
+  integrity sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==
+  dependencies:
+    indent-string "^4.0.0"
+    strip-indent "^3.0.0"
 
 reflect.getprototypeof@^1.0.6, reflect.getprototypeof@^1.0.9:
   version "1.0.10"
@@ -7054,6 +7083,13 @@ strip-final-newline@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/strip-final-newline/-/strip-final-newline-2.0.0.tgz"
   integrity sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==
+
+strip-indent@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/strip-indent/-/strip-indent-3.0.0.tgz"
+  integrity sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==
+  dependencies:
+    min-indent "^1.0.0"
 
 strip-json-comments@^3.1.1:
   version "3.1.1"

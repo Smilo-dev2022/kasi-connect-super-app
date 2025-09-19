@@ -5,6 +5,8 @@ export default defineConfig({
 		globals: true,
 		environment: 'node',
 		coverage: { reporter: ['text', 'lcov'] },
+		include: ['test/**/*.test.ts'],
+		exclude: ['**/*.test.js', '**/node_modules/**', '**/dist/**'],
 	},
 });
 

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: top
+description: Top-level chart for super app
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies: []

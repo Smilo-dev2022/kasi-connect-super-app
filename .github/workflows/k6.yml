@@ -1,0 +1,20 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Base URL to test'
+        required: true
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run k6 smoke
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: scripts/k6/smoke.js
+        env:
+          TARGET_URL: ${{ inputs.target_url }}

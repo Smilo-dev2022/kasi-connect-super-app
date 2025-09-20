@@ -1,0 +1,109 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+
+jobs:
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: app
+            context: app
+            dockerfile: app/Dockerfile
+            port: 8000
+          - name: events-service
+            context: events-service
+            dockerfile: events-service/Dockerfile
+            port: 3000
+          - name: events_service
+            context: events_service
+            dockerfile: events_service/Dockerfile
+            port: 8000
+          - name: moderation_service
+            context: moderation_service
+            dockerfile: moderation_service/Dockerfile
+            port: 8000
+          - name: backend
+            context: backend
+            dockerfile: backend/Dockerfile
+            port: 4000
+          - name: agent7-messaging
+            context: agent7-messaging
+            dockerfile: agent7-messaging/Dockerfile
+            port: 4010
+          - name: web-admin
+            context: web-admin
+            dockerfile: web-admin/Dockerfile
+            port: 3001
+          - name: agent14-qa-release
+            context: agent14-qa-release
+            dockerfile: agent14-qa-release/Dockerfile
+            port: 0
+          - name: wallet-service
+            context: wallet-service
+            dockerfile: wallet-service/Dockerfile
+            port: 4002
+          - name: services-auth
+            context: services/auth
+            dockerfile: services/auth/Dockerfile
+            port: 4003
+          - name: services-media
+            context: services/media
+            dockerfile: services/media/Dockerfile
+            port: 4008
+          - name: agent9-search
+            context: agent9-search
+            dockerfile: agent9-search/Dockerfile
+            port: 4020
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Configure AWS credentials
+        if: env.ECR_REGISTRY != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        if: env.ECR_REGISTRY != ''
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.ECR_REGISTRY }}/${{ matrix.name }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=tag
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: ${{ env.ECR_REGISTRY != '' }}
+          platforms: linux/amd64
+          build-args: |
+            APP_PORT=${{ matrix.port }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

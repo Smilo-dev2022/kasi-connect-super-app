@@ -1,0 +1,64 @@
+global:
+  imageRegistry: ""
+  imageTag: ""
+  domain: example.com
+  tls: true
+
+ingress:
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-cert
+      hosts:
+        - api.example.com
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+services:
+  - name: backend
+    port: 4000
+    env:
+      NODE_ENV: production
+    livenessPath: /health
+    readinessPath: /health
+  - name: events-service
+    port: 3000
+    env:
+      NODE_ENV: production
+    livenessPath: /health
+    readinessPath: /health
+  - name: events_service
+    port: 8000
+    env:
+      EVENTS_BASE_URL: https://events.example.com
+    livenessPath: /health
+    readinessPath: /metrics
+  - name: moderation_service
+    port: 8000
+    env:
+      NODE_ENV: production
+    livenessPath: /metrics
+    readinessPath: /metrics
+  - name: agent7-messaging
+    port: 8080
+    env:
+      NODE_ENV: production
+    livenessPath: /health
+    readinessPath: /health
+  - name: services-media
+    port: 4008
+    env:
+      NODE_ENV: production
+    livenessPath: /health
+    readinessPath: /health

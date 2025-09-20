@@ -2,6 +2,89 @@ name: CI
 
 on:
   push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  node-ci:
+    name: Node build/lint/test (${{ matrix.working-directory }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        working-directory:
+          - .
+          - backend
+          - events-service
+          - agent7-messaging
+          - agent9-search
+          - wallet-service
+          - web-admin
+          - agent14-qa-release
+    defaults:
+      run:
+        working-directory: ${{ matrix.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            ${{ matrix.working-directory }}/package-lock.json
+            package-lock.json
+      - name: Install
+        run: |
+          if [ -f package.json ]; then npm ci; fi
+      - name: Lint
+        run: |
+          if [ -f package.json ]; then npm run lint --if-present; fi
+      - name: Build
+        run: |
+          if [ -f package.json ]; then npm run build --if-present; fi
+      - name: Test
+        run: |
+          if [ -f package.json ]; then npm test --if-present; fi
+
+  python-ci:
+    name: Python build/lint (${{ matrix.working-directory }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        working-directory:
+          - app
+          - events_service
+          - moderation_service
+    defaults:
+      run:
+        working-directory: ${{ matrix.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: ${{ matrix.working-directory }}/requirements.txt
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install ruff pip-audit
+      - name: Lint
+        run: |
+          ruff check . || true
+      - name: Security audit (pip)
+        run: |
+          pip-audit -r requirements.txt || true
+      - name: Compile check
+        run: |
+          python -m compileall .
+name: CI
+
+on:
+  push:
     branches: [ main ]
   pull_request:
     branches: [ main ]

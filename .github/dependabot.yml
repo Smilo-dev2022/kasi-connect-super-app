@@ -1,0 +1,38 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/events-service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/agent7-messaging"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/web-admin"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/agent14-qa-release"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/app"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/events_service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/moderation_service"
+    schedule:
+      interval: "weekly"

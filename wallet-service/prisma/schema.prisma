@@ -17,6 +17,7 @@ model Account {
   updatedAt DateTime      @updatedAt
   
   transactions Transaction[]
+  kyc          KYC?
 
   @@index([userId])
 }
@@ -29,6 +30,8 @@ model Transaction {
   description  String?
   balanceAfter Float
   createdAt    DateTime @default(now())
+  partnerRef   String?
+  partnerPayload Json?
 
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
@@ -36,4 +39,20 @@ model Transaction {
 enum TransactionType {
   CREDIT
   DEBIT
+}
+
+model KYC {
+  id        String     @id @default(cuid())
+  accountId String     @unique
+  account   Account    @relation(fields: [accountId], references: [id])
+  status    KYCStatus  @default(PENDING)
+  details   Json?      // Encrypted PII
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum KYCStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

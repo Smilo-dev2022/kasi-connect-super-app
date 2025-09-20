@@ -6,6 +6,114 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-ci:
+    name: Node build/test/lint (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - .
+          - agent7-messaging
+          - agent9-search
+          - agent14-qa-release
+          - backend
+          - services/auth
+          - services/media
+          - wallet-service
+          - web-admin
+          - events-service
+          - iKasiLinkMobileApp
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            ${{ matrix.project }}/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else echo "No package-lock.json"; fi
+
+      - name: Lint
+        run: |
+          npm run lint --if-present
+
+      - name: Test
+        run: |
+          npm test --if-present
+
+      - name: Build
+        run: |
+          npm run build --if-present
+
+  python-ci:
+    name: Python build/test/lint (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: .
+            req: requirements.txt
+          - project: moderation_service
+            req: requirements.txt
+          - project: events_service
+            req: requirements.txt
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            ${{ matrix.project }}/${{ matrix.req }}
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.project }}
+        run: |
+          if [ -f "${{ matrix.req }}" ]; then pip install -r "${{ matrix.req }}"; fi
+
+      - name: Compile bytecode (sanity)
+        working-directory: ${{ matrix.project }}
+        run: |
+          python -m compileall . || true
+
+      - name: Lint (placeholder)
+        if: always()
+        continue-on-error: true
+        working-directory: ${{ matrix.project }}
+        run: |
+          pip install flake8 || true
+          flake8 . || true
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 permissions:
   contents: read
 

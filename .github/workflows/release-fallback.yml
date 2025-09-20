@@ -1,0 +1,52 @@
+name: Release Fallback Escalation
+
+on:
+  workflow_run:
+    workflows: ["Release Please"]
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  escalate-to-jules:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create issue for Jules
+        uses: actions/github-script@v7
+        env:
+          JULES_GH: ${{ vars.JULES_GH || 'jules' }}
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const title = `Release failed for ${run.head_branch} @ ${run.head_sha.substring(0,7)}`;
+            const body = [
+              `Release workflow failed.`,
+              ``,
+              `Workflow: ${run.name}`,
+              `Run #: ${run.run_number}`,
+              `Run URL: ${run.html_url}`,
+              `Commit: ${run.head_sha}`,
+              `Branch: ${run.head_branch}`,
+              ``,
+              `Please create the release and publish artifacts/images manually.`,
+            ].join('\n');
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['release','needs-attention']
+            });
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.data.number,
+                assignees: [process.env.JULES_GH]
+              });
+            } catch (e) {
+              core.warning(`Could not assign to jules: ${e.message}`);
+            }

@@ -12,11 +12,12 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false
+    watch: true
 
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: you@example.com
+      email: ops@example.com
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web

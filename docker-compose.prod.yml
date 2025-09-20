@@ -6,38 +6,69 @@ services:
       POSTGRES_USER: kasilink
       POSTGRES_PASSWORD: kasilink
       POSTGRES_DB: kasilink
-    ports:
-      - "5432:5432"
+    # Do not expose Postgres publicly in production
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   wallet:
-    build: ./app
+    image: ${WALLET_IMAGE:-wallet-service:latest}
     environment:
-      DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      DATABASE_URL: ${WALLET_DATABASE_URL}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wallet.rule=Host(`${API_BASE_HOST}`) && PathPrefix(`/api/wallet`)"
+      - "traefik.http.services.wallet.loadbalancer.server.port=3000"
 
-  events_py:
-    build: ./events_service
+  events:
+    image: ${EVENTS_IMAGE:-events-service-py:latest}
     environment:
-      EVENTS_DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      EVENTS_DATABASE_URL: ${EVENTS_DATABASE_URL}
+      SEED_DATA: "false"
     depends_on:
-      - postgres
-
-  events_node:
-    build: ./events-service
-    environment:
-      PORT: 3000
-    depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.events.rule=Host(`${API_BASE_HOST}`) && (PathPrefix(`/api/events`) || PathPrefix(`/events`))"
+      - "traefik.http.services.events.loadbalancer.server.port=8001"
 
   moderation:
-    build: ./moderation_service
+    image: ${MODERATION_IMAGE:-moderation-service:latest}
     environment:
-      MOD_DB_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      MOD_DB_URL: ${MOD_DB_URL}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.moderation.rule=Host(`${API_BASE_HOST}`) && PathPrefix(`/api/mod`)"
+      - "traefik.http.services.moderation.loadbalancer.server.port=8082"
 
 volumes:
   pgdata:

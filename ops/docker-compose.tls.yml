@@ -32,6 +32,9 @@ services:
     command:
       - --providers.file.filename=/etc/traefik/traefik.yml
       - --api.dashboard=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
     ports:
       - '80:80'
       - '443:443'

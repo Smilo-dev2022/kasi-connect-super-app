@@ -6,10 +6,14 @@ from sqlmodel import SQLModel, Session, create_engine
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./events.db")
 
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
     DATABASE_URL,
     echo=False,
-    connect_args={"check_same_thread": False},
+    connect_args=connect_args,
 )
 
 

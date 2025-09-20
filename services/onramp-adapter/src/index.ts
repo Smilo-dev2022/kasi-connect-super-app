@@ -13,15 +13,6 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
-import webhooksRouter from './routes/webhooks';
-
-import payoutsRouter from './routes/payouts';
-import onrampRouter from './routes/onramp';
-
-app.use('/webhooks', webhooksRouter);
-app.use('/payouts', payoutsRouter);
-app.use('/onramp', onrampRouter);
-
 app.listen(port, () => {
   console.log(`Onramp adapter listening at http://localhost:${port}`);
 });

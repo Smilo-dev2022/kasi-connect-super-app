@@ -1,5 +1,3 @@
-// TODO: Implement a more robust cache, e.g., using Redis
-
 interface CachedToken {
   token: string;
   expiresAt: number;
@@ -8,7 +6,10 @@ interface CachedToken {
 let cachedToken: CachedToken | null = null;
 
 export function getCachedToken(): CachedToken | null {
-  return cachedToken;
+  if (cachedToken && cachedToken.expiresAt > Date.now()) {
+    return cachedToken;
+  }
+  return null;
 }
 
 export function setCachedToken(token: string, expiresIn: number): void {

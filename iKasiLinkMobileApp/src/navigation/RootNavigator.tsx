@@ -12,8 +12,6 @@ import ProfileScreen from '@screens/ProfileScreen';
 import SplashScreen from '@screens/SplashScreen';
 import LoginScreen from '@screens/LoginScreen';
 import { useAuthStore } from '@state/authStore';
-import { ENV } from '@config/env';
-import WalletNavigator from './WalletNavigator';
 import { Analytics } from '@analytics/index';
 
 export type RootStackParamList = {
@@ -21,7 +19,6 @@ export type RootStackParamList = {
   Auth: undefined;
   Splash: undefined;
   Login: undefined;
-  Wallet: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -42,7 +39,6 @@ function MainTabs(): React.JSX.Element {
             Events: focused ? 'calendar' : 'calendar-outline',
             Messages: focused ? 'chatbubble' : 'chatbubble-outline',
             Profile: focused ? 'person' : 'person-outline',
-            Wallet: focused ? 'wallet' : 'wallet-outline',
           };
           return <Icon name={map[route.name] ?? 'ellipse'} size={size} color={color} />;
         },
@@ -51,7 +47,6 @@ function MainTabs(): React.JSX.Element {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Events" component={EventsScreen} />
       <Tab.Screen name="Messages" component={MessagesScreen} />
-      {ENV.walletV2Enabled && <Tab.Screen name="Wallet" component={WalletNavigator} />}
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

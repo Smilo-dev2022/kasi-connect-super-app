@@ -1,5 +1,3 @@
-// TODO: Implement retry logic with exponential backoff
-
 /**
  * Retries a function a given number of times with exponential backoff.
  * @param fn The function to retry.

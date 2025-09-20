@@ -16,6 +16,12 @@ export const config = {
   otpPepper: process.env.OTP_PEPPER || 'dev-otp-pepper-change-me',
   // Rate limiting
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
-  rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 100)
+  rateLimitMax: Number(process.env.RATE_LIMIT_MAX || 100),
+  // Providers
+  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID || '',
+  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || '',
+  twilioFrom: process.env.TWILIO_FROM || '',
+  sendgridApiKey: process.env.SENDGRID_API_KEY || '',
+  sendgridFrom: process.env.SENDGRID_FROM || ''
 };
 

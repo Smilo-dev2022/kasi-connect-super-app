@@ -41,6 +41,23 @@ Then open `http://localhost:8000/` for the UI stub.
 - Models: `Event`, `RSVP` (SQLModel)
 - Minimal static UI lists events and allows RSVP
 
+## Canonical services
+
+- Web: Vite React app at `/:5173`
+- Events API: Node Express at `http://localhost:3000` (routes under `/api/...`)
+- Wallet API: FastAPI at `http://localhost:8000` (routes under `/wallet/...`)
+- Messaging API: Agent7 at `http://localhost:8080`
+
+The `docker-compose.dev.yml` wires environment variables for the web:
+
+- `VITE_EVENTS_API=http://localhost:3000`
+- `VITE_WALLET_API=http://localhost:8000`
+- `VITE_MSG_API=http://localhost:8080`
+
+Optional: set `VITE_SERPAPI_KEY` to enable SerpAPI in the web search UI.
+
+Legacy/duplicate implementations (e.g., `events_service/` FastAPI, `wallet-service/`) are kept for reference but are not started by default in development. New work should target the canonical services above.
+
 
 
 

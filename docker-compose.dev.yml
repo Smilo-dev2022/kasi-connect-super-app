@@ -1,6 +1,16 @@
 version: '3.9'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=ikasi
+      - POSTGRES_PASSWORD=ikasi
+      - POSTGRES_DB=ikasi
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg-data:/var/lib/postgresql/data
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
@@ -102,11 +112,24 @@ services:
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg://ikasi:ikasi@postgres:5432/ikasi
     volumes:
       - ./:/app
-    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && alembic -c app/alembic.ini upgrade head || true && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports:
       - '8000:8000'
+
+  events-node:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    volumes:
+      - ./events-service:/app
+    command: sh -c "npm i && npm run dev"
+    ports:
+      - '3000:3000'
 
   moderation:
     image: python:3.11-slim
@@ -125,11 +148,15 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_MSG_API=http://localhost:8080
+      - VITE_EVENTS_API=http://localhost:3000
+      - VITE_WALLET_API=http://localhost:8000
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"
     depends_on:
       - agent7-messaging
+      - events-node
+      - events
     ports:
       - '5173:8080'
 
@@ -137,3 +164,4 @@ volumes:
   redis-data: {}
   minio-data: {}
   typesense-data: {}
+  pg-data: {}

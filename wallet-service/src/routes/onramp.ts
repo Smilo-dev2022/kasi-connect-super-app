@@ -3,6 +3,16 @@ import { z } from 'zod';
 import { PrismaClient, OnrampStatus, OnrampSide } from '@prisma/client';
 
 const router = Router();
+
+// Optional simple admin bearer token guard to avoid conflicts with other teams
+const adminToken = process.env.ADMIN_TOKEN;
+router.use((req, res, next) => {
+  if (!adminToken) return next();
+  const auth = req.header('authorization');
+  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+  if (auth.slice('Bearer '.length) !== adminToken) return res.status(403).json({ error: 'Forbidden' });
+  next();
+});
 const prisma = new PrismaClient();
 
 const createOrderSchema = z.object({
@@ -81,6 +91,52 @@ router.post('/orders/:id/link-transaction', async (req, res, next) => {
       data: { onrampOrderId: order.id, partnerRef: body.partnerRef, txHash: body.txHash },
     });
     res.json(updatedTx);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Settle an order by creating a ledger Transaction and marking order COMPLETED
+const settleSchema = z.object({
+  accountId: z.string().min(1),
+  creditAmount: z.number().positive(),
+  description: z.string().optional(),
+  partnerRef: z.string().optional(),
+  txHash: z.string().optional(),
+});
+
+router.post('/orders/:id/settle', async (req, res, next) => {
+  try {
+    const body = settleSchema.parse(req.body);
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.onrampOrder.findUnique({ where: { id: req.params.id } });
+      if (!order) throw Object.assign(new Error('Order not found'), { status: 404 });
+      if (order.status === OnrampStatus.COMPLETED) {
+        return { order, transaction: null };
+      }
+
+      const account = await tx.account.findUnique({ where: { id: body.accountId } });
+      if (!account) throw Object.assign(new Error('Account not found'), { status: 404 });
+
+      const newBalance = account.balance + body.creditAmount;
+      const transaction = await tx.transaction.create({
+        data: {
+          accountId: account.id,
+          amount: body.creditAmount,
+          type: 'CREDIT',
+          description: body.description ?? `Onramp ${order.cryptoAsset} -> ${order.fiatCurrency}`,
+          balanceAfter: newBalance,
+          onrampOrderId: order.id,
+          partnerRef: body.partnerRef,
+          txHash: body.txHash,
+        },
+      });
+      await tx.account.update({ where: { id: account.id }, data: { balance: newBalance } });
+      const updatedOrder = await tx.onrampOrder.update({ where: { id: order.id }, data: { status: OnrampStatus.COMPLETED } });
+      return { order: updatedOrder, transaction };
+    });
+
+    res.json(result);
   } catch (err) {
     next(err);
   }

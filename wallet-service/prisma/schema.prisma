@@ -31,9 +31,59 @@ model Transaction {
   createdAt    DateTime @default(now())
 
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  // New fields for on-ramp
+  onrampOrderId   String?      @unique
+  onrampOrder     OnrampOrder? @relation(fields: [onrampOrderId], references: [id])
+  partnerTxRef    String?      // e.g., a blockchain transaction hash
 }
 
 enum TransactionType {
   CREDIT
   DEBIT
+}
+
+// === New Models for On-Ramp Functionality ===
+
+model OnrampOrder {
+  id              String        @id @default(cuid())
+  userId          String
+  side            OnrampSide
+  status          OnrampStatus  @default(PENDING_FIAT)
+
+  fiatCurrency    String        // e.g., "ZAR"
+  fiatAmount      Float         // in cents
+  cryptoCurrency  String        // e.g., "USDC"
+  cryptoAmount    Float
+
+  partner         OnrampPartner
+  partnerRef      String?       @unique // ID from the on-ramp partner
+  quoteId         String        @unique
+
+  expiresAt       DateTime
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  transaction     Transaction?
+
+  @@index([userId, status])
+}
+
+enum OnrampSide {
+  BUY
+  SELL
+}
+
+enum OnrampStatus {
+  PENDING_FIAT
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum OnrampPartner {
+  VALR
+  STITCH
+  MOCK
 }

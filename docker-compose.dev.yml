@@ -133,6 +133,35 @@ services:
     ports:
       - '5173:8080'
 
+  wallet-service:
+    build:
+      context: ./wallet-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=file:./dev.db
+      - ONRAMP_API_BASE=http://onramp-adapter:4015
+    volumes:
+      - ./wallet-service:/app
+      - /app/node_modules
+    ports:
+      - '3000:3000'
+    command: sh -c "npm i && npx prisma generate && npx prisma migrate dev --name init && npm run dev"
+
+  onramp-adapter:
+    build:
+      context: ./onramp-adapter
+    env_file:
+      - ./onramp-adapter/.env
+    volumes:
+      - ./onramp-adapter:/app
+      - /app/node_modules
+    ports:
+      - '4015:4015'
+    command: sh -c "npm i && npm run dev"
+    depends_on:
+      - wallet-service
+
 volumes:
   redis-data: {}
   minio-data: {}

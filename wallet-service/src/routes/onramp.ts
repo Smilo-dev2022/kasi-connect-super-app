@@ -28,6 +28,7 @@ const createOrderSchema = z.object({
 router.post('/orders', async (req, res, next) => {
   try {
     const body = createOrderSchema.parse(req.body);
+    (req as any).metrics?.onrampQuoteCounter?.inc();
     const order = await prisma.onrampOrder.create({
       data: {
         side: body.side,
@@ -51,6 +52,18 @@ router.get('/orders/:id', async (req, res, next) => {
     const order = await prisma.onrampOrder.findUnique({ where: { id: req.params.id } });
     if (!order) return res.status(404).json({ error: 'Not found' });
     res.json(order);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/orders/:id/receipt', async (req, res, next) => {
+  try {
+    const order = await prisma.onrampOrder.findUnique({ where: { id: req.params.id } });
+    if (!order) return res.status(404).json({ error: 'Not found' });
+    const transactions = await prisma.transaction.findMany({ where: { onrampOrderId: order.id }, orderBy: { createdAt: 'desc' } });
+    const latestTx = transactions[0] || null;
+    res.json({ order, transaction: latestTx });
   } catch (err) {
     next(err);
   }
@@ -118,6 +131,12 @@ router.post('/orders/:id/settle', async (req, res, next) => {
       const account = await tx.account.findUnique({ where: { id: body.accountId } });
       if (!account) throw Object.assign(new Error('Account not found'), { status: 404 });
 
+      // Optional per-transaction cap (in ZAR) for pilot
+      const capRands = process.env.WALLET_MAX_TX_RANDS ? Number(process.env.WALLET_MAX_TX_RANDS) : undefined;
+      if (capRands && body.creditAmount > capRands) {
+        throw Object.assign(new Error('Amount exceeds per-transaction cap'), { status: 400 });
+      }
+
       const newBalance = account.balance + body.creditAmount;
       const transaction = await tx.transaction.create({
         data: {
@@ -136,6 +155,7 @@ router.post('/orders/:id/settle', async (req, res, next) => {
       return { order: updatedOrder, transaction };
     });
 
+    (req as any).metrics?.onrampSettleCounter?.inc();
     res.json(result);
   } catch (err) {
     next(err);

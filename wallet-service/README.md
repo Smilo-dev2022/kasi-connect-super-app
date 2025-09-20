@@ -13,6 +13,12 @@ npm install
 ```bash
 cp .env.example .env
 # (optional) edit PORT or ALLOWED_ORIGINS
+# Feature flags (optional)
+# WALLET_STABLECOIN_ENABLED=true
+# ONRAMP_PARTNER=valr
+# STABLECOIN_ASSET=USDC
+# WALLET_MAX_TX_RANDS=5000
+# ADMIN_TOKEN=dev-admin
 ```
 
 3) Generate client and run migrations
@@ -29,6 +35,8 @@ npm run build && npm start
 ```
 
 Health check: `GET /health` -> `{ ok: true }`
+Metrics: `GET /metrics` -> Prometheus format
+Config: `GET /api/config` -> flags and partner
 
 ### Data Models (Prisma)
 - Account: `id`, `userId`, `balance`, `currency`, timestamps

@@ -1,0 +1,83 @@
+name: Docker Publish
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: app
+            context: app
+            dockerfile: app/Dockerfile
+          - name: events-service
+            context: events-service
+            dockerfile: events-service/Dockerfile
+          - name: events_service
+            context: events_service
+            dockerfile: events_service/Dockerfile
+          - name: moderation_service
+            context: moderation_service
+            dockerfile: moderation_service/Dockerfile
+          - name: agent7-messaging
+            context: agent7-messaging
+            dockerfile: agent7-messaging/Dockerfile
+          - name: web-admin
+            context: web-admin
+            dockerfile: web-admin/Dockerfile
+          - name: services-auth
+            context: services/auth
+            dockerfile: services/auth/Dockerfile
+          - name: services-media
+            context: services/media
+            dockerfile: services/media/Dockerfile
+          - name: agent9-search
+            context: agent9-search
+            dockerfile: agent9-search/Dockerfile
+          - name: wallet-service
+            context: wallet-service
+            dockerfile: wallet-service/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+

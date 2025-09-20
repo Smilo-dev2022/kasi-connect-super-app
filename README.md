@@ -92,6 +92,20 @@ npm run dev
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
 
+## Deployment quickstart
+
+- Prepare env files from `*.env.example` per service.
+- Build and push images:
+```bash
+./scripts/build-images.sh
+./scripts/push-images.sh
+```
+- Configure Terraform backend in `infra/backend.tf`, then provision VPC/ECR/EKS/RDS:
+```bash
+cd infra && terraform init && terraform apply -auto-approve
+```
+- Deploy to Kubernetes with Helm (see `runbooks/deploy-rollback.md`).
+
 ## What technologies are used for iKasiLink?
 
 This project is built with:

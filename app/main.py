@@ -10,6 +10,7 @@ from .routers.reminders import router as reminders_router
 from .routers.wallet import router as wallet_router
 from fastapi import Request
 from fastapi.responses import Response
+import os
 from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import time
 import uuid
@@ -86,11 +87,12 @@ def create_app() -> FastAPI:
     def metrics() -> Response:
         return Response(generate_latest(registry), media_type=CONTENT_TYPE_LATEST)
 
-    # seed data and start expiry loop
-    from .seeds import seed_initial_data
-    for session in get_session():
-        seed_initial_data(session)
-        break
+    # seed data and start expiry loop (seed only when explicitly enabled)
+    if os.environ.get("SEED_DATA", "false").lower() in {"1", "true", "yes"}:
+        from .seeds import seed_initial_data
+        for session in get_session():
+            seed_initial_data(session)
+            break
 
     async def _expiry_loop():
         while True:
@@ -127,6 +129,10 @@ def create_app() -> FastAPI:
     app.include_router(wallet_router)
 
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+    @app.get("/health")
+    def health() -> dict:
+        return {"status": "ok"}
 
     @app.get("/", include_in_schema=False)
     def index() -> RedirectResponse:

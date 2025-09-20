@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse, PlainTextResponse
 from prometheus_client import Counter, Histogram, CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST
 import uuid
+import os
 import time
 import json
 from fastapi.staticfiles import StaticFiles
@@ -97,22 +98,23 @@ def metrics() -> Response:
 @app.on_event("startup")
 def on_startup() -> None:
     init_db()
-    # Seed a sample event for local usage if none exists
-    with Session(engine) as s:
-        existing = s.exec(select(Event)).first()
-        if not existing:
-            e = Event(
-                slug="launch-party",
-                title="Product Launch Party",
-                description="Come celebrate our launch!",
-                location="HQ Atrium",
-                start_at=datetime.utcnow(),
-                end_at=None,
-                capacity=200,
-                is_published=True,
-            )
-            s.add(e)
-            s.commit()
+    # Seed a sample event only when explicitly enabled
+    if os.environ.get("SEED_DATA", "false").lower() in {"1", "true", "yes"}:
+        with Session(engine) as s:
+            existing = s.exec(select(Event)).first()
+            if not existing:
+                e = Event(
+                    slug="launch-party",
+                    title="Product Launch Party",
+                    description="Come celebrate our launch!",
+                    location="HQ Atrium",
+                    start_at=datetime.utcnow(),
+                    end_at=None,
+                    capacity=200,
+                    is_published=True,
+                )
+                s.add(e)
+                s.commit()
 
 
 @app.get("/", response_class=HTMLResponse)

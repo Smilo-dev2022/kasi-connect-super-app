@@ -15,6 +15,6 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-COPY .env .env
+# Expect DATABASE_URL and other secrets via environment/secret manager at runtime
 EXPOSE 3000
 CMD ["node", "dist/index.js"]

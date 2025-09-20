@@ -30,10 +30,12 @@ app.get('/health', (_req, res) => {
 import accountsRouter from './routes/accounts';
 import transactionsRouter from './routes/transactions';
 import mobileRouter from './routes/mobile';
+import onrampRouter from './routes/onramp';
 
 app.use('/api/accounts', accountsRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/mobile', mobileRouter);
+app.use('/api/onramp', onrampRouter);
 
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

@@ -31,9 +31,50 @@ model Transaction {
   createdAt    DateTime @default(now())
 
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  // Onramp integration (optional linkage)
+  onrampOrderId String?
+  onrampOrder   OnrampOrder? @relation(fields: [onrampOrderId], references: [id])
+  partnerRef    String?
+  txHash        String?
+
+  @@index([onrampOrderId])
 }
 
 enum TransactionType {
   CREDIT
   DEBIT
+}
+
+// Onramp stablecoin remittance order
+model OnrampOrder {
+  id                   String         @id @default(cuid())
+  side                 OnrampSide
+  status               OnrampStatus   @default(PENDING_FIAT)
+  fiatCurrency         String         // e.g., ZAR
+  cryptoAsset          String         // e.g., USDC
+  fiatAmountCents      Int            // amounts in cents
+  cryptoAmountBaseUnits Int           // base units (e.g., 10^-6 for USDC)
+  partnerRef           String?
+  expiresAt            DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  // Back-references
+  transactions Transaction[]
+
+  @@index([status])
+  @@index([partnerRef])
+}
+
+enum OnrampSide {
+  BUY
+  SELL
+}
+
+enum OnrampStatus {
+  PENDING_FIAT
+  PROCESSING
+  COMPLETED
+  FAILED
 }

@@ -19,6 +19,6 @@ module.exports = {
         '@notifications': './src/notifications'
       }
     }],
-    'react-native-reanimated/plugin'
+    'react-native-worklets/plugin'
   ]
 };

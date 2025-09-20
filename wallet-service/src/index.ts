@@ -58,12 +58,14 @@ import accountsRouter from './routes/accounts';
 import transactionsRouter from './routes/transactions';
 import mobileRouter from './routes/mobile';
 import { stablecoinRouter, internalStablecoinRouter } from './routes/stablecoin';
+import kycRouter from './routes/kyc';
 
 app.use('/api/accounts', accountsRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/mobile', mobileRouter);
 app.use('/api/stablecoin', stablecoinRouter);
 app.use('/api/internal', internalStablecoinRouter);
+app.use('/api/kyc', kycRouter);
 
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

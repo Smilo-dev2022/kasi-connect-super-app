@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 const WALLET_SERVICE_URL = 'http://localhost:3000';
 const ONRAMP_ADAPTER_URL = 'http://localhost:4015';
-const WEBHOOK_SECRET = 'a-very-secret-key';
+const WEBHOOK_SECRET = process.env.ONRAMP_WEBHOOK_SECRET || 'a-very-secret-key';
 
 async function main() {
   console.log('--- Starting On-Ramp E2E Test ---');

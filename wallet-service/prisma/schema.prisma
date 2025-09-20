@@ -87,3 +87,30 @@ enum OnrampPartner {
   STITCH
   MOCK
 }
+
+// === KYC Models ===
+
+model KycAttempt {
+  id          String    @id @default(cuid())
+  userId      String
+  partner     KycPartner
+  partnerRef  String    @unique
+  status      KycStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+enum KycPartner {
+  ONFIDO
+  VERIFF
+  MOCK
+}
+
+enum KycStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}

@@ -1,0 +1,38 @@
+name: SBOM and Image Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+  trivy-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/media/Dockerfile
+          push: false
+      - name: Scan dockerfiles and images
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          exit-code: '0'

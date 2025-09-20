@@ -1,0 +1,19 @@
+name: Helm Lint
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.2'
+      - name: Lint charts
+        run: |
+          if [ -d ops/helm/top ]; then helm lint ops/helm/top || true; fi

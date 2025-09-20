@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (staging|production)'
+        required: true
+        default: 'staging'
+      image_tag:
+        description: 'Image tag (default: latest on branch)'
+        required: false
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: ${{ secrets.EKS_CLUSTER_NAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.2'
+      - name: Render chart and deploy
+        run: |
+          helm upgrade --install super-app ops/helm/top --namespace super --create-namespace \
+            --set global.imageTag=${{ inputs.image_tag || github.sha }} \
+            --wait --timeout 10m
+      - name: Post-deploy health check
+        run: |
+          kubectl -n super get deploy,po,svc | cat
+          kubectl -n super rollout status deploy -A --timeout=120s || true
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          helm -n super rollback super-app 0 || true

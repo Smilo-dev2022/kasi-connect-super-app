@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "smoke": "ts-node scripts/smoke.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.16.1",
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",

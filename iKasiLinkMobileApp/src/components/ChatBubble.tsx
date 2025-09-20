@@ -43,19 +43,11 @@ export default function ChatBubble({ text, fromMe, onReact }: ChatBubbleProps): 
 
 const styles = StyleSheet.create({
   bubble: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginVertical: 4,
-    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 16,
     maxWidth: '80%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
   },
   reactions: {
     flexDirection: 'row',

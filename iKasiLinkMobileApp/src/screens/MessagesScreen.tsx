@@ -1,22 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet, TextInput, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTheme } from '@theme/ThemeProvider';
 import ChatBubble from '@components/ChatBubble';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Haptic from 'react-native-haptic-feedback';
 import { launchImageLibrary } from 'react-native-image-picker';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
 
 type ChatMessage = {
   id: string;
@@ -27,7 +16,6 @@ type ChatMessage = {
 
 export default function MessagesScreen(): React.JSX.Element {
   const theme = useTheme();
-  const navigation = useNavigation();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
@@ -71,15 +59,8 @@ export default function MessagesScreen(): React.JSX.Element {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color={theme.colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>Chat</Text>
-        <View style={{ width: 24 }} />
-      </View>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }] }>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
         <FlashList
           ref={listRef}
           data={data}
@@ -92,7 +73,7 @@ export default function MessagesScreen(): React.JSX.Element {
 
         <View style={[styles.inputBar, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
           <TextInput
-            style={[styles.input, { color: theme.colors.textPrimary, backgroundColor: theme.colors.background }]}
+            style={[styles.input, { color: theme.colors.textPrimary }]}
             placeholder="Message"
             placeholderTextColor={theme.colors.textSecondary}
             value={input}
@@ -100,12 +81,8 @@ export default function MessagesScreen(): React.JSX.Element {
             onSubmitEditing={send}
             returnKeyType="send"
           />
-          <TouchableOpacity onPress={attach} style={styles.attachButton}>
-            <Icon name="attach" size={24} color={theme.colors.textPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={send} style={styles.sendButton}>
-            <Icon name="send" size={24} color={'white'} />
-          </TouchableOpacity>
+          <View style={styles.attachButton} onTouchEnd={attach} />
+          <View style={styles.sendButton} onTouchEnd={send} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -114,18 +91,6 @@ export default function MessagesScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
   listContent: { padding: 12, flexGrow: 1, justifyContent: 'flex-end' },
   bubble: {
     paddingVertical: 8,
@@ -145,7 +110,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 20,
   },
   sendButton: {
     width: 36,
@@ -153,16 +117,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     borderRadius: 18,
     backgroundColor: '#128C7E',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   attachButton: {
     width: 36,
     height: 36,
     marginLeft: 8,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#0ea5e9',
   },
 });
 

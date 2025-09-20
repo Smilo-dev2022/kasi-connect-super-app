@@ -1,0 +1,71 @@
+global:
+  imageRegistry: ghcr.io
+  imageRepository: your-org/kasi-connect
+  imageTag: latest
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: false
+  className: "nginx"
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+services:
+  backend:
+    enabled: true
+    image:
+      name: backend
+    port: 4000
+    env:
+      - name: NODE_ENV
+        value: production
+    extraEnv: []
+    replicas: 2
+  events:
+    enabled: true
+    image:
+      name: events-service
+    port: 3000
+    replicas: 2
+  events_py:
+    enabled: true
+    image:
+      name: events_service
+    port: 8001
+    replicas: 1
+  moderation:
+    enabled: true
+    image:
+      name: moderation_service
+    port: 8082
+    replicas: 1
+  auth:
+    enabled: true
+    image:
+      name: services-auth
+    port: 4010
+    replicas: 2
+  media:
+    enabled: true
+    image:
+      name: services-media
+    port: 4008
+    replicas: 2
+  search:
+    enabled: true
+    image:
+      name: agent9-search
+    port: 4009
+    replicas: 2

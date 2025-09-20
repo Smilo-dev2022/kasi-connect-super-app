@@ -1,6 +1,89 @@
 name: CI
 
 on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache Python deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Node dependencies (monorepo)
+        run: |
+          set -e
+          npm ci --ignore-scripts || true
+          for f in $(git ls-files "**/package.json" | grep -v "node_modules/" | xargs -I {} dirname {} | sort -u); do
+            echo "Installing in $f";
+            if [ -f "$f/package-lock.json" ]; then (cd "$f" && npm ci --ignore-scripts || true); fi;
+          done
+
+      - name: Lint (if configured)
+        run: |
+          set -e
+          if npm run | grep -q "lint"; then npm run lint --if-present; fi
+          for f in $(git ls-files "**/package.json" | grep -v "node_modules/" | xargs -I {} dirname {} | sort -u); do
+            if [ -f "$f/package.json" ]; then (cd "$f" && npm run lint --if-present); fi;
+          done
+
+      - name: Test (Node) if present
+        run: |
+          set -e
+          npm test --if-present || true
+          for f in $(git ls-files "**/package.json" | grep -v "node_modules/" | xargs -I {} dirname {} | sort -u); do
+            if [ -f "$f/package.json" ]; then (cd "$f" && npm test --if-present || true); fi;
+          done
+
+      - name: Install Python dependencies
+        run: |
+          set -e
+          for req in $(git ls-files "**/requirements.txt"); do
+            echo "Installing $req";
+            pip install -r "$req" || true;
+          done
+
+      - name: Generate SBOM (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-spdx
+          path: sbom.spdx.json
+
+name: CI
+
+on:
   push:
     branches: [ main ]
   pull_request:

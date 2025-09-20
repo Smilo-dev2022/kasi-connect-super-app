@@ -1,0 +1,89 @@
+openapi: 3.0.0
+info:
+  title: Onramp Adapter API
+  version: 1.0.0
+  description: |
+    API for the Onramp Adapter service, which provides a partner-agnostic interface
+    for on-ramping fiat to crypto.
+
+paths:
+  /onramp/quote:
+    post:
+      summary: Get an onramp quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fiatAmount:
+                  type: number
+                fiatCurrency:
+                  type: string
+                cryptoCurrency:
+                  type: string
+      responses:
+        '200':
+          description: A quote object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnrampQuote'
+
+  /onramp/orders:
+    post:
+      summary: Create an onramp order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quoteId:
+                  type: string
+      responses:
+        '201':
+          description: The created order object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnrampOrder'
+
+components:
+  schemas:
+    OnrampQuote:
+      type: object
+      properties:
+        id:
+          type: string
+        partner:
+          type: string
+        fiatAmount:
+          type: number
+        fiatCurrency:
+          type: string
+        cryptoAmount:
+          type: number
+        cryptoCurrency:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    OnrampOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        quoteId:
+          type: string
+        status:
+          type: string
+        partnerRef:
+          type: string
+        txHash:
+          type: string

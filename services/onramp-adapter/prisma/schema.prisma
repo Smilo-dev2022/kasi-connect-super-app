@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model OnrampQuote {
+  id              String      @id @default(cuid())
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  partner         String
+  fiatAmount      Float
+  fiatCurrency    String
+  cryptoAmount    Float
+  cryptoCurrency  String
+  expiresAt       DateTime
+  order           OnrampOrder?
+}
+
+model OnrampOrder {
+  id              String      @id @default(cuid())
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  userId          String
+  quoteId         String      @unique
+  quote           OnrampQuote @relation(fields: [quoteId], references: [id])
+  status          String      // e.g., PENDING, PROCESSING, COMPLETED, FAILED
+  partnerRef      String?
+  txHash          String?
+}
+
+model PartnerData {
+  id              String      @id @default(cuid())
+  partner         String      @unique
+  // Secrets like apiKey, apiSecret, and webhookSecret should be stored
+  // securely in a secret manager or environment variables, not in the database.
+  // This model can be used to store non-secret partner configuration.
+}

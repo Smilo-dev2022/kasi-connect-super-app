@@ -4,4 +4,5 @@ export const ENV = {
 	apiBaseUrl: Config.API_BASE_URL || 'https://api.kasilink.example',
 	sentryDsn: Config.SENTRY_DSN || '',
 	socketUrl: Config.SOCKET_URL || 'wss://realtime.kasilink.example',
+	walletV2Enabled: Config.WALLET_V2_ENABLED === 'true' || false,
 };

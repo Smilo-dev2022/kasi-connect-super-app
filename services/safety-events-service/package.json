@@ -1,0 +1,31 @@
+{
+  "name": "safety-events-service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Service for real-time community safety events.",
+  "dependencies": {
+    "express": "^4.17.21",
+    "socket.io": "^4.7.5",
+    "morgan": "^1.10.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.10",
+    "@types/cors": "^2.8.19",
+    "@types/node": "^24.3.1",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2"
+  }
+}

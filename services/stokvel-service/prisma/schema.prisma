@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Group {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  members     Member[]
+  schedule    Json?     // Contribution schedule
+  payoutCycle Json?     // Payout cycle
+}
+
+model Member {
+  id            String         @id @default(cuid())
+  userId        String
+  groupId       String
+  group         Group          @relation(fields: [groupId], references: [id])
+  contributions Contribution[]
+  createdAt     DateTime       @default(now())
+
+  @@unique([userId, groupId])
+}
+
+model Contribution {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  amount    Float
+  createdAt DateTime @default(now())
+  payout    Payout?
+}
+
+model Payout {
+  id             String       @id @default(cuid())
+  contributionId String       @unique
+  contribution   Contribution @relation(fields: [contributionId], references: [id])
+  amount         Float
+  paidAt         DateTime     @default(now())
+}

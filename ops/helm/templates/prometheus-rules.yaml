@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: general-alerts
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: general.rules
+    rules:
+    - alert: PodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total{job="kube-state-metrics"}[15m]) * 60 * 5 > 0
+      for: 15m
+      labels:
+        severity: critical
+      annotations:
+        summary: Pod is crash looping
+        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} is restarting frequently.'
+
+    - alert: HighErrorRate
+      expr: 'sum(rate(traefik_service_requests_total{code=~"5.."}[5m])) / sum(rate(traefik_service_requests_total[5m])) > 0.05'
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: High error rate
+        description: 'The overall error rate is greater than 5%.'

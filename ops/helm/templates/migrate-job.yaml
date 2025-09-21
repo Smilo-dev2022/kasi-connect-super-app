@@ -1,0 +1,30 @@
+{{- range $name, $svc := .Values.services }}
+{{- if and $svc.enabled $svc.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "kasi-connect.fullname" $ }}-{{ $name }}-migrate
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.global.imageRepository }}-{{ $svc.image.name }}:{{ $.Values.global.imageTag }}"
+          command: ["{{ $svc.migrate.command }}"]
+          args:
+            {{- toYaml $svc.migrate.args | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: {{ include "kasi-connect.fullname" $ }}-{{ $name }}-secrets
+      {{- if $svc.serviceAccountName }}
+      serviceAccountName: {{ $svc.serviceAccountName }}
+      {{- end }}
+  backoffLimit: 1
+---
+{{- end }}
+{{- end }}

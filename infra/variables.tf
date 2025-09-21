@@ -1,3 +1,6 @@
 variable "aws_region" { type = string, default = "us-east-1" }
 variable "project" { type = string, default = "kasi-connect" }
 variable "db_username" { type = string, default = "appuser" }
+variable "redis_instance_class" { type = string, default = "cache.t3.micro" }
+variable "media_bucket_name" { type = string, default = "kasi-connect-media" }
+variable "domain_name" { type = string, default = "example.com" }

@@ -17,6 +17,7 @@ export type SearchResponse = {
 };
 
 const serpApiKey = ((import.meta as any).env?.VITE_SERPAPI_KEY as string | undefined);
+const backendSearchApi = ((import.meta as any).env?.VITE_SEARCH_API as string | undefined);
 
 async function searchSerpApi(query: string, category: SearchCategory): Promise<SearchResult[]> {
   const base = "https://serpapi.com/search.json";
@@ -95,6 +96,26 @@ export async function performSearch(query: string, category: SearchCategory): Pr
   const started = performance.now();
   let results: SearchResult[] = [];
   let provider = "DuckDuckGo";
+  // Prefer backend search API when configured (Agent9). Map categories to types loosely.
+  if (backendSearchApi) {
+    try {
+      const type = category === 'media' ? 'image' : category === 'links' ? 'link' : 'text';
+      const url = `${backendSearchApi}/messages/search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&per_page=10`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const hits = Array.isArray(data?.hits) ? data.hits : [];
+        results = hits.map((h: any) => ({
+          title: h.text || h.url || h.id,
+          url: h.url || `#${h.id}`,
+          source: h.sender_id || h.conversation_id,
+          snippet: h.text,
+          thumbnailUrl: undefined,
+        }));
+        provider = 'Agent9 (Typesense)';
+      }
+    } catch {}
+  }
   if (serpApiKey) {
     try {
       results = await searchSerpApi(query, category);

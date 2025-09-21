@@ -55,6 +55,24 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/moderation-service:sha-${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/moderation-service:latest
 
+      - name: Build and push root web (Vite)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/web:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/web:latest
+
+      - name: Build and push web-admin (Next)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web-admin
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/web-admin:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/web-admin:latest
+
 name: CI
 
 on:

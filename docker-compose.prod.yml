@@ -32,6 +32,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.wallet.rule=Host(`${API_BASE_HOST}`) && PathPrefix(`/api/wallet`)"
       - "traefik.http.services.wallet.loadbalancer.server.port=3000"
+    networks:
+      - web
 
   events:
     image: ${EVENTS_IMAGE:-events-service-py:latest}
@@ -51,6 +53,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.events.rule=Host(`${API_BASE_HOST}`) && (PathPrefix(`/api/events`) || PathPrefix(`/events`))"
       - "traefik.http.services.events.loadbalancer.server.port=8001"
+    networks:
+      - web
 
   moderation:
     image: ${MODERATION_IMAGE:-moderation-service:latest}
@@ -65,11 +69,38 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  # One-shot jobs (run manually during deploy)
+  wallet_migrate:
+    image: ${WALLET_IMAGE:-wallet-service:latest}
+    command: sh -lc "npx prisma migrate deploy"
+    environment:
+      DATABASE_URL: ${WALLET_DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  events_migrate:
+    image: ${EVENTS_IMAGE:-events-service-py:latest}
+    command: sh -lc "alembic upgrade head"
+    environment:
+      DATABASE_URL: ${EVENTS_DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.moderation.rule=Host(`${API_BASE_HOST}`) && PathPrefix(`/api/mod`)"
       - "traefik.http.services.moderation.loadbalancer.server.port=8082"
+    networks:
+      - web
 
 volumes:
   pgdata:
+
+networks:
+  web:
+    external: true
 

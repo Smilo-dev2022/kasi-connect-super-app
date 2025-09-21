@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import authRouter from './routes/auth';
 import devicesRouter from './routes/devices';
+import client, { Counter, Histogram, Registry } from 'prom-client';
 
 const app = express();
 
@@ -19,6 +20,43 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 app.use(limiter);
+
+// Prometheus metrics
+const registry: Registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+const httpRequestCounter = new Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  registers: [registry]
+});
+const httpRequestDurationMs = new Histogram({
+  name: 'http_request_duration_ms',
+  help: 'HTTP request duration in ms',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  buckets: [5,10,25,50,100,250,500,1000,2500,5000],
+  registers: [registry]
+});
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    try {
+      const route = (req.route && (req.baseUrl + req.route.path)) || req.originalUrl || req.url;
+      const status = String(res.statusCode);
+      const diffNs = Number(process.hrtime.bigint() - start);
+      const latencyMs = diffNs / 1_000_000;
+      httpRequestCounter.labels('auth', req.method, route, status).inc();
+      httpRequestDurationMs.labels('auth', req.method, route, status).observe(latencyMs);
+    } catch {}
+  });
+  next();
+});
+
+app.get('/metrics', async (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', registry.contentType);
+  res.send(await registry.metrics());
+});
 
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });

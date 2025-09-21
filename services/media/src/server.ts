@@ -7,6 +7,7 @@ import uploadsRouter from './routes/uploads';
 import mediaRouter from './routes/media';
 import thumbnailRouter from './routes/thumbnail';
 import { ensureBucketExists } from './s3';
+import client, { Counter, Histogram, Registry } from 'prom-client';
 
 const app = express();
 
@@ -14,6 +15,43 @@ app.use(cors({ origin: config.corsOrigin, credentials: false }));
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
+
+// Prometheus metrics
+const registry: Registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+const httpRequestCounter = new Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  registers: [registry]
+});
+const httpRequestDurationMs = new Histogram({
+  name: 'http_request_duration_ms',
+  help: 'HTTP request duration in ms',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  buckets: [5,10,25,50,100,250,500,1000,2500,5000],
+  registers: [registry]
+});
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    try {
+      const route = (req.route && (req.baseUrl + req.route.path)) || req.originalUrl || req.url;
+      const status = String(res.statusCode);
+      const diffNs = Number(process.hrtime.bigint() - start);
+      const latencyMs = diffNs / 1_000_000;
+      httpRequestCounter.labels('media', req.method, route, status).inc();
+      httpRequestDurationMs.labels('media', req.method, route, status).observe(latencyMs);
+    } catch {}
+  });
+  next();
+});
+
+app.get('/metrics', async (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', registry.contentType);
+  res.send(await registry.metrics());
+});
 
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });

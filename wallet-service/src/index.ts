@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { PrismaClient } from '@prisma/client';
+import client, { Counter, Histogram, Registry } from 'prom-client';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -21,6 +22,43 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL || 'dev'));
+
+// Prometheus metrics
+const registry: Registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+const httpRequestCounter = new Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  registers: [registry]
+});
+const httpRequestDurationMs = new Histogram({
+  name: 'http_request_duration_ms',
+  help: 'HTTP request duration in ms',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  buckets: [5,10,25,50,100,250,500,1000,2500,5000],
+  registers: [registry]
+});
+
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    try {
+      const route = (req.route && (req.baseUrl + req.route.path)) || req.originalUrl || req.url;
+      const status = String(res.statusCode);
+      const diffNs = Number(process.hrtime.bigint() - start);
+      const latencyMs = diffNs / 1_000_000;
+      httpRequestCounter.labels('wallet', req.method, route, status).inc();
+      httpRequestDurationMs.labels('wallet', req.method, route, status).observe(latencyMs);
+    } catch {}
+  });
+  next();
+});
+
+app.get('/metrics', async (_req, res) => {
+  res.setHeader('Content-Type', registry.contentType);
+  res.send(await registry.metrics());
+});
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

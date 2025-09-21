@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket         = "CHANGE_ME-tf-state"
+    bucket         = "kasi-connect-terraform-state"
     key            = "kasi-connect/infra.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "CHANGE_ME-tf-locks"
+    dynamodb_table = "kasi-connect-terraform-locks"
     encrypt        = true
   }
 }

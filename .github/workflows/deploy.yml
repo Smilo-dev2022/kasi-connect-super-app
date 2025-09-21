@@ -1,0 +1,53 @@
+name: deploy
+
+on:
+  push:
+    branches: [ staging ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    environment: staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/kasi-connect-terraform-deployer-staging
+          aws-region: us-east-1
+      - name: Terraform Init
+        run: terraform -chdir=infra init -upgrade
+      - name: Terraform Apply (staging)
+        run: terraform -chdir=infra apply -auto-approve -var-file=envs/staging.tfvars
+      - name: Helm Install/Upgrade (events)
+        run: |
+          echo "Installing helm"
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm upgrade --install events charts/events-service -n app --create-namespace -f charts/envs/staging/events.yaml
+
+  deploy-prod:
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/kasi-connect-terraform-deployer-prod
+          aws-region: us-east-1
+      - name: Terraform Init
+        run: terraform -chdir=infra init -upgrade
+      - name: Terraform Apply (prod)
+        run: terraform -chdir=infra apply -auto-approve -var-file=envs/prod.tfvars
+      - name: Helm Install/Upgrade (events)
+        run: |
+          echo "Installing helm"
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm upgrade --install events charts/events-service -n app -f charts/envs/prod/events.yaml

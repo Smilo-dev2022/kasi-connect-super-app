@@ -1,28 +1,22 @@
-{{- if .Values.ingress.enabled }}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+{{- range $name, $svc := .Values.services }}
+{{- if and $svc.enabled $svc.ingress.enabled }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
 metadata:
-  name: {{ include "kasi-connect.fullname" . }}
-  annotations:
-    kubernetes.io/ingress.class: {{ .Values.ingress.className | quote }}
+  name: {{ include "kasi-connect.fullname" $ }}-{{ $name }}
 spec:
-  rules:
-  {{- range .Values.ingress.hosts }}
-    - host: {{ .host }}
-      http:
-        paths:
-        {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
-            backend:
-              service:
-                name: {{ include "kasi-connect.fullname" $ }}-backend
-                port:
-                  number: {{ $.Values.services.backend.port }}
-        {{- end }}
-  {{- end }}
-  {{- if .Values.ingress.tls }}
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ $svc.ingress.subdomain }}.{{ $.Values.ingress.domain }}`)
+      kind: Rule
+      services:
+        - name: {{ include "kasi-connect.fullname" $ }}-{{ $name }}
+          port: {{ $svc.port }}
+  {{- if $.Values.ingress.tls.enabled }}
   tls:
-    {{- toYaml .Values.ingress.tls | nindent 4 }}
+    certResolver: {{ $.Values.ingress.tls.certResolver }}
   {{- end }}
+---
+{{- end }}
 {{- end }}

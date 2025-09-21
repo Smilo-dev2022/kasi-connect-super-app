@@ -114,3 +114,67 @@ safetyRouter.post('/rooms/:groupId/alerts', (req: Request, res: Response) => {
 	return res.json({ ok: true, id, timestamp });
 });
 
+// Incident Management
+import { incidentIdToIncident, Incident, IncidentStatus } from './state';
+
+const CreateIncidentBody = z.object({
+	type: z.string(),
+	description: z.string(),
+	location: z.object({ lat: z.number(), lon: z.number() }).optional(),
+});
+
+safetyRouter.post('/rooms/:groupId/incidents', (req: Request, res: Response) => {
+	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
+	const group = groupIdToGroup.get(req.params.groupId);
+	if (!group || !group.isSafetyRoom) return res.status(404).json({ error: 'not found' });
+	if (!group.memberIds.has(req.user.userId)) return res.status(403).json({ error: 'not a member' });
+
+	const parsed = CreateIncidentBody.safeParse(req.body);
+	if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+	const incidentId = uuidv4();
+	const incident: Incident = {
+		id: incidentId,
+		roomId: req.params.groupId,
+		reporterId: req.user.userId,
+		createdAt: Date.now(),
+		status: 'open',
+		...parsed.data,
+	};
+	incidentIdToIncident.set(incidentId, incident);
+	return res.status(201).json(incident);
+});
+
+safetyRouter.get('/rooms/:groupId/incidents', (req: Request, res: Response) => {
+	const incidents = [...incidentIdToIncident.values()].filter(i => i.roomId === req.params.groupId);
+	return res.json(incidents);
+});
+
+safetyRouter.get('/incidents/:incidentId', (req: Request, res: Response) => {
+	const incident = incidentIdToIncident.get(req.params.incidentId);
+	if (!incident) return res.status(404).json({ error: 'not found' });
+	return res.json(incident);
+});
+
+const UpdateIncidentBody = z.object({
+	status: z.enum(['open', 'escalated', 'resolved', 'closed']),
+});
+
+safetyRouter.patch('/incidents/:incidentId', (req: Request, res: Response) => {
+	if (!req.user) return res.status(401).json({ error: 'unauthorized' });
+	const incident = incidentIdToIncident.get(req.params.incidentId);
+	if (!incident) return res.status(404).json({ error: 'not found' });
+
+	// For now, only the reporter can update the incident.
+	// In the future, this should be restricted to admins/trusted members.
+	if (incident.reporterId !== req.user.userId) return res.status(403).json({ error: 'forbidden' });
+
+	const parsed = UpdateIncidentBody.safeParse(req.body);
+	if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+	incident.status = parsed.data.status;
+	if (parsed.data.status === 'resolved') incident.resolvedAt = Date.now();
+	if (parsed.data.status === 'escalated') incident.escalatedAt = Date.now();
+
+	return res.json(incident);
+});

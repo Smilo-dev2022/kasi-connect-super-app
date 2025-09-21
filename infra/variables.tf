@@ -4,8 +4,3 @@ variable "db_username" { type = string, default = "appuser" }
 variable "redis_instance_class" { type = string, default = "cache.t3.micro" }
 variable "media_bucket_name" { type = string, default = "kasi-connect-media" }
 variable "domain_name" { type = string, default = "example.com" }
-variable "github_org" { type = string, default = "Smilo-dev2022" }
-variable "github_repo" { type = string, default = "kasi-connect-super-app" }
-variable "github_ref_prod" { type = string, default = "refs/heads/main" }
-variable "github_ref_staging" { type = string, default = "refs/heads/staging" }
-variable "attach_admin_policy" { type = bool, default = true }

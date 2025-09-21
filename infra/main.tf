@@ -112,13 +112,10 @@ resource "aws_route53_record" "cert_validation" {
 
 resource "aws_route53_record" "ingress" {
   zone_id = module.zones.route53_zone_zone_id["${var.domain_name}"]
-  name    = "media"
-  type    = "A"
-  alias {
-    name                   = module.cdn.cloudfront_distribution_domain_name
-    zone_id                = module.cdn.cloudfront_distribution_hosted_zone_id
-    evaluate_target_health = false
-  }
+  name    = "*"
+  type    = "CNAME"
+  ttl     = 300
+  records = [data.kubernetes_service.traefik.status.0.load_balancer.0.ingress.0.hostname]
 }
 
 data "kubernetes_service" "traefik" {
@@ -180,16 +177,10 @@ module "redis" {
   subnets            = module.network.private_subnets
   security_group_ids = [module.eks.node_security_group_id]
 
-  instance_type  = var.redis_instance_class
+  instance_type = var.redis_instance_class
   engine_version = "7.0"
-  parameter_group_name = aws_elasticache_parameter_group.redis.name
 
   apply_immediately = true
-}
-
-resource "aws_elasticache_parameter_group" "redis" {
-  name   = "${var.project}-redis7"
-  family = "redis7"
 }
 
 module "media_bucket" {
@@ -239,48 +230,6 @@ module "cdn" {
     acm_certificate_arn = aws_acm_certificate.default.arn
     ssl_support_method  = "sni-only"
   }
-}
-
-# CloudFront-scoped WAF and association
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
-}
-
-resource "aws_wafv2_web_acl" "cdn" {
-  provider = aws.us_east_1
-  name     = "${var.project}-cdn-waf"
-  scope    = "CLOUDFRONT"
-
-  default_action { allow {} }
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = "${var.project}-cdn-waf"
-    sampled_requests_enabled   = true
-  }
-
-  rule {
-    name     = "AWSManagedRulesCommonRuleSet"
-    priority = 1
-    override_action { none {} }
-    statement {
-      managed_rule_group_statement {
-        vendor_name = "AWS"
-        name        = "AWSManagedRulesCommonRuleSet"
-      }
-    }
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "common"
-      sampled_requests_enabled   = true
-    }
-  }
-}
-
-resource "aws_wafv2_web_acl_association" "cdn" {
-  provider    = aws.us_east_1
-  resource_arn = module.cdn.cloudfront_distribution_arn
-  web_acl_arn  = aws_wafv2_web_acl.cdn.arn
 }
 
 module "media_service_iam_role" {

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { Group, GroupId, GroupRole, groupIdToGroup, messageLog, userIdToGroups } from './state';
+import { checkSla, type Incident, type SlaConfig } from './sla';
 import { v4 as uuidv4 } from 'uuid';
 
 export const safetyRouter = Router();
@@ -108,9 +109,23 @@ safetyRouter.post('/rooms/:groupId/alerts', (req: Request, res: Response) => {
 	const group = groupIdToGroup.get(req.params.groupId);
 	if (!group || !group.isSafetyRoom) return res.status(404).json({ error: 'not found' });
 	if (!group.memberIds.has(req.user.userId)) return res.status(403).json({ error: 'not a member' });
-	const id = uuidv4();
-	const timestamp = Date.now();
-	messageLog.push({ id, from: req.user.userId, to: group.groupId, scope: 'group', ciphertext: parsed.data.content, contentType: parsed.data.contentType, timestamp });
-	return res.json({ ok: true, id, timestamp });
+    const id = uuidv4();
+    const timestamp = Date.now();
+    messageLog.push({ id, from: req.user.userId, to: group.groupId, scope: 'group', ciphertext: parsed.data.content, contentType: parsed.data.contentType, timestamp });
+
+    // Minimal SLA check (test-safe): only runs when SAFETY_SLA_ENABLED=true
+    if ((process.env.SAFETY_SLA_ENABLED || '').toLowerCase() === 'true') {
+        const incident: Incident = { id, groupId: group.groupId, createdAtMs: timestamp };
+        const ackMs = Number(process.env.SAFETY_SLA_ACK_MS || 15 * 60 * 1000);
+        const resolveMs = Number(process.env.SAFETY_SLA_RESOLVE_MS || 60 * 60 * 1000);
+        const cfg: SlaConfig = { ackThresholdMs: ackMs, resolveThresholdMs: resolveMs };
+        const breaches = checkSla(incident, Date.now(), cfg);
+        if (breaches.length) {
+            // For now, just log; tests can assert this path using env flags
+            // eslint-disable-next-line no-console
+            console.log(JSON.stringify({ event: 'sla_breach', incidentId: id, breaches }));
+        }
+    }
+    return res.json({ ok: true, id, timestamp });
 });
 

@@ -1,0 +1,44 @@
+image:
+  repository: ghcr.io/your-org/events-service-py
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  port: 8001
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /api/events
+          pathType: Prefix
+        - path: /events
+          pathType: Prefix
+  tls:
+    - hosts: [api.example.com]
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  - name: EVENTS_DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: events-service
+        key: EVENTS_DATABASE_URL
+  - name: EVENTS_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: events-service
+        key: EVENTS_SECRET_KEY
+  - name: SEED_DATA
+    value: "false"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
+from pydantic import BaseModel
 
 from .models import Report, ReportCreate, ReportUpdateStatus, ReportStatus
 

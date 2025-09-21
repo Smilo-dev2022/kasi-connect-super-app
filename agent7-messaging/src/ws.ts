@@ -3,7 +3,7 @@ import { IncomingMessage } from 'http';
 import url from 'url';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, eventLog, onlineUsers, userIdToGroups } from './state';
+import { CipherMessage, Group, groupIdToGroup, messageLog, UserId, userIdToSocket, eventLog, onlineUsers, userIdToGroups, persistMessage, persistEvent } from './state';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -101,6 +101,7 @@ export function attachWebSocketServer(server: import('http').Server) {
 						replyTo: msg.replyTo,
 					};
 					messageLog.push(envelope);
+					persistMessage(envelope);
 					deliver(envelope);
 					return;
 				}
@@ -110,6 +111,7 @@ export function attachWebSocketServer(server: import('http').Server) {
 					const original = messageLog.find((m) => m.id === msg.messageId);
 					if (!original) return send(socket, { type: 'error', error: 'message_not_found' });
 					eventLog.push({ type: 'reaction', id, messageId: msg.messageId, userId: userId!, emoji: msg.emoji, timestamp });
+					persistEvent({ type: 'reaction', id, messageId: msg.messageId, userId: userId!, emoji: msg.emoji, timestamp });
 					deliverEvent({ type: 'reaction', id, messageId: msg.messageId, userId: userId!, emoji: msg.emoji, timestamp }, original);
 					return;
 				}
@@ -123,6 +125,7 @@ export function attachWebSocketServer(server: import('http').Server) {
 					original.contentType = msg.contentType;
 					original.editedAt = timestamp;
 					eventLog.push({ type: 'edit', id, messageId: msg.messageId, userId: userId!, ciphertext: msg.ciphertext, contentType: msg.contentType, timestamp });
+					persistEvent({ type: 'edit', id, messageId: msg.messageId, userId: userId!, ciphertext: msg.ciphertext, contentType: msg.contentType, timestamp });
 					deliverEvent({ type: 'edit', id, messageId: msg.messageId, userId: userId!, ciphertext: msg.ciphertext, contentType: msg.contentType, timestamp }, original);
 					return;
 				}
@@ -134,6 +137,7 @@ export function attachWebSocketServer(server: import('http').Server) {
 					if (original.from !== userId) return send(socket, { type: 'error', error: 'forbidden' });
 					original.deletedAt = timestamp;
 					eventLog.push({ type: 'delete', id, messageId: msg.messageId, userId: userId!, timestamp });
+					persistEvent({ type: 'delete', id, messageId: msg.messageId, userId: userId!, timestamp });
 					deliverEvent({ type: 'delete', id, messageId: msg.messageId, userId: userId!, timestamp }, original);
 					return;
 				}
@@ -143,6 +147,7 @@ export function attachWebSocketServer(server: import('http').Server) {
 					const original = messageLog.find((m) => m.id === msg.messageId);
 					if (!original) return send(socket, { type: 'error', error: 'message_not_found' });
 					eventLog.push({ type: 'receipt', id, messageId: msg.messageId, userId: userId!, receipt: msg.type, timestamp });
+					persistEvent({ type: 'receipt', id, messageId: msg.messageId, userId: userId!, receipt: msg.type, timestamp });
 					const sender = userIdToSocket.get(original.from);
 					if (sender) send(sender, { type: 'receipt', messageId: msg.messageId, userId: userId!, receipt: msg.type, timestamp });
 					return;

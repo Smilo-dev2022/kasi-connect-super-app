@@ -52,6 +52,7 @@ export const userIdToSocket = new Map<UserId, WebSocket>();
 export const userIdToIdentity = new Map<UserId, IdentityRecord>();
 export const userIdToPrekeys = new Map<UserId, OneTimePreKey[]>();
 export const groupIdToGroup = new Map<GroupId, Group>();
+// In-memory default storage (dev). Optionally, persist to Redis when configured.
 export const messageLog: CipherMessage[] = [];
 
 // Presence/maps to speed up fanout
@@ -65,3 +66,23 @@ export type MessageEvent =
 	| { type: 'receipt'; id: string; messageId: string; userId: UserId; receipt: 'delivered' | 'read'; timestamp: number };
 
 export const eventLog: MessageEvent[] = [];
+
+// Optional Redis persistence hooks (no-op when REDIS_URL is unset)
+import Redis from 'ioredis';
+
+const redisUrl = process.env.REDIS_URL;
+export const redis = redisUrl ? new Redis(redisUrl) : undefined;
+
+export async function persistMessage(envelope: CipherMessage): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.xadd('msgs', '*', 'id', envelope.id, 'from', envelope.from, 'to', String(envelope.to), 'scope', envelope.scope, 'ts', String(envelope.timestamp), 'ct', envelope.ciphertext, 'cty', envelope.contentType || '');
+  } catch {}
+}
+
+export async function persistEvent(event: MessageEvent): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.xadd('events', '*', 'type', event.type, 'mid', event.messageId, 'uid', event.userId, 'ts', String(event.timestamp), 'extra', JSON.stringify(event));
+  } catch {}
+}

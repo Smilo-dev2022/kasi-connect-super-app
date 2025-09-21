@@ -7,6 +7,7 @@ import uploadsRouter from './routes/uploads';
 import mediaRouter from './routes/media';
 import thumbnailRouter from './routes/thumbnail';
 import { ensureBucketExists } from './s3';
+import { requireApiKey } from './util/auth';
 
 const app = express();
 
@@ -19,9 +20,10 @@ app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });
 });
 
-app.use('/uploads', uploadsRouter);
-app.use('/media', mediaRouter);
-app.use('/thumb', thumbnailRouter);
+// Protect presign/proxy endpoints with a simple API key in dev; replace with JWT in prod
+app.use('/uploads', requireApiKey, uploadsRouter);
+app.use('/media', requireApiKey, mediaRouter);
+app.use('/thumb', requireApiKey, thumbnailRouter);
 
 // Not found handler
 app.use((_req: Request, res: Response) => {

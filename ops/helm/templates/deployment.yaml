@@ -13,6 +13,14 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: {{ $name }}, app.kubernetes.io/instance: {{ $.Release.Name }} }
     spec:
+      serviceAccountName: {{ $svc.serviceAccountName | default "default" }}
+      volumes:
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.aws.com
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "kasi-connect.fullname" $ }}-{{ $name }}-secrets
       containers:
         - name: {{ $name }}
           image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.global.imageRepository }}-{{ $svc.image.name }}:{{ $.Values.global.imageTag }}"
@@ -24,8 +32,17 @@ spec:
             {{- if $svc.extraEnv }}
             {{- toYaml $svc.extraEnv | nindent 12 }}
             {{- end }}
+          {{- if $svc.secrets.enabled }}
+          envFrom:
+            - secretRef:
+                name: {{ include "kasi-connect.fullname" $ }}-{{ $name }}-secrets
+          {{- end }}
           resources:
             {{- toYaml $.Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: secrets
+              mountPath: "/mnt/secrets"
+              readOnly: true
           readinessProbe:
             httpGet: { path: /health, port: {{ $svc.port }} }
             initialDelaySeconds: 5
@@ -35,6 +52,18 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
 ---
+{{- if $svc.secrets.enabled }}
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: {{ include "kasi-connect.fullname" $ }}-{{ $name }}-secrets
+spec:
+  provider: aws
+  parameters:
+    objectName: {{ $svc.secrets.secretName }}
+    objectType: "secretsmanager"
+---
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:

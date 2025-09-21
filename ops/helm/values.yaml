@@ -5,14 +5,11 @@ global:
   pullPolicy: IfNotPresent
 
 ingress:
-  enabled: false
-  className: "nginx"
-  hosts:
-    - host: api.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
+  enabled: true
+  domain: "example.com"
+  tls:
+    enabled: true
+    certResolver: "default"
 
 resources:
   requests:
@@ -28,44 +25,88 @@ services:
     image:
       name: backend
     port: 4000
-    env:
-      - name: NODE_ENV
-        value: production
-    extraEnv: []
     replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "api"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-backend"
   events:
     enabled: true
     image:
       name: events-service
     port: 3000
     replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "events"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-events-service"
+    migrate:
+      enabled: true
+      command: "node"
+      args: ["/app/scripts/migrate.js"]
   events_py:
     enabled: true
     image:
       name: events_service
     port: 8001
     replicas: 1
+    ingress:
+      enabled: true
+      subdomain: "events-py"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-events-service"
+    migrate:
+      enabled: true
+      command: "alembic"
+      args: ["upgrade", "head"]
   moderation:
     enabled: true
     image:
       name: moderation_service
     port: 8082
     replicas: 1
+    ingress:
+      enabled: true
+      subdomain: "moderation"
   auth:
     enabled: true
     image:
       name: services-auth
     port: 4010
     replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "auth"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-agent7-messaging"
   media:
     enabled: true
     image:
       name: services-media
     port: 4008
     replicas: 2
+    serviceAccountName: "kasi-connect-media-service"
+    ingress:
+      enabled: true
+      subdomain: "media"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-services-media"
   search:
     enabled: true
     image:
       name: agent9-search
     port: 4009
     replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "search"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-agent9-search"

@@ -57,32 +57,13 @@ const Hero = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col items-center gap-8">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" className="text-lg px-8 py-6" onClick={() => window.location.href = '/app'}>
-                {t("hero.joinCommunity")}
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 bg-white/20 border-white/40 text-white hover:bg-white/30">
-                {t("hero.learnMore")}
-              </Button>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="flex flex-col gap-4">
-                <a href="https://www.apple.com/app-store/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors">
-                  <p className="text-sm font-semibold">Download on the</p>
-                  <h3 className="text-lg font-bold">App Store</h3>
-                </a>
-                <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors">
-                  <p className="text-sm font-semibold">GET IT ON</p>
-                  <h3 className="text-lg font-bold">Google Play</h3>
-                </a>
-              </div>
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://ikasilink.co.za"
-                alt="QR code for mobile app download"
-                className="w-32 h-32 rounded-lg"
-              />
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button variant="hero" size="lg" className="text-lg px-8 py-6" onClick={() => window.location.href = '/app'}>
+            {t("hero.joinCommunity")}
+          </Button>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-6 bg-white/20 border-white/40 text-white hover:bg-white/30">
+              {t("hero.learnMore")}
+            </Button>
           </div>
         </div>
       </div>

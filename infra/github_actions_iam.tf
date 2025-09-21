@@ -94,4 +94,3 @@ output "gha_terraform_staging_role_arn" {
   value       = aws_iam_role.gha_terraform_staging.arn
   description = "IAM role ARN for GitHub Actions to assume (staging)"
 }
-

@@ -11,12 +11,6 @@ import MessagesScreen from '@screens/MessagesScreen';
 import ProfileScreen from '@screens/ProfileScreen';
 import SplashScreen from '@screens/SplashScreen';
 import LoginScreen from '@screens/LoginScreen';
-import KycIntroScreen from '@screens/Kyc/KycIntroScreen';
-import KycIdScreen from '@screens/Kyc/KycIdScreen';
-import KycSelfieScreen from '@screens/Kyc/KycSelfieScreen';
-import KycAddressScreen from '@screens/Kyc/KycAddressScreen';
-import KycConsentScreen from '@screens/Kyc/KycConsentScreen';
-import KycResultScreen from '@screens/Kyc/KycResultScreen';
 import { useAuthStore } from '@state/authStore';
 import { Analytics } from '@analytics/index';
 
@@ -25,12 +19,6 @@ export type RootStackParamList = {
   Auth: undefined;
   Splash: undefined;
   Login: undefined;
-  KycIntroScreen: undefined;
-  KycIdScreen: undefined;
-  KycSelfieScreen: undefined;
-  KycAddressScreen: undefined;
-  KycConsentScreen: undefined;
-  KycResultScreen: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -92,15 +80,7 @@ export default function RootNavigator(): React.JSX.Element {
         {!hydrated ? (
           <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
         ) : token ? (
-          <>
-            <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
-            <Stack.Screen name="KycIntroScreen" component={KycIntroScreen} options={{ title: 'Identity Verification' }} />
-            <Stack.Screen name="KycIdScreen" component={KycIdScreen} options={{ title: 'Scan ID' }} />
-            <Stack.Screen name="KycSelfieScreen" component={KycSelfieScreen} options={{ title: 'Take Selfie' }} />
-            <Stack.Screen name="KycAddressScreen" component={KycAddressScreen} options={{ title: 'Address' }} />
-            <Stack.Screen name="KycConsentScreen" component={KycConsentScreen} options={{ title: 'Consent' }} />
-            <Stack.Screen name="KycResultScreen" component={KycResultScreen} options={{ title: 'Result', headerShown: false }} />
-          </>
+          <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         )}

@@ -33,3 +33,7 @@ export async function ensureMessagesCollection(): Promise<void> {
     await typesenseClient.collections().create(schema as any)
   }
 }
+
+export async function typesensePing(): Promise<void> {
+  await typesenseClient.health.retrieve()
+}

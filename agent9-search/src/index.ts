@@ -36,6 +36,15 @@ async function main(): Promise<void> {
     app.log.warn({ err }, 'Typesense not ready; continuing to start server')
   }
 
+  app.get('/ready', async (_request, reply) => {
+    try {
+      await typesensePing()
+      return reply.send({ ok: true })
+    } catch (err: any) {
+      return reply.status(503).send({ ok: false, error: err?.message || 'typesense_unavailable' })
+    }
+  })
+
   // Metrics endpoint
   app.get('/metrics', async (_request, reply) => {
     const body = await metricsRegistry.metrics()

@@ -7,6 +7,8 @@ import uploadsRouter from './routes/uploads';
 import mediaRouter from './routes/media';
 import thumbnailRouter from './routes/thumbnail';
 import { ensureBucketExists } from './s3';
+import { s3Client } from './s3';
+import { HeadBucketCommand } from '@aws-sdk/client-s3';
 
 const app = express();
 
@@ -17,6 +19,15 @@ app.use(morgan('dev'));
 
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });
+});
+
+app.get('/ready', async (_req: Request, res: Response) => {
+  try {
+    await s3Client.send(new HeadBucketCommand({ Bucket: config.s3.bucket }))
+    return res.status(200).json({ ok: true })
+  } catch (err: any) {
+    return res.status(503).json({ ok: false, error: err?.message || 's3_unavailable' })
+  }
 });
 
 app.use('/uploads', uploadsRouter);

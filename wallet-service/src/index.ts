@@ -22,6 +22,15 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL || 'dev'));
 
+app.get('/ready', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return res.json({ ok: true });
+  } catch (err: any) {
+    return res.status(503).json({ ok: false, error: err?.message || 'db_unavailable' });
+  }
+});
+
 app.get('/health', (_req, res) => {
   res.json({ ok: true });
 });

@@ -20,6 +20,18 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+app.get('/ready', async (_req: Request, res: Response) => {
+  try {
+    // quick TCP check to Redis
+    const url = new URL(config.redisUrl);
+    const socket = await (await import('net')).createConnection({ host: url.hostname, port: Number(url.port || 6379) });
+    socket.end();
+    return res.status(200).json({ ok: true });
+  } catch (err: any) {
+    return res.status(503).json({ ok: false, error: err?.message || 'redis_unavailable' });
+  }
+});
+
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });
 });

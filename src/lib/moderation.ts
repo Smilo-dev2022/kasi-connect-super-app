@@ -22,6 +22,15 @@ export interface ModerationItem {
   severity: SeverityLevel;
   status: "pending" | "reviewed" | "escalated" | "resolved";
   createdAt: number;
+  claimed_by?: string | null;
+  claimed_at?: string | null;
+  escalation_level?: number;
+  escalated_by?: string;
+  de_escalated_by?: string;
+  closed_by?: string;
+  sla_met?: boolean;
+  resolution_time_ms?: number;
+  sla_violation_minutes?: number;
 }
 
 export interface ClassificationResult {
@@ -99,75 +108,93 @@ export async function clearQueue(): Promise<void> {
   moderationQueue.length = 0;
 }
 
-// Additional functions for testing
-export async function claimQueueItem(reportId: string, moderatorId: string) {
-  const response = await fetch(`/api/reports/${reportId}/claim`, {
+// API functions for test compatibility and production use
+export async function claimQueueItem(itemId: string, moderatorId: string): Promise<ModerationItem> {
+  const response = await fetch(`/api/reports/${itemId}/claim`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+    },
     body: JSON.stringify({ moderator_id: moderatorId })
   });
   
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to claim queue item');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(`Failed to claim item: ${errorData.error || response.statusText}`);
   }
   
   return response.json();
 }
 
-export async function releaseQueueItem(reportId: string, moderatorId: string) {
-  const response = await fetch(`/api/reports/${reportId}/release`, {
+export async function releaseQueueItem(itemId: string, moderatorId: string): Promise<ModerationItem> {
+  const response = await fetch(`/api/reports/${itemId}/release`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+    },
     body: JSON.stringify({ moderator_id: moderatorId })
   });
   
   if (!response.ok) {
-    throw new Error('Failed to release queue item');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(`Failed to release item: ${errorData.error || response.statusText}`);
   }
   
   return response.json();
 }
 
-export async function escalateReport(reportId: string, options: { moderator_id: string; reason: string }) {
-  const response = await fetch(`/api/reports/${reportId}/escalate`, {
+export async function escalateReport(itemId: string, escalationData: { moderator_id: string; reason: string }): Promise<ModerationItem> {
+  const response = await fetch(`/api/reports/${itemId}/escalate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(options)
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+    },
+    body: JSON.stringify(escalationData)
   });
   
   if (!response.ok) {
-    throw new Error('Failed to escalate report');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(`Failed to escalate report: ${errorData.error || response.statusText}`);
   }
   
   return response.json();
 }
 
-export async function deEscalateReport(reportId: string, options: { moderator_id: string; reason: string }) {
-  const response = await fetch(`/api/reports/${reportId}/de-escalate`, {
+export async function deEscalateReport(itemId: string, deEscalationData: { moderator_id: string; reason: string }): Promise<ModerationItem> {
+  const response = await fetch(`/api/reports/${itemId}/de-escalate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(options)
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+    },
+    body: JSON.stringify(deEscalationData)
   });
   
   if (!response.ok) {
-    throw new Error('Failed to de-escalate report');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(`Failed to de-escalate report: ${errorData.error || response.statusText}`);
   }
   
   return response.json();
 }
 
-export async function closeReport(reportId: string, options: { moderator_id: string; resolution: string; notes?: string }) {
-  const response = await fetch(`/api/reports/${reportId}/close`, {
+export async function closeReport(itemId: string, closeData: { moderator_id: string; resolution: string; notes?: string }): Promise<ModerationItem> {
+  const response = await fetch(`/api/reports/${itemId}/close`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(options)
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
+    },
+    body: JSON.stringify(closeData)
   });
   
   if (!response.ok) {
-    throw new Error('Failed to close report');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(`Failed to close report: ${errorData.error || response.statusText}`);
   }
   
   return response.json();
 }
-

@@ -1,4 +1,4 @@
-package com.example.androidcore
+package za.co.ikasilink.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,12 +13,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.androidcore.data.AuthRepository
-import com.example.androidcore.data.ChatRepository
-import com.example.androidcore.ui.ChatDetailScreen
-import com.example.androidcore.ui.ChatsScreen
-import com.example.androidcore.ui.LoginScreen
-import com.example.androidcore.ui.SplashScreen
+import za.co.ikasilink.app.data.AuthRepository
+import za.co.ikasilink.app.data.ChatRepository
+import za.co.ikasilink.app.ui.ChatDetailScreen
+import za.co.ikasilink.app.ui.ChatsScreen
+import za.co.ikasilink.app.ui.LoginScreen
+import za.co.ikasilink.app.ui.SplashScreen
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {

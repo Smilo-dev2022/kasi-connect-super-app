@@ -1,4 +1,4 @@
-package com.example.androidcore.data
+package za.co.ikasilink.app.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences

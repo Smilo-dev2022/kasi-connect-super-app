@@ -5,29 +5,57 @@ plugins {
 }
 
 android {
-	namespace = "com.example.androidcore"
+	namespace = "za.co.ikasilink.app"
 	compileSdk = 34
 
 	defaultConfig {
-		applicationId = "com.example.androidcore"
+		applicationId = "za.co.ikasilink.app"
 		minSdk = 24
 		targetSdk = 34
 		versionCode = 1
-		versionName = "1.0"
+		versionName = "1.0.0"
+		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+	}
+
+	flavorDimensions += "env"
+	productFlavors {
+		create("staging") {
+			dimension = "env"
+			applicationIdSuffix = ".staging"
+			versionNameSuffix = "-staging"
+			buildConfigField("String", "BASE_URL", "\"https://staging.api.ikasilink.co.za\"")
+			buildConfigField("boolean", "IS_STAGING", "true")
+			resValue("string", "app_name", "iKasiLink Staging")
+		}
+		create("production") {
+			dimension = "env"
+			buildConfigField("String", "BASE_URL", "\"https://api.ikasilink.co.za\"")
+			buildConfigField("boolean", "IS_STAGING", "false")
+			resValue("string", "app_name", "iKasiLink")
+		}
 	}
 
 	buildTypes {
-		release {
+		debug {
+			isDebuggable = true
 			isMinifyEnabled = false
+			applicationIdSuffix = ".debug"
+			versionNameSuffix = "-debug"
+		}
+		release {
+			isMinifyEnabled = true
+			isShrinkResources = true
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro"
 			)
+			signingConfig = signingConfigs.getByName("debug") // Will be overridden in CI
 		}
 	}
 
 	buildFeatures {
 		compose = true
+		buildConfig = true
 	}
 
 	compileOptions {

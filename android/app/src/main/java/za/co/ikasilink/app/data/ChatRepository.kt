@@ -1,4 +1,4 @@
-package com.example.androidcore.data
+package za.co.ikasilink.app.data
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

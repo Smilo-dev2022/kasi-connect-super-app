@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 
 data class Message(val id: String, val author: String, val content: String, val isMine: Boolean)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(onBack: () -> Unit) {
     val messages = remember {
@@ -46,12 +48,17 @@ fun ChatScreen(onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Group Chat") })
         LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
             reverseLayout = false
         ) {
             items(messages) { message ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
                     horizontalArrangement = if (message.isMine) Arrangement.End else Arrangement.Start
                 ) {
                     Box(
@@ -71,7 +78,9 @@ fun ChatScreen(onBack: () -> Unit) {
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = inputState.value,
                 onValueChange = { inputState.value = it },

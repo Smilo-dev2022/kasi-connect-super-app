@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.app" // Using from the second block, verify this
+    namespace = "com.example.agentone" // Using from the second block, verify this
     compileSdk = 34
 
     defaultConfig {

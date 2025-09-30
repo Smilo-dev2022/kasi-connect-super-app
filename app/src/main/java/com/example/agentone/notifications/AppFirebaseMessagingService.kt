@@ -1,9 +1,11 @@
 package com.example.agentone.notifications
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.agentone.R
@@ -11,6 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class AppFirebaseMessagingService : FirebaseMessagingService() {
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         val title = message.notification?.title ?: "New message"
@@ -23,8 +26,9 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
         // TODO: send token to your backend if needed
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showNotification(title: String, body: String) {
-        val channelId = "agentone_messages"
+        val channelId = "agent_messages"
         val channelName = "AgentOne Messages"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)

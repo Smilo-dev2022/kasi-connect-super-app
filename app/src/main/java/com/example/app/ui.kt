@@ -27,7 +27,7 @@ fun SignInScreen(onSignIn: (String, String) -> Unit) {
 		Button(onClick = { onSignIn(email, password) }, modifier = Modifier.fillMaxWidth()) { Text("Continue") }
 	}
 }
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(onSignOut: () -> Unit) {
 	var input by remember { mutableStateOf("") }

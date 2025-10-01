@@ -56,6 +56,26 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}" // Consistent in both
         }
     }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(project.properties["RELEASE_STORE_FILE"] as String)
+            storePassword = project.properties["RELEASE_STORE_PASSWORD"] as String
+            keyAlias = project.properties["RELEASE_KEY_ALIAS"] as String
+            keyPassword = project.properties["RELEASE_KEY_PASSWORD"] as String
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
 }
 
 dependencies {

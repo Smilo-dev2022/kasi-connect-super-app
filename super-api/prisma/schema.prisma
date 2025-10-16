@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id             String   @id @default(uuid())
+  title          String
+  description    String?
+  location       String?
+  startsAt       DateTime
+  endsAt         DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  rsvps          Rsvp[]
+}
+
+model Rsvp {
+  id        String   @id @default(uuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  name      String
+  email     String
+  status    String   @default("yes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ticket    Ticket?
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  rsvp        Rsvp     @relation(fields: [rsvpId], references: [id])
+  rsvpId      String   @unique
+  token       String   @unique
+  issuedAt    DateTime @default(now())
+  checkedInAt DateTime?
+  status      String   @default("valid")
+}
+
+// Wallet domain
+model WalletRequest {
+  id            Int       @id @default(autoincrement())
+  groupId       String    @map("group_id")
+  requesterId   String    @map("requester_id")
+  amountCents   Int       @map("amount_cents")
+  currency      String    @default("ZAR")
+  status        String    @default("requested")
+  expiresAt     DateTime? @map("expires_at")
+  acceptedBy    String?   @map("accepted_by")
+  paidBy        String?   @map("paid_by")
+  canceledBy    String?   @map("canceled_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([groupId])
+  @@index([requesterId])
+  @@index([status])
+}
+
+model GroupLedger {
+  groupId     String   @map("group_id")
+  memberId    String   @map("member_id")
+  balanceCents Int     @default(0) @map("balance_cents")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@id([groupId, memberId])
+}
+
+model LedgerEntry {
+  id               Int      @id @default(autoincrement())
+  groupId          String   @map("group_id")
+  memberId         String   @map("member_id")
+  amountCents      Int      @map("amount_cents")
+  reason           String   @default("wallet_request")
+  relatedRequestId Int?     @map("related_request_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([groupId])
+  @@index([memberId])
+  @@index([relatedRequestId])
+}

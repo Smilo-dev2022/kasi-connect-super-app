@@ -76,6 +76,11 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
+// Minimal OpenAPI placeholder
+app.get('/openapi.json', (_req: Request, res: Response) => {
+  res.json({ openapi: '3.0.0', info: { title: 'Events Service', version: '1.0.0' } });
+});
+
 app.use('/api/events', eventsRouter);
 app.use('/api/rsvps', rsvpsRouter);
 app.use('/api/checkin', checkinRouter);

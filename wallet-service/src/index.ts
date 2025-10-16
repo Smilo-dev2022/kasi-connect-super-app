@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import client from 'prom-client';
 import { PrismaClient } from '@prisma/client';
 
 const app = express();
@@ -21,6 +22,46 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL || 'dev'));
+
+// Prometheus metrics
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  registers: [registry],
+});
+const httpRequestDurationMs = new client.Histogram({
+  name: 'http_request_duration_ms',
+  help: 'HTTP request duration in milliseconds',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000],
+  registers: [registry],
+});
+
+app.get('/metrics', async (_req, res) => {
+  res.setHeader('Content-Type', registry.contentType);
+  res.send(await registry.metrics());
+});
+
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    const service = 'wallet';
+    const status = String(res.statusCode);
+    const route = (req as any).route?.path ? `${req.baseUrl || ''}${(req as any).route.path}` : req.originalUrl || req.url;
+    try {
+      const diffNs = Number(process.hrtime.bigint() - start);
+      const durationMs = diffNs / 1_000_000;
+      httpRequestDurationMs.labels({ service, method: req.method, route, status }).observe(durationMs);
+    } catch {}
+    try {
+      httpRequestsTotal.labels({ service, method: req.method, route, status }).inc();
+    } catch {}
+  });
+  next();
+});
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

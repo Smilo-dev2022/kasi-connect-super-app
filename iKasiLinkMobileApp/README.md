@@ -4,6 +4,25 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 >**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
+## Local API + Mobile environment
+
+Set up local API endpoints and run the stack:
+
+```bash
+docker compose -f ../docker-compose.dev.yml up --build
+```
+
+Create a `.env` for the app (copy from `.env.example`) and point to your local APIs when testing on emulator/simulator:
+
+```env
+# Android emulator uses 10.0.2.2 for host loopback
+API_BASE_URL=http://10.0.2.2:8000
+SOCKET_URL=ws://10.0.2.2:8080
+SENTRY_DSN=
+```
+
+For iOS simulator, you can use `http://localhost`.
+
 ## Step 1: Start the Metro Server
 
 First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
@@ -88,6 +107,23 @@ iKasiLinkMobileApp/
  - Deep linking: `ikasilink://` and `https://ikasilink.app` mapped to tabs; Android intent filter configured.
 
 ## Advanced UX
+# Optional: Expo Dev Client
+
+You can use Expo Dev Client to streamline device testing while keeping a bare RN app:
+
+```bash
+npm i -D expo-dev-client expo prebuild
+```
+
+Build and install a custom client once, then iterate with Metro:
+
+```bash
+expo prebuild
+expo run:android   # or: expo run:ios
+```
+
+Troubleshooting: ensure pods are installed for iOS; for Android, enable developer options and USB debugging.
+
 - Chat persistence with AsyncStorage, haptics on send
 - Media attachments via image picker
 - Long-press reactions on chat bubbles

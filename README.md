@@ -119,6 +119,37 @@ This project is built with:
 
 ## Search service (Agent 9)
 
+## One-command developer setup
+
+Start all core dependencies and services with a single command:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Services:
+- Web (Vite dev server): http://localhost:5173
+- Messaging (Agent 7): http://localhost:8080
+- Events/Wallet (FastAPI): http://localhost:8000
+- Search (Agent 9 Fastify): http://localhost:4009
+- Media service: http://localhost:4008
+- Moderation (FastAPI): http://localhost:8082
+- Redis: localhost:6379
+- MinIO Console: http://localhost:9001 (S3 at :9000)
+- Typesense: http://localhost:8108 (apiKey: xyz)
+
+Environment overrides for the web app are set via compose (e.g. `VITE_MSG_API`, `VITE_EVENTS_API`, `VITE_WALLET_API`).
+
+When the stack is up, run a quick smoke test in another terminal:
+
+```bash
+node ./scripts/smoke.mjs
+```
+
+Troubleshooting:
+- If Python venv fails in the `events` container, install `python3.13-venv` (container already uses slim image and installs deps per requirements).
+- If ports are busy, stop conflicting local services or adjust published ports in `docker-compose.dev.yml`.
+
 The app includes a simple web search page at \/app\/search with tabs for Text, Media, and Links.
 
 ### Providers

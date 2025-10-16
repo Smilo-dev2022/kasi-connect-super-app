@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import client from 'prom-client';
 import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
@@ -19,6 +20,16 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 app.use(limiter);
+
+// Prometheus metrics
+client.collectDefaultMetrics();
+app.get('/metrics', async (_req: Request, res: Response) => {
+  res.type(client.register.contentType).send(await client.register.metrics());
+});
+
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });
+});
 
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });

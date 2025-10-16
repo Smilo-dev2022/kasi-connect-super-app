@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { PrismaClient } from '@prisma/client';
+import client from 'prom-client';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -21,6 +22,12 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL || 'dev'));
+
+// Prometheus metrics
+client.collectDefaultMetrics();
+app.get('/metrics', async (_req, res) => {
+  res.type(client.register.contentType).send(await client.register.metrics());
+});
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

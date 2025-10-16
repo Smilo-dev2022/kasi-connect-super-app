@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import client from 'prom-client';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -15,7 +16,13 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
-app.get('/healthz', (_req: Request, res: Response) => {
+// Prometheus metrics
+client.collectDefaultMetrics();
+app.get('/metrics', async (_req: Request, res: Response) => {
+  res.type(client.register.contentType).send(await client.register.metrics());
+});
+
+app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });
 });
 

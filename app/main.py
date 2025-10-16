@@ -8,6 +8,12 @@ from .routers.events import router as events_router
 from .routers.rsvps import router as rsvps_router
 from .routers.reminders import router as reminders_router
 from .routers.wallet import router as wallet_router
+from .routers.groups import router as groups_router
+from .routers.messages import router as messages_router
+from .routers.media import router as media_router
+from .routers.search import router as search_router
+from .routers.safety import router as safety_router
+from .routers.push import router as push_router
 from fastapi import Request
 from fastapi.responses import Response
 from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
@@ -125,6 +131,13 @@ def create_app() -> FastAPI:
     app.include_router(rsvps_router, tags=["rsvps"]) 
     app.include_router(reminders_router, tags=["reminders"]) 
     app.include_router(wallet_router)
+    # Week 2 APIs
+    app.include_router(groups_router)
+    app.include_router(messages_router)
+    app.include_router(media_router)
+    app.include_router(search_router)
+    app.include_router(safety_router)
+    app.include_router(push_router)
 
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
 

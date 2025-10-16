@@ -97,6 +97,31 @@ services:
     ports:
       - '4009:4009'
 
+  super-api:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=8081
+      - AUTH_URL=http://auth:4010
+      - MESSAGING_URL=http://agent7-messaging:8080
+      - MEDIA_URL=http://media:4008
+      - SEARCH_URL=http://search:4009
+      - EVENTS_URL=http://events:8000
+      - MODERATION_URL=http://moderation:8082
+    volumes:
+      - ./super-api:/app
+    command: sh -c "npm i && npm run dev"
+    depends_on:
+      - auth
+      - agent7-messaging
+      - media
+      - search
+      - events
+      - moderation
+    ports:
+      - '8081:8081'
+
   events:
     image: python:3.13-slim
     working_dir: /app
@@ -124,12 +149,15 @@ services:
     working_dir: /app
     environment:
       - NODE_ENV=development
-      - VITE_MSG_API=http://localhost:8080
+      - VITE_MSG_API=http://localhost:8081
+      - VITE_EVENTS_API=http://localhost:8081
+      - VITE_WALLET_API=http://localhost:8081
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"
     depends_on:
       - agent7-messaging
+      - super-api
     ports:
       - '5173:8080'
 

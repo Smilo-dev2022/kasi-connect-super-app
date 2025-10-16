@@ -115,6 +115,18 @@ services:
     image:
       name: wallet-service
     port: 3000
+    replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "wallet"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-wallet-service"
+  wallet:
+    enabled: true
+    image:
+      name: wallet-service
+    port: 3000
     replicas: 1
     ingress:
       enabled: true

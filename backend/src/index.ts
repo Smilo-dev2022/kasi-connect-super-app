@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import client, { Registry } from 'prom-client';
 import fastifyHelmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import rateLimit from '@fastify/rate-limit';
@@ -54,6 +55,14 @@ function safeEqual(a: string, b: string): boolean {
 
 server.get('/health', async () => {
   return { ok: true };
+});
+
+// Prometheus metrics
+const metricsRegistry: Registry = new client.Registry();
+client.collectDefaultMetrics({ register: metricsRegistry });
+server.get('/metrics', async (_request, reply) => {
+  reply.header('Content-Type', metricsRegistry.contentType);
+  return metricsRegistry.metrics();
 });
 // OTP request
 server.post('/auth/otp/request', {

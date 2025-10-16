@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import client from 'prom-client';
 
 import { authRouter, requireJwt } from './auth';
 import { requireAllowlist, isFeatureEnabled } from './gates';
@@ -20,9 +21,15 @@ export function createApp() {
 	app.use(express.json({ limit: '1mb' }));
 	app.use(morgan('dev'));
 
-	app.get('/health', (_req, res) => {
-		res.json({ ok: true, service: 'agent7-messaging' });
-	});
+    // Prometheus metrics
+    client.collectDefaultMetrics();
+    app.get('/metrics', async (_req, res) => {
+        res.type(client.register.contentType).send(await client.register.metrics());
+    });
+
+    app.get('/health', (_req, res) => {
+        res.json({ ok: true, service: 'agent7-messaging' });
+    });
 
 	app.use('/auth', authRouter);
 	// Dark launch gates for core surfaces when flag is enabled

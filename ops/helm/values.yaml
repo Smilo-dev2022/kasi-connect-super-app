@@ -110,3 +110,31 @@ services:
     secrets:
       enabled: true
       secretName: "kasi-connect-agent9-search"
+  agent7:
+    enabled: true
+    image:
+      name: agent7-messaging
+    port: 8080
+    replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "msg"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-agent7-messaging"
+  wallet:
+    enabled: true
+    image:
+      name: wallet-service
+    port: 3000
+    replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "wallet"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-wallet-service"
+    migrate:
+      enabled: true
+      command: "npx"
+      args: ["prisma", "migrate", "deploy"]

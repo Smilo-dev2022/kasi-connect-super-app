@@ -15,5 +15,6 @@ spec:
   - port: http
     path: /metrics
     interval: 15s
+    interval: 15s
 {{- end }}
 {{- end }}

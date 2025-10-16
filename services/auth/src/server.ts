@@ -24,6 +24,24 @@ app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });
 });
 
+// Minimal OpenAPI document
+const openapiDoc = {
+  openapi: '3.0.3',
+  info: { title: 'Auth Service API', version: '1.0.0' },
+  paths: {
+    '/healthz': { get: { responses: { '200': { description: 'ok' } } } },
+    '/auth/dev-token': { post: { responses: { '200': { description: 'token issued' }, '400': { description: 'bad request' } } } },
+    '/auth/otp/request': { post: { responses: { '200': { description: 'sent' }, '400': { description: 'bad request' } } } },
+    '/auth/otp/verify': { post: { responses: { '200': { description: 'verified' }, '400': { description: 'bad request' } } } },
+    '/devices': { post: { responses: { '201': { description: 'created' }, '401': { description: 'unauthorized' } } } },
+    '/devices/{id}': { delete: { responses: { '204': { description: 'deleted' }, '404': { description: 'not found' } } } },
+  },
+} as const;
+
+app.get('/openapi.json', (_req: Request, res: Response) => {
+  res.json(openapiDoc);
+});
+
 app.use('/auth', authRouter);
 app.use('/devices', devicesRouter);
 

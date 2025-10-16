@@ -10,7 +10,9 @@
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "build:packages": "npm -w @kasi/common-types run build",
+    "gen:clients": "openapi-typescript http://localhost:4009/openapi.json -o src/types/search.d.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.887.0",
@@ -98,7 +100,8 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "openapi-typescript": "^7.6.0"
   },
   "description": "## Project info",
   "main": "eslint.config.js",
@@ -116,4 +119,13 @@
     "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/issues"
   },
   "homepage": "https://github.com/Smilo-dev2022/kasi-connect-super-app#readme"
+  ,
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "agent7-messaging",
+    "agent9-search",
+    "events-service",
+    "wallet-service"
+  ]
 }

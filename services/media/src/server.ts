@@ -19,6 +19,23 @@ app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });
 });
 
+// Minimal OpenAPI document
+const openapiDoc = {
+  openapi: '3.0.3',
+  info: { title: 'Media Service API', version: '1.0.0' },
+  paths: {
+    '/healthz': { get: { responses: { '200': { description: 'ok' } } } },
+    '/uploads/presign': { post: { responses: { '200': { description: 'presigned PUT' }, '400': { description: 'bad request' } } } },
+    '/media/presign': { get: { responses: { '200': { description: 'presigned GET' } } } },
+    '/media/proxy': { get: { responses: { '200': { description: 'proxied content' }, '404': { description: 'not found' } } } },
+    '/thumb': { get: { responses: { '200': { description: 'thumbnail' }, '400': { description: 'bad request' } } } },
+  },
+} as const;
+
+app.get('/openapi.json', (_req: Request, res: Response) => {
+  res.json(openapiDoc);
+});
+
 app.use('/uploads', uploadsRouter);
 app.use('/media', mediaRouter);
 app.use('/thumb', thumbnailRouter);

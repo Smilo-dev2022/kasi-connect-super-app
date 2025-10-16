@@ -26,6 +26,30 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+// Minimal OpenAPI document
+const openapiDoc = {
+  openapi: '3.0.3',
+  info: { title: 'Wallet Service API', version: '0.1.0' },
+  paths: {
+    '/health': { get: { responses: { '200': { description: 'ok' } } } },
+    '/api/accounts': {
+      get: { responses: { '200': { description: 'list accounts' } } },
+      post: { responses: { '201': { description: 'created' }, '400': { description: 'bad request' } } },
+    },
+    '/api/accounts/{id}': { get: { responses: { '200': { description: 'get account' }, '404': { description: 'not found' } } } },
+    '/api/transactions': {
+      get: { responses: { '200': { description: 'list transactions' } } },
+      post: { responses: { '201': { description: 'created' }, '400': { description: 'bad request' } } },
+    },
+    '/api/transactions/account/{accountId}': { get: { responses: { '200': { description: 'list account transactions' } } } },
+    '/api/mobile/balance/{userId}': { get: { responses: { '200': { description: 'balance' }, '404': { description: 'not found' } } } },
+  },
+} as const;
+
+app.get('/openapi.json', (_req, res) => {
+  res.json(openapiDoc);
+});
+
 // Placeholder routes will be mounted from modules
 import accountsRouter from './routes/accounts';
 import transactionsRouter from './routes/transactions';

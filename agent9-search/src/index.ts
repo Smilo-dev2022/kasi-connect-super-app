@@ -5,6 +5,22 @@ import { config } from './config.js'
 import { ensureMessagesCollection } from './typesense.js'
 import { registerRoutes } from './routes.js'
 
+// Minimal OpenAPI schema for /openapi.json
+const openapiDoc = {
+  openapi: '3.0.3',
+  info: { title: 'Agent9 Search API', version: '0.1.0' },
+  paths: {
+    '/health': { get: { responses: { '200': { description: 'ok' } } } },
+    '/messages/index': {
+      post: {
+        requestBody: { required: true },
+        responses: { '200': { description: 'indexed' }, '400': { description: 'bad request' } },
+      },
+    },
+    '/messages/search': { get: { responses: { '200': { description: 'search results' } } } },
+  },
+} as const
+
 // Prometheus metrics setup
 const metricsRegistry: Registry = new client.Registry()
 client.collectDefaultMetrics({ register: metricsRegistry })
@@ -41,6 +57,11 @@ async function main(): Promise<void> {
     const body = await metricsRegistry.metrics()
     reply.header('Content-Type', metricsRegistry.contentType)
     return reply.send(body)
+  })
+
+  // OpenAPI JSON
+  app.get('/openapi.json', async (_request, reply) => {
+    return reply.send(openapiDoc)
   })
 
   // Request timing and JSON logging

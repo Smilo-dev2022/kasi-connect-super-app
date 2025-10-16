@@ -24,6 +24,26 @@ export function createApp() {
 		res.json({ ok: true, service: 'agent7-messaging' });
 	});
 
+	// Minimal OpenAPI endpoint
+	const openapiDoc = {
+		openapi: '3.0.3',
+		info: { title: 'Agent7 Messaging API', version: '0.1.0' },
+		paths: {
+			'/health': { get: { responses: { '200': { description: 'ok' } } } },
+			'/auth/dev-token': { post: { responses: { '200': { description: 'token' } } } },
+			'/keys/identity': { post: { responses: { '200': { description: 'ok' } } } },
+			'/keys/prekeys': { post: { responses: { '200': { description: 'ok' } } } },
+			'/keys/prekeys/{userId}': { get: { responses: { '200': { description: 'ok' }, '404': { description: 'not found' } } } },
+			'/groups': { post: { responses: { '200': { description: 'ok' } } } },
+			'/messages/since/{timestamp}': { get: { responses: { '200': { description: 'ok' } } } },
+			'/safety/rooms': { get: { responses: { '200': { description: 'ok' } } }, post: { responses: { '200': { description: 'ok' } } } },
+		},
+	} as const;
+
+	app.get('/openapi.json', (_req, res) => {
+		res.json(openapiDoc);
+	});
+
 	app.use('/auth', authRouter);
 	// Dark launch gates for core surfaces when flag is enabled
 	const darkLaunch = isFeatureEnabled('dark_launch');

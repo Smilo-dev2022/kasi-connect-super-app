@@ -36,6 +36,24 @@ app.get('/metrics', async (_req: Request, res: Response) => {
   res.send(body);
 });
 
+// Minimal OpenAPI schema
+const openapiDoc = {
+  openapi: '3.0.3',
+  info: { title: 'Events Service API', version: '0.1.0' },
+  paths: {
+    '/health': { get: { responses: { '200': { description: 'ok' } } } },
+    '/api/events': { get: { responses: { '200': { description: 'list events' } } }, post: { responses: { '201': { description: 'created' } } } },
+    '/api/events/{id}': { get: { responses: { '200': { description: 'get event' }, '404': { description: 'not found' } } } },
+    '/api/rsvps': { get: { responses: { '200': { description: 'list rsvps' } } }, post: { responses: { '201': { description: 'created' } } } },
+    '/api/checkin/verify': { get: { responses: { '200': { description: 'verify' }, '404': { description: 'not found' } } } },
+    '/api/checkin': { post: { responses: { '200': { description: 'check in' } } } },
+  },
+} as const;
+
+app.get('/openapi.json', (_req: Request, res: Response) => {
+  res.json(openapiDoc);
+});
+
 // Log on response
 app.use((req: Request, res: Response, next: NextFunction) => {
   const service = 'events';

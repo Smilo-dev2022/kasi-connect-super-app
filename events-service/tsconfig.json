@@ -44,5 +44,9 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
+    "paths": {
+      "@kasi/common-types": ["../packages/common-types/src"],
+      "@kasi/common-types/*": ["../packages/common-types/src/*"]
+    },
   }
 }

@@ -11,13 +11,16 @@ import { randomUUID } from 'node:crypto';
 import authPlugin from './plugins/auth.js';
 import devicesPlugin from './plugins/devices.js';
 import eventsPlugin from './plugins/events.js';
+import walletPlugin from './plugins/wallet.js';
+import mediaPlugin from './plugins/media.js';
+import { setupSocketIO } from './plugins/messaging.js';
 
 const PORT = Number(process.env.PORT || 8081);
 
 const AUTH_URL = process.env.AUTH_URL || 'http://localhost:4010';
 const MSG_URL = process.env.MSG_URL || 'http://localhost:8080';
 const MEDIA_URL = process.env.MEDIA_URL || 'http://localhost:4008';
-const EVENTS_URL = process.env.EVENTS_URL || 'http://localhost:8000';
+// EVENTS_URL deprecated once events moved in-process
 const MOD_URL = process.env.MOD_URL || 'http://localhost:8082';
 const SEARCH_URL = process.env.SEARCH_URL || 'http://localhost:4009';
 
@@ -83,6 +86,8 @@ async function buildServer() {
   await app.register(authPlugin);
   await app.register(devicesPlugin);
   await app.register(eventsPlugin);
+  await app.register(walletPlugin);
+  await app.register(mediaPlugin);
 
   // Proxies to existing services (HTTP only for now)
   await app.register(httpProxy, { upstream: MSG_URL, prefix: '/groups', rewritePrefix: '/groups' });
@@ -110,7 +115,10 @@ async function buildServer() {
 }
 
 buildServer()
-  .then((app) => app.listen({ port: PORT, host: '0.0.0.0' }))
+  .then(async (app) => {
+    // Attach Socket.IO and listen via its HTTP server wrapper
+    await setupSocketIO(app);
+  })
   .catch((err) => {
     // eslint-disable-next-line no-console
     console.error(err);

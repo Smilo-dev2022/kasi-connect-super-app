@@ -42,6 +42,61 @@ Then open `http://localhost:8000/` for the UI stub.
 - Minimal static UI lists events and allows RSVP
 
 
+## Developer Experience (Week 10–12)
+
+Run all core services with one command for local development:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Services exposed locally:
+
+- Messaging API: `http://localhost:8080`
+- Events (Node): `http://localhost:3000`
+- Wallet/Events (FastAPI): `http://localhost:8000`
+- Moderation API: `http://localhost:8002`
+- Media API (S3-compatible): `http://localhost:4008`
+- MinIO console: `http://localhost:9001` (creds: `minioadmin` / `minioadmin`)
+- Typesense: `http://localhost:8108` (API key: `xyz`)
+
+Web app (Vite) dev server: `http://localhost:5173`.
+
+Environment variables used by the web app are pre-wired by compose:
+
+- `VITE_MSG_API=http://localhost:8080`
+- `VITE_EVENTS_API=http://localhost:3000`
+- `VITE_WALLET_API=http://localhost:8000`
+
+### Mobile environment (Android/iOS)
+
+The React Native app is under `iKasiLinkMobileApp/`.
+
+Prereqs:
+
+- Android Studio (SDK 35+) and/or Xcode 15+
+- Java 17, Node 18+
+- Watchman (macOS), CocoaPods for iOS (`sudo gem install cocoapods`)
+
+Steps:
+
+1. Start backend stack: `docker compose -f docker-compose.dev.yml up`
+2. In a new terminal, from `iKasiLinkMobileApp/`:
+   - Android: `npm run android`
+   - iOS: `cd ios && pod install && cd .. && npm run ios`
+3. Configure API base URLs via `react-native-config` (create `.env` in `iKasiLinkMobileApp/`):
+
+```
+API_BASE_URL=http://10.0.2.2:8080
+SOCKET_URL=ws://10.0.2.2:8080
+SENTRY_DSN=
+```
+
+Note: Use `10.0.2.2` for Android emulator to reach host localhost; on iOS simulator use `http://localhost`.
+
+Optional (Expo Dev Client): You can integrate Expo Dev Client to simplify device testing without leaving bare native. If desired, install `expo` CLI and add the dev client following Expo docs, then run `expo run:android` or `expo run:ios`.
+
+
 
 
 ## Project info (iKasiLink)

@@ -10,6 +10,7 @@ import client from 'prom-client';
 import { randomUUID } from 'node:crypto';
 import authPlugin from './plugins/auth.js';
 import devicesPlugin from './plugins/devices.js';
+import eventsPlugin from './plugins/events.js';
 
 const PORT = Number(process.env.PORT || 8081);
 
@@ -81,6 +82,7 @@ async function buildServer() {
   // Built-in consolidated modules
   await app.register(authPlugin);
   await app.register(devicesPlugin);
+  await app.register(eventsPlugin);
 
   // Proxies to existing services (HTTP only for now)
   await app.register(httpProxy, { upstream: MSG_URL, prefix: '/groups', rewritePrefix: '/groups' });
@@ -91,8 +93,6 @@ async function buildServer() {
   await app.register(httpProxy, { upstream: MEDIA_URL, prefix: '/media', rewritePrefix: '/media' });
   await app.register(httpProxy, { upstream: MEDIA_URL, prefix: '/thumb', rewritePrefix: '/thumb' });
   await app.register(httpProxy, { upstream: SEARCH_URL, prefix: '/search', rewritePrefix: '/search' });
-  // Map /events/* -> events service (python app uses /events)
-  await app.register(httpProxy, { upstream: EVENTS_URL, prefix: '/events', rewritePrefix: '/events' });
   // Map /moderation/* -> moderation service /api/*
   await app.register(httpProxy, { upstream: MOD_URL, prefix: '/moderation', rewritePrefix: '/api' });
 

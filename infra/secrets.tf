@@ -81,6 +81,18 @@ resource "aws_secretsmanager_secret_version" "events_service" {
   })
 }
 
+resource "aws_secretsmanager_secret" "wallet_service" {
+  name = "${var.project}-wallet-service"
+}
+
+resource "aws_secretsmanager_secret_version" "wallet_service" {
+  secret_id     = aws_secretsmanager_secret.wallet_service.id
+  secret_string = jsonencode({
+    DATABASE_URL = "postgresql://${var.db_username}:${module.rds.db_instance_password}@${module.rds.db_instance_address}:${module.rds.db_instance_port}/${var.project}"
+    ALLOWED_ORIGINS = "https://${var.domain_name}"
+  })
+}
+
 resource "random_string" "grafana_admin_password" {
   length  = 16
   special = true

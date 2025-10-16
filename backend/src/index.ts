@@ -6,6 +6,7 @@ import fastifyJwt from '@fastify/jwt';
 import Redis from 'ioredis';
 import { ulid } from 'ulid';
 import { createHash, timingSafeEqual } from 'node:crypto';
+import client from 'prom-client';
 
 const server = Fastify({ logger: true });
 server.register(websocket);
@@ -14,6 +15,43 @@ server.register(rateLimit, {
   timeWindow: '1 minute'
 });
 server.register(fastifyHelmet);
+
+// Prometheus metrics
+const registry: client.Registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total', help: 'Total HTTP requests',
+  labelNames: ['service', 'method', 'route', 'status'] as const, registers: [registry],
+});
+const httpRequestDurationMs = new client.Histogram({
+  name: 'http_request_duration_ms', help: 'HTTP request duration in ms',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  buckets: [5,10,25,50,100,250,500,1000,2500,5000], registers: [registry],
+});
+
+server.get('/metrics', async (_req, reply) => {
+  const body = await registry.metrics();
+  reply.header('Content-Type', registry.contentType);
+  return reply.send(body);
+});
+
+server.addHook('onRequest', async (request, _reply) => {
+  (request as any).startTime = process.hrtime.bigint();
+});
+server.addHook('onResponse', async (request, reply) => {
+  const service = 'backend';
+  const route = (request as any).routeOptions?.url || request.url;
+  const status = String(reply.statusCode);
+  try {
+    const start: bigint | undefined = (request as any).startTime;
+    if (start) {
+      const diffNs = Number(process.hrtime.bigint() - start);
+      const durationMs = diffNs / 1_000_000;
+      httpRequestDurationMs.labels({ service, method: request.method, route, status }).observe(durationMs);
+    }
+  } catch {}
+  httpRequestsTotal.labels({ service, method: request.method, route, status }).inc();
+});
 
 // Env
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';

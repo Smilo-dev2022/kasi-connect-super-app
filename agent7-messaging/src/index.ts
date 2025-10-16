@@ -11,3 +11,5 @@ server.listen(PORT, () => {
 	// eslint-disable-next-line no-console
 	console.log(`Agent7 messaging listening on http://localhost:${PORT}`);
 });
+
+// Ensure OpenAPI placeholder route exists (already added in app)

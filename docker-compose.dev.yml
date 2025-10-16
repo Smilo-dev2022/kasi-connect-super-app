@@ -1,6 +1,16 @@
 version: '3.9'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=kasi_connect
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg-data:/var/lib/postgresql/data
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
@@ -102,6 +112,7 @@ services:
     working_dir: /app
     environment:
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/kasi_connect
     volumes:
       - ./:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
@@ -133,7 +144,24 @@ services:
     ports:
       - '5173:8080'
 
+  wallet:
+    build:
+      context: ./wallet-service
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/kasi_connect
+      - ALLOWED_ORIGINS=*
+    volumes:
+      - ./wallet-service:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    ports:
+      - '3000:3000'
+
 volumes:
   redis-data: {}
   minio-data: {}
   typesense-data: {}
+  pg-data: {}

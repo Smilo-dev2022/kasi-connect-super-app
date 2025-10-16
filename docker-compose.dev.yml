@@ -133,6 +133,22 @@ services:
     ports:
       - '5173:8080'
 
+  web-admin:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_EVENTS_API_BASE=http://localhost:8000
+      - NEXT_PUBLIC_MOD_API_BASE=http://localhost:8082
+    volumes:
+      - ./web-admin:/app
+    command: sh -c "npm i && npm run dev"
+    depends_on:
+      - events
+      - moderation
+    ports:
+      - '3000:3000'
+
 volumes:
   redis-data: {}
   minio-data: {}

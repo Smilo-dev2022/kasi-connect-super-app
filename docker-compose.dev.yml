@@ -124,7 +124,9 @@ services:
     working_dir: /app
     environment:
       - NODE_ENV=development
-      - VITE_MSG_API=http://localhost:8080
+      - VITE_MSG_API=http://localhost:8081
+      - VITE_EVENTS_API=http://localhost:8081
+      - VITE_WALLET_API=http://localhost:8081
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"
@@ -132,6 +134,31 @@ services:
       - agent7-messaging
     ports:
       - '5173:8080'
+
+  super-api:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=8081
+      - AUTH_URL=http://auth:4010
+      - MSG_URL=http://agent7-messaging:8080
+      - MEDIA_URL=http://media:4008
+      - EVENTS_URL=http://events:8000
+      - MOD_URL=http://moderation:8082
+      - SEARCH_URL=http://search:4009
+    volumes:
+      - ./super-api:/app
+    command: sh -c "npm i && npm run dev"
+    depends_on:
+      - auth
+      - agent7-messaging
+      - media
+      - events
+      - moderation
+      - search
+    ports:
+      - '8081:8081'
 
 volumes:
   redis-data: {}

@@ -96,6 +96,26 @@ iKasiLinkMobileApp/
 
 If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
+# Environment configuration
+
+Copy `.env.example` to `.env` and set:
+
+```
+API_BASE_URL=http://10.0.2.2:8080
+SOCKET_URL=ws://10.0.2.2:8080
+SENTRY_DSN=
+```
+
+On physical devices, replace `10.0.2.2` with your host IP.
+
+# Optional: Expo Dev Client
+
+You can add Expo Dev Client for easier on-device testing:
+
+- Install `expo` CLI
+- Configure dev client and install on device/emulator
+- See Expo documentation for detailed steps
+
 # Learn More
 
 To learn more about React Native, take a look at the following resources:

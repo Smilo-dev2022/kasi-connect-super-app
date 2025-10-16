@@ -4,6 +4,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import client from 'prom-client';
 import { PrismaClient } from '@prisma/client';
+import client from 'prom-client';
+import client from 'prom-client';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -22,6 +24,38 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL || 'dev'));
+
+// Prometheus metrics
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+
+app.get('/metrics', async (_req, res) => {
+  res.setHeader('Content-Type', registry.contentType);
+  const body = await registry.metrics();
+  res.send(body);
+});
+
+// Prometheus metrics
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+const httpRequestCounter = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['service', 'method', 'route', 'status'] as const,
+  registers: [registry],
+});
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    const route = (req as any).route?.path || req.originalUrl || req.url;
+    httpRequestCounter.labels({ service: 'wallet', method: req.method, route, status: String(res.statusCode) }).inc();
+  });
+  next();
+});
+
+app.get('/metrics', async (_req, res) => {
+  res.setHeader('Content-Type', registry.contentType);
+  res.send(await registry.metrics());
+});
 
 // Prometheus metrics
 const registry = new client.Registry();

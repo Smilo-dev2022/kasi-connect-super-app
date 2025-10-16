@@ -35,3 +35,5 @@ resource "helm_release" "prometheus" {
     value = "false"
   }
 }
+
+# ServiceMonitor for wallet and moderation can be rendered by ops/helm chart; ensure namespace label matches

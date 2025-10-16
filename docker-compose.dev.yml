@@ -148,6 +148,22 @@ services:
     ports:
       - '8082:8082'
 
+  wallet:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
+      - ALLOWED_ORIGINS=*
+    volumes:
+      - ./wallet-service:/app
+    command: sh -c "npm i && npm run dev"
+    depends_on:
+      - postgres
+    ports:
+      - '3000:3000'
+
   web:
     image: node:20-alpine
     working_dir: /app

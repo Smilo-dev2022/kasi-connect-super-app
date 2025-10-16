@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import client from 'prom-client';
 import { PrismaClient } from '@prisma/client';
 
 const app = express();
@@ -21,6 +22,15 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan(process.env.LOG_LEVEL || 'dev'));
+
+// Prometheus metrics
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register: registry });
+
+app.get('/metrics', async (_req, res) => {
+  res.set('Content-Type', registry.contentType);
+  res.end(await registry.metrics());
+});
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

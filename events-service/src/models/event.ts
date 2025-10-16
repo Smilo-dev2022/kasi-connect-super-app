@@ -1,42 +1,14 @@
 import { z } from 'zod';
-import dayjs from 'dayjs';
+import { EventBaseSchema as CommonEventBaseSchema } from '@kasi/common-types';
 
-const dateStringSchema = z
-  .string()
-  .refine((value) => dayjs(value).isValid(), 'Invalid date string');
-
-export const EventBaseSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  location: z.string().optional(),
-  startsAt: dateStringSchema,
-  endsAt: dateStringSchema.optional(),
-  reminderMinutesBefore: z
-    .number()
-    .int()
-    .min(0)
-    .max(10080)
-    .optional()
-    .default(60),
-});
-
-export const NewEventInputSchema = EventBaseSchema.superRefine((data, ctx) => {
-  if (data.endsAt && dayjs(data.endsAt).isBefore(dayjs(data.startsAt))) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'endsAt must be after startsAt',
-      path: ['endsAt'],
-    });
-  }
-});
-
-export const EventSchema = EventBaseSchema.extend({
+export const EventBaseSchema = CommonEventBaseSchema;
+export const NewEventInputSchema = CommonEventBaseSchema;
+export const EventSchema = CommonEventBaseSchema.extend({
   id: z.string().uuid(),
-  createdAt: dateStringSchema,
-  updatedAt: dateStringSchema.optional(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional(),
 });
-
-export const UpdateEventInputSchema = EventBaseSchema.partial();
+export const UpdateEventInputSchema = CommonEventBaseSchema.partial();
 
 export type NewEventInput = z.infer<typeof NewEventInputSchema>;
 export type UpdateEventInput = z.infer<typeof UpdateEventInputSchema>;

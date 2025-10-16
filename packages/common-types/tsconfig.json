@@ -3,16 +3,14 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "paths": {
-      "@kasi/common-types": ["../packages/common-types/src"],
-      "@kasi/common-types/*": ["../packages/common-types/src/*"]
-    },
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
+    "declaration": true,
+    "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src", "scripts"]
+  "include": ["src"]
 }

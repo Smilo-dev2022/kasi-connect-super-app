@@ -1,23 +1,15 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { typesenseClient } from './typesense.js'
+import { MessageStubSchema } from '@kasi/common-types'
 
-const MessageStub = z.object({
-  id: z.string(),
-  conversation_id: z.string(),
-  sender_id: z.string(),
-  text: z.string().default(''),
-  created_at: z.number().int(),
-  type: z.enum(['text', 'image', 'video', 'link', 'other']).default('text')
-})
-
-export type MessageStub = z.infer<typeof MessageStub>
+export type MessageStub = z.infer<typeof MessageStubSchema>
 
 export function registerRoutes(app: FastifyInstance): void {
   app.get('/health', async () => ({ ok: true }))
 
   app.post('/messages/index', async (request, reply) => {
-    const parsed = MessageStub.safeParse(request.body)
+    const parsed = MessageStubSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.code(400).send({ error: parsed.error.format() })
     }

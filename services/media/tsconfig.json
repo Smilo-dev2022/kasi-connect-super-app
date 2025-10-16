@@ -10,7 +10,11 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "rootDir": "src",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@kasi/common-types": ["../../packages/common-types/src"],
+      "@kasi/common-types/*": ["../../packages/common-types/src/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

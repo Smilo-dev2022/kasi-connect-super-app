@@ -1,0 +1,19 @@
+{
+  "name": "@kasi/common-types",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist || rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^3.25.76",
+    "dayjs": "^1.11.18"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

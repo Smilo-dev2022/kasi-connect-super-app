@@ -46,7 +46,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">iKasiLink Platform</h4>
+            <h4 className="text-lg font-semibold text-white mb-4">Platform</h4>
             <ul className="space-y-2 text-white/80">
               <li><a href="#" className="hover:text-white transition-colors">Community Chat</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Stokvel Management</a></li>

@@ -23,7 +23,28 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // TODO: send token to your backend if needed
+        // Send the refreshed FCM token to backend devices endpoint (best-effort)
+        try {
+            val userJwt = getSharedPreferences("auth", Context.MODE_PRIVATE).getString("jwt", null)
+            if (userJwt != null) {
+                Thread {
+                    try {
+                        val url = java.net.URL("https://api.kasilink.example/devices")
+                        val conn = (url.openConnection() as java.net.HttpURLConnection).apply {
+                            requestMethod = "POST"
+                            setRequestProperty("Content-Type", "application/json")
+                            setRequestProperty("Authorization", "Bearer $userJwt")
+                            doOutput = true
+                        }
+                        val body = "{" +
+                                "\"platform\":\"android\"," +
+                                "\"token\":\"" + token + "\"}"
+                        conn.outputStream.use { it.write(body.toByteArray()) }
+                        conn.inputStream.use { _ -> }
+                    } catch (_: Exception) {}
+                }.start()
+            }
+        } catch (_: Exception) {}
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)

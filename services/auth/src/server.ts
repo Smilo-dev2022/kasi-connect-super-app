@@ -43,6 +43,18 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 function start() {
+  if (config.nodeEnv === 'production') {
+    if (!process.env.JWT_SECRET || config.jwtSecret === 'dev-secret-change-me') {
+      // eslint-disable-next-line no-console
+      console.error('JWT_SECRET must be set in production');
+      process.exit(1);
+    }
+    if (!process.env.OTP_PEPPER || process.env.OTP_PEPPER === 'dev-otp-pepper-change-me') {
+      // eslint-disable-next-line no-console
+      console.error('OTP_PEPPER must be set in production');
+      process.exit(1);
+    }
+  }
   const server = app.listen(config.port, () => {
     // eslint-disable-next-line no-console
     console.log(`Auth service listening on http://localhost:${config.port}`);

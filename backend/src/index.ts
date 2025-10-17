@@ -204,18 +204,23 @@ server.delete('/devices/:id', { preHandler: requireAuth }, async (request, reply
 });
 
 server.get('/ws', { websocket: true }, (connection /*, req */) => {
-  connection.socket.send(JSON.stringify({ type: 'hello', ts: Date.now() }));
-  connection.socket.on('message', (raw: unknown) => {
-    try {
-      const message = JSON.parse(String(raw));
-      // TODO: route to messaging service once implemented
-      connection.socket.send(
-        JSON.stringify({ type: 'echo', received: message, ts: Date.now() })
-      );
-    } catch {
-      connection.socket.send(JSON.stringify({ type: 'error', error: 'Bad JSON' }));
-    }
-  });
+  // Bridge to agent7 messaging WS service if configured
+  const target = process.env.MSG_WS_URL || 'ws://localhost:8080/ws';
+  try {
+    const { WebSocket } = require('ws');
+    const upstream = new WebSocket(target, {
+      headers: connection.socket.protocol ? { 'sec-websocket-protocol': connection.socket.protocol } : undefined
+    });
+    upstream.on('open', () => {
+      connection.socket.on('message', (raw: unknown) => upstream.send(raw as any));
+      upstream.on('message', (raw: unknown) => connection.socket.send(raw as any));
+    });
+    upstream.on('close', () => connection.socket.close());
+    upstream.on('error', () => connection.socket.close());
+  } catch {
+    connection.socket.send(JSON.stringify({ type: 'error', error: 'Bridge unavailable' }));
+    connection.socket.close();
+  }
 });
 
 async function start() {

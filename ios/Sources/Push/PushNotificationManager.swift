@@ -19,7 +19,21 @@ final class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate 
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
         print("[Push] APNs token: \(token)")
-        // TODO: Send token to backend
+        // Send token to backend devices endpoint (best-effort)
+        if let jwt = UserDefaults.standard.string(forKey: "auth.jwt"),
+           let url = URL(string: "https://api.kasilink.example/devices") {
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.addValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+            let body: [String: Any] = [
+                "platform": "ios",
+                "token": token
+            ]
+            req.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+            let task = URLSession.shared.dataTask(with: req) { _, _, _ in }
+            task.resume()
+        }
     }
 
     // Foreground notification handling

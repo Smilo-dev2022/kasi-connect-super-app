@@ -81,6 +81,18 @@ resource "aws_secretsmanager_secret_version" "events_service" {
   })
 }
 
+# Super API (app)
+resource "aws_secretsmanager_secret" "superapi" {
+  name = "${var.project}-superapi"
+}
+
+resource "aws_secretsmanager_secret_version" "superapi" {
+  secret_id     = aws_secretsmanager_secret.superapi.id
+  secret_string = jsonencode({
+    DATABASE_URL = "postgresql://${var.db_username}:${module.rds.db_instance_password}@${module.rds.db_instance_address}:${module.rds.db_instance_port}/${var.project}"
+  })
+}
+
 resource "aws_secretsmanager_secret" "wallet_service" {
   name = "${var.project}-wallet-service"
 }

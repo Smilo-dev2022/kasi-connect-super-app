@@ -1,0 +1,288 @@
+{
+  "cutoff": "2025-09-17",
+  "stale_duplicates_count": 32,
+  "stale_duplicates": [
+    {
+      "number": 110,
+      "title": "Implement comprehensive testing and quality guardrails for production readiness",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/110",
+      "merged_matches": [
+        99
+      ]
+    },
+    {
+      "number": 96,
+      "title": "Expand features and production infrastructure",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/96",
+      "merged_matches": [
+        95
+      ]
+    },
+    {
+      "number": 87,
+      "title": "Agent 13 security and compliance completion",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/87",
+      "merged_matches": [
+        85
+      ]
+    },
+    {
+      "number": 84,
+      "title": "Complete auth service agent 6",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/84",
+      "merged_matches": [
+        80
+      ]
+    },
+    {
+      "number": 81,
+      "title": "Complete media service agent 8",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/81",
+      "merged_matches": [
+        82
+      ]
+    },
+    {
+      "number": 76,
+      "title": "Phased app development sprint plan",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/76",
+      "merged_matches": [
+        12
+      ]
+    },
+    {
+      "number": 75,
+      "title": "Initialize and index message search",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/75",
+      "merged_matches": [
+        60
+      ]
+    },
+    {
+      "number": 74,
+      "title": "Media service setup and upload endpoint",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/74",
+      "merged_matches": [
+        65
+      ]
+    },
+    {
+      "number": 72,
+      "title": "Scaffold abuse moderation service and API",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/72",
+      "merged_matches": [
+        57
+      ]
+    },
+    {
+      "number": 71,
+      "title": "Scaffold wallet service with models and API",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/71",
+      "merged_matches": [
+        77
+      ]
+    },
+    {
+      "number": 67,
+      "title": "Implement real-time messaging service with advanced features",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/67",
+      "merged_matches": [
+        64
+      ]
+    },
+    {
+      "number": 66,
+      "title": "Setup ios core with group chat and notifications",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/66",
+      "merged_matches": [
+        63,
+        56,
+        52
+      ]
+    },
+    {
+      "number": 62,
+      "title": "Draft initial wireframes and UX for product features",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/62",
+      "merged_matches": [
+        58
+      ]
+    },
+    {
+      "number": 61,
+      "title": "Implement and secure auth service with otp and push",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/61",
+      "merged_matches": [
+        49
+      ]
+    },
+    {
+      "number": 55,
+      "title": "Setup iOS group chat and media upload",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/55",
+      "merged_matches": [
+        53
+      ]
+    },
+    {
+      "number": 54,
+      "title": "Android app shell and chat integration",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/54",
+      "merged_matches": [
+        48
+      ]
+    },
+    {
+      "number": 51,
+      "title": "Android group chat and media integration",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/51",
+      "merged_matches": [
+        50
+      ]
+    },
+    {
+      "number": 47,
+      "title": "Product and ux township localization translations",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/47",
+      "merged_matches": [
+        14
+      ]
+    },
+    {
+      "number": 46,
+      "title": "Implement security and compliance measures",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/46",
+      "merged_matches": [
+        4
+      ]
+    },
+    {
+      "number": 45,
+      "title": "Manage media uploads and galleries",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/45",
+      "merged_matches": [
+        6
+      ]
+    },
+    {
+      "number": 44,
+      "title": "Agent 12 abuse and moderation service",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/44",
+      "merged_matches": [
+        5
+      ]
+    },
+    {
+      "number": 43,
+      "title": "Implement and verify safety room features",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/43",
+      "merged_matches": [
+        37
+      ]
+    },
+    {
+      "number": 39,
+      "title": "Develop stokvel wallet and event features",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/39",
+      "merged_matches": [
+        31
+      ]
+    },
+    {
+      "number": 38,
+      "title": "Implement group chat with media and push",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/38",
+      "merged_matches": [
+        42
+      ]
+    },
+    {
+      "number": 36,
+      "title": "Business profiles and polish features",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/36",
+      "merged_matches": [
+        35
+      ]
+    },
+    {
+      "number": 30,
+      "title": "Agent parallel tasks and rotation",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/30",
+      "merged_matches": [
+        34
+      ]
+    },
+    {
+      "number": 28,
+      "title": "Remove all traces of Lovable",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/28",
+      "merged_matches": [
+        29
+      ]
+    },
+    {
+      "number": 25,
+      "title": "Web admin ward verification and dashboards",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/25",
+      "merged_matches": [
+        3
+      ]
+    },
+    {
+      "number": 20,
+      "title": "Develop events service for pages, rsvps, qr tickets",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/20",
+      "merged_matches": [
+        23
+      ]
+    },
+    {
+      "number": 17,
+      "title": "Agent 9 search service",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/17",
+      "merged_matches": [
+        18
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Develop iOS core app shell and chat",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/2",
+      "merged_matches": [
+        21
+      ]
+    },
+    {
+      "number": 1,
+      "title": "Implement ios group media wallet ui",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/1",
+      "merged_matches": [
+        15
+      ]
+    }
+  ],
+  "mergeable_update_subset": [
+    {
+      "number": 98,
+      "title": "Implement Comprehensive Testing & Quality Guardrails for iKasiLink - 96% Test Coverage Achieved",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/98"
+    }
+  ],
+  "conflicted_rebase_subset": [
+    {
+      "number": 153,
+      "title": "Check prompt alignment and remaining tasks",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/153"
+    },
+    {
+      "number": 146,
+      "title": "Do week 12",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/146"
+    },
+    {
+      "number": 107,
+      "title": "Week 1 GA: Implement moderation/appeals DB, roles, admin UI, and analytics scaffolding",
+      "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/pull/107"
+    }
+  ]
+}

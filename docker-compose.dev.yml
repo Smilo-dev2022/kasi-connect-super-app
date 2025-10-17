@@ -43,8 +43,8 @@ services:
       - '8080:8080'
 
   auth:
-    build:
-      context: ./services/auth
+    image: node:20-alpine
+    working_dir: /app
     environment:
       - NODE_ENV=development
       - PORT=4010
@@ -55,6 +55,9 @@ services:
       - OTP_COOLDOWN_SECONDS=60
       - OTP_MAX_ATTEMPTS=5
       - OTP_PEPPER=dev-otp-pepper-change-me
+    volumes:
+      - ./services/auth:/app
+    command: sh -c "npm i && npm run dev"
     depends_on:
       - redis
     ports:
@@ -83,8 +86,8 @@ services:
       - '4008:4008'
 
   search:
-    build:
-      context: ./agent9-search
+    image: node:20-alpine
+    working_dir: /app
     environment:
       - NODE_ENV=development
       - PORT=4009
@@ -92,6 +95,9 @@ services:
       - TYPESENSE_PORT=8108
       - TYPESENSE_PROTOCOL=http
       - TYPESENSE_API_KEY=xyz
+    volumes:
+      - ./agent9-search:/app
+    command: sh -c "npm i && npm run dev"
     depends_on:
       - typesense
     ports:
@@ -104,7 +110,7 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - ./:/app
-    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - '8000:8000'
 
@@ -127,11 +133,12 @@ services:
       - VITE_MSG_API=http://localhost:8080
     volumes:
       - ./:/app
-    command: sh -c "npm i && npm run dev"
+    # Bind Vite to all interfaces so it's reachable from host
+    command: sh -c "npm i && npm run dev -- --host 0.0.0.0 --port 5173"
     depends_on:
       - agent7-messaging
     ports:
-      - '5173:8080'
+      - '5173:5173'
 
 volumes:
   redis-data: {}

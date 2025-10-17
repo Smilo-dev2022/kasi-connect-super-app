@@ -106,6 +106,21 @@ cd infra && terraform init && terraform apply -auto-approve
 ```
 - Deploy to Kubernetes with Helm (see `runbooks/deploy-rollback.md`).
 
+## Local development (one command)
+
+Run all core services (Redis, Typesense, Media, Messaging, Search, Events/Wallet, Moderation, Web) with live reload:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Then open the web app at http://localhost:5173. Messaging API runs at http://localhost:8080, Search at http://localhost:4009, Media at http://localhost:4008, Events/Wallet at http://localhost:8000, Moderation at http://localhost:8082.
+
+### Mobile (optional)
+
+- Android/iOS React Native app under `iKasiLinkMobileApp/`. Configure `.env` with `API_BASE_URL` and `SOCKET_URL` pointing to your host. Android Emulator uses `10.0.2.2` to reach the host.
+- Consider Expo Dev Client for easier device testing; see the RN project README for setup.
+
 ## What technologies are used for iKasiLink?
 
 This project is built with:

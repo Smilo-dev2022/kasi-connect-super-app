@@ -1,6 +1,6 @@
 version: '3.9'
 services:
-  postgres:
+  db:
     image: postgres:16
     environment:
       POSTGRES_USER: kasilink
@@ -14,30 +14,30 @@ services:
   wallet:
     build: ./app
     environment:
-      DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      DATABASE_URL: postgres://kasilink:kasilink@db:5432/kasilink
     depends_on:
-      - postgres
+      - db
 
   events_py:
     build: ./events_service
     environment:
-      EVENTS_DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      EVENTS_DATABASE_URL: postgres://kasilink:kasilink@db:5432/kasilink
     depends_on:
-      - postgres
+      - db
 
   events_node:
     build: ./events-service
     environment:
       PORT: 3000
     depends_on:
-      - postgres
+      - db
 
   moderation:
     build: ./moderation_service
     environment:
-      MOD_DB_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
+      MOD_DB_URL: postgres://kasilink:kasilink@db:5432/kasilink
     depends_on:
-      - postgres
+      - db
 
 volumes:
   pgdata:

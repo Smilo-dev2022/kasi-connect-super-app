@@ -1,6 +1,6 @@
 // Support environments where import.meta typing may not include env
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DEFAULT_MESSAGING_API = ((import.meta as any)?.env?.VITE_MSG_API as string | undefined) || 'http://localhost:8080';
+const DEFAULT_MESSAGING_API = ((import.meta as any)?.env?.VITE_MSG_API as string | undefined) || 'http://localhost:8081';
 
 type StoredTokens = Record<string, string>;
 

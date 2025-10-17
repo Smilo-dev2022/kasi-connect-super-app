@@ -29,18 +29,7 @@ services:
     volumes:
       - typesense-data:/data
 
-  agent7-messaging:
-    image: node:20-alpine
-    working_dir: /app
-    environment:
-      - NODE_ENV=development
-      - PORT=8080
-      - JWT_SECRET=devsecret
-    volumes:
-      - ./agent7-messaging:/app
-    command: sh -c "npm i && npm run dev"
-    ports:
-      - '8080:8080'
+  # agent7-messaging removed; replaced by super-api Socket.IO
 
   auth:
     build:
@@ -129,7 +118,6 @@ services:
       - ./:/app
     command: sh -c "npm i && npm run dev"
     depends_on:
-      - agent7-messaging
       - super-api
     ports:
       - '5173:8080'

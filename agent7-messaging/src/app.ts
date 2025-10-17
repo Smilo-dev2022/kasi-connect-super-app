@@ -12,7 +12,10 @@ import { groupsRouter } from './groups';
 import { getMissedMessagesRouter } from './messages_http';
 import { safetyRouter } from './safety';
 
-dotenv.config();
+const isTesting = process.env.NODE_ENV === 'test' || Boolean((process as any).env?.VITEST);
+if (!isTesting) {
+  dotenv.config();
+}
 
 export function createApp() {
 	const app = express();

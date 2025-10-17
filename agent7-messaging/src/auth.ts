@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
@@ -12,6 +13,10 @@ declare global {
 	}
 }
 
+// Ensure env is loaded for local/dev; tests provide process.env directly
+if (!process.env.VITEST) {
+  dotenv.config();
+}
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
 export function requireJwt(req: Request, res: Response, next: NextFunction) {

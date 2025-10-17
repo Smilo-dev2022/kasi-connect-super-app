@@ -24,15 +24,16 @@ export const config = {
 
 // Guardrails for production configuration
 if (process.env.NODE_ENV === 'production') {
-  if (!process.env.S3_ACCESS_KEY_ID || !process.env.S3_SECRET_ACCESS_KEY) {
-    // eslint-disable-next-line no-console
-    console.error('S3 credentials must be set in production');
-    process.exit(1);
-  }
   if (config.corsOrigin === '*') {
     // eslint-disable-next-line no-console
     console.error('CORS_ORIGIN must be restricted in production');
     process.exit(1);
+  }
+  // If using AWS IAM (e.g., IRSA), credentials may be provided by the runtime.
+  // Warn if explicit keys are missing but do not exit.
+  if (!process.env.S3_ACCESS_KEY_ID || !process.env.S3_SECRET_ACCESS_KEY) {
+    // eslint-disable-next-line no-console
+    console.warn('S3_ACCESS_KEY_ID/SECRET not set; assuming IAM-based credentials');
   }
 }
 

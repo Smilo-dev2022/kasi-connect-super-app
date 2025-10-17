@@ -20,7 +20,7 @@ router.get('/', async (_req, res) => {
 router.post('/', async (req, res, next) => {
   try {
     const body = createTransactionSchema.parse(req.body);
-    const tx = await prisma.$transaction(async (txClient) => {
+    const tx = await prisma.$transaction(async (txClient: PrismaClient) => {
       const account = await txClient.account.findUnique({ where: { id: body.accountId } });
       if (!account) throw Object.assign(new Error('Account not found'), { status: 404 });
 

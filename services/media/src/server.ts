@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import client from 'prom-client';
 import { config } from './config';
 import uploadsRouter from './routes/uploads';
 import mediaRouter from './routes/media';
@@ -15,8 +16,19 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
+// Health endpoints (both legacy /healthz and standardized /health)
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });
+});
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ ok: true, service: 'media', version: '1.0.0' });
+});
+
+// Prometheus metrics
+client.collectDefaultMetrics();
+app.get('/metrics', async (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', client.register.contentType);
+  res.send(await client.register.metrics());
 });
 
 app.use('/uploads', uploadsRouter);

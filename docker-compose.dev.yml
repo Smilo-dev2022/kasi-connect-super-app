@@ -36,6 +36,8 @@ services:
       - NODE_ENV=development
       - PORT=8080
       - JWT_SECRET=devsecret
+      - FEATURE_FLAGS=dark_launch
+      - ALLOWLIST_WARDS=Ward 48
     volumes:
       - ./agent7-messaging:/app
     command: sh -c "npm i && npm run dev"

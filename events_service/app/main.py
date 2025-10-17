@@ -13,7 +13,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import select, Session
 
-from slowapi import Limiter, _rate_limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
@@ -41,7 +41,7 @@ app.add_middleware(
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limiter)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 
@@ -130,7 +130,7 @@ def health():
 
 @app.get("/api/events")
 @limiter.limit("60/minute")
-def api_events(session=Depends(get_session)):
+def api_events(request: Request, session=Depends(get_session)):
     events = session.exec(select(Event).where(Event.is_published == True)).all()
     def serialize(e: Event):
         return {
@@ -149,7 +149,7 @@ def api_events(session=Depends(get_session)):
 
 @app.get("/api/events/{slug}")
 @limiter.limit("60/minute")
-def api_event_detail(slug: str, session=Depends(get_session)):
+def api_event_detail(request: Request, slug: str, session=Depends(get_session)):
     event = session.exec(select(Event).where(Event.slug == slug)).first()
     if not event or not event.is_published:
         raise HTTPException(404, "Event not found")
@@ -182,7 +182,7 @@ def event_detail(slug: str, request: Request, session=Depends(get_session)):
 
 @app.get("/events/{slug}/ics")
 @limiter.limit("30/minute")
-def event_ics(slug: str, session=Depends(get_session)):
+def event_ics(request: Request, slug: str, session=Depends(get_session)):
     event = session.exec(select(Event).where(Event.slug == slug)).first()
     if not event:
         raise HTTPException(404, "Event not found")
@@ -200,6 +200,7 @@ def event_ics(slug: str, session=Depends(get_session)):
 @app.post("/events/{slug}/rsvp")
 @limiter.limit("10/minute")
 def create_rsvp(
+    request: Request,
     slug: str,
     name: str = Form(...),
     email: str = Form(...),
@@ -239,6 +240,7 @@ def create_rsvp(
 @app.post("/api/events/{slug}/rsvp")
 @limiter.limit("10/minute")
 def api_create_rsvp(
+    request: Request,
     slug: str,
     name: str = Form(...),
     email: str = Form(...),
@@ -316,7 +318,7 @@ def scanner_page(request: Request):
 
 @app.get("/api/tickets/{ticket_id}")
 @limiter.limit("60/minute")
-def api_ticket(ticket_id: int, session=Depends(get_session)):
+def api_ticket(request: Request, ticket_id: int, session=Depends(get_session)):
     ticket = session.get(Ticket, ticket_id)
     if not ticket:
         raise HTTPException(404, "Ticket not found")
@@ -350,7 +352,7 @@ latest_ward_ingest: dict[str, datetime] = {}
 
 
 @app.post("/api/metrics/ward")
-def ingest_ward_metric(ward: str, source: str | None = None, payload: str | None = None, session=Depends(get_session)):
+def ingest_ward_metric(request: Request, ward: str, source: str | None = None, payload: str | None = None, session=Depends(get_session)):
     now = datetime.utcnow()
     latest_ward_ingest[ward] = now
     rec = WardIngest(ward=ward, source=source, received_at=now, payload=payload)
@@ -360,7 +362,7 @@ def ingest_ward_metric(ward: str, source: str | None = None, payload: str | None
 
 
 @app.get("/api/metrics/ward/freshness")
-def ward_freshness(threshold_seconds: int = 900, session=Depends(get_session)):
+def ward_freshness(request: Request, threshold_seconds: int = 900, session=Depends(get_session)):
     # Compute freshness from latest ingests persisted, fallback to in-memory map
     results: list[dict] = []
     wards = set(latest_ward_ingest.keys())
@@ -384,7 +386,7 @@ def ward_freshness(threshold_seconds: int = 900, session=Depends(get_session)):
 
 @app.get("/checkin/verify")
 @limiter.limit("60/minute")
-def verify(token: str, session=Depends(get_session)):
+def verify(request: Request, token: str, session=Depends(get_session)):
     payload = verify_ticket_token(token)
     if not payload:
         return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_token"})
@@ -402,7 +404,7 @@ def verify(token: str, session=Depends(get_session)):
 
 @app.post("/checkin")
 @limiter.limit("60/minute")
-def check_in(token: str = Form(...), session=Depends(get_session)):
+def check_in(request: Request, token: str = Form(...), session=Depends(get_session)):
     payload = verify_ticket_token(token)
     if not payload:
         return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_token"})
@@ -420,7 +422,7 @@ def check_in(token: str = Form(...), session=Depends(get_session)):
 
 @app.get("/admin/events/{slug}/rsvps.csv")
 @limiter.limit("10/minute")
-def export_rsvps_csv(slug: str, session=Depends(get_session)):
+def export_rsvps_csv(request: Request, slug: str, session=Depends(get_session)):
     event = session.exec(select(Event).where(Event.slug == slug)).first()
     if not event:
         raise HTTPException(404, "Event not found")

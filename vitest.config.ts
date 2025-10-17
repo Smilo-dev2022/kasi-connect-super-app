@@ -8,6 +8,16 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
+    include: ['src/test/**/*.{test,spec}.{ts,tsx}'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'agent7-messaging/**',
+      'iKasiLinkMobileApp/**',
+      'ios/**',
+      'android/**',
+      'web-admin/**',
+    ],
   },
   resolve: {
     alias: {

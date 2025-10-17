@@ -19,6 +19,7 @@ async function buildServer() {
 
   // Socket.IO attached to Fastify's underlying Node server
   const io = new IOServer(app.server, { path: '/socket.io' });
+  app.decorate('io', io as any);
   const { registerChatNamespace } = await import('./ws/chat.js');
   registerChatNamespace(io);
 

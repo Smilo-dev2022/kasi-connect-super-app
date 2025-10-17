@@ -14,8 +14,8 @@ describe('Footer Component', () => {
       </WithRouter>
     );
 
-    // Check for the brand name
-    expect(screen.getByRole('heading', { name: /iKasiLink/i })).toBeInTheDocument();
+    // Check for the brand name (exact match to avoid "iKasiLink Platform")
+    expect(screen.getByRole('heading', { name: /^iKasiLink$/i })).toBeInTheDocument();
     
     // Check for copyright notice
     expect(screen.getByText(/© 2024 iKasiLink/i)).toBeInTheDocument();

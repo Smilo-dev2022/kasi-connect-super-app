@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Alert, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@theme/ThemeProvider';
 import { AuthApi } from '@api/modules';
+import { api } from '@api/client';
 import { useAuthStore } from '@state/authStore';
 
 export default function LoginScreen(): React.JSX.Element {
@@ -14,8 +15,15 @@ export default function LoginScreen(): React.JSX.Element {
   async function onLogin() {
     try {
       setLoading(true);
-      const res = await AuthApi.login({ email, password });
-      const token: string | undefined = res?.data?.token;
+      // Prefer dev token flow against Agent7 for local/dev
+      let token: string | undefined;
+      try {
+        const res = await api.post('/auth/dev-token', { userId: email || 'mobile_user', name: 'Mobile User' });
+        token = res?.data?.token;
+      } catch {
+        const res = await AuthApi.login({ email, password });
+        token = res?.data?.token;
+      }
       if (!token) throw new Error('Missing token');
       await setAccessToken(token);
     } catch (e: any) {

@@ -16,14 +16,13 @@ export const ModerationApi = {
 };
 
 export const EventsApi = {
-  list: () => api.get('/events'),
-  get: (id: string) => api.get(`/events/${id}`),
-  create: (payload: Record<string, unknown>) => api.post('/events', payload),
+  list: () => api.get('/api/events'),
+  get: (id: string) => api.get(`/api/events/${id}`),
+  create: (payload: Record<string, unknown>) => api.post('/api/events', payload),
 };
 
 export const MessagingApi = {
-  listThreads: () => api.get('/messages/threads'),
-  getThread: (id: string) => api.get(`/messages/threads/${id}`),
-  sendMessage: (threadId: string, text: string) => api.post(`/messages/threads/${threadId}/messages`, { text }),
+  // Raw messaging model uses WS for send/receive; HTTP only for missed since ts
+  missedSince: (ts: number) => api.get(`/messages/since/${ts}`),
 };
 

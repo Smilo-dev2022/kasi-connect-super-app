@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 const WALLET = process.env.VITE_WALLET_API || 'http://localhost:8000';
 const EVENTS = process.env.VITE_EVENTS_API || 'http://localhost:3000';
 const MOD = process.env.MOD_API || 'http://localhost:8002';
+const BACKEND = process.env.BACKEND_API || 'http://localhost:4000';
 
 async function walletFlow() {
   const create = await fetch(`${WALLET}/wallet/requests`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: 'group-demo', requester_id: 'user-demo', amount_cents: 1000 }) });
@@ -50,8 +51,16 @@ async function moderationFlow() {
   assert.equal(metrics.status, 200);
 }
 
+async function backendFlow() {
+  const health = await fetch(`${BACKEND}/health`);
+  assert.equal(health.status, 200);
+  // optional: WS handshake smoke
+  // Skipping actual websocket due to environment constraints
+}
+
 await walletFlow();
 await eventsFlow();
 await moderationFlow();
+await backendFlow();
 console.log('Smoke OK');
 

@@ -106,6 +106,9 @@ jobs:
           - project: backend
             path: backend
             run_lint: false
+          - project: superapi
+            path: app
+            run_lint: false
           - project: web-admin
             path: web-admin
             run_lint: false

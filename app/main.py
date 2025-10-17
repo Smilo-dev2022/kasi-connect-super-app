@@ -121,16 +121,22 @@ def create_app() -> FastAPI:
     except RuntimeError:
         pass
 
-    app.include_router(events_router, prefix="/events", tags=["events"]) 
-    app.include_router(rsvps_router, tags=["rsvps"]) 
-    app.include_router(reminders_router, tags=["reminders"]) 
-    app.include_router(wallet_router)
+    # Optional: prefix REST under /api
+    API_PREFIX = "/api"
+    app.include_router(events_router, prefix=f"{API_PREFIX}/events", tags=["events"]) 
+    app.include_router(rsvps_router, prefix=API_PREFIX, tags=["rsvps"]) 
+    app.include_router(reminders_router, prefix=API_PREFIX, tags=["reminders"]) 
+    app.include_router(wallet_router, prefix=API_PREFIX)
 
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
     @app.get("/", include_in_schema=False)
     def index() -> RedirectResponse:
         return RedirectResponse(url="/static/index.html", status_code=307)
+
+    @app.get("/health")
+    def health() -> dict:
+        return {"status": "ok"}
 
     return app
 

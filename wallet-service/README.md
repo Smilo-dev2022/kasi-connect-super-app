@@ -13,6 +13,12 @@ npm install
 ```bash
 cp .env.example .env
 # (optional) edit PORT or ALLOWED_ORIGINS
+# Feature flags (optional)
+# WALLET_STABLECOIN_ENABLED=true
+# ONRAMP_PARTNER=valr
+# STABLECOIN_ASSET=USDC
+# WALLET_MAX_TX_RANDS=5000
+# ADMIN_TOKEN=dev-admin
 ```
 
 3) Generate client and run migrations
@@ -29,6 +35,8 @@ npm run build && npm start
 ```
 
 Health check: `GET /health` -> `{ ok: true }`
+Metrics: `GET /metrics` -> Prometheus format
+Config: `GET /api/config` -> flags and partner
 
 ### Data Models (Prisma)
 - Account: `id`, `userId`, `balance`, `currency`, timestamps
@@ -49,6 +57,17 @@ Base path: `/api`
   - `GET /api/transactions/account/:accountId` — list by account
   - `POST /api/transactions` — create transaction
     - body: `{ accountId: string, amount: number, type: 'CREDIT'|'DEBIT', description?: string }`
+
+- Onramp (admin-guarded with `ADMIN_TOKEN` if set)
+  - `POST /api/onramp/orders` — create order
+    - body: `{ side: 'BUY'|'SELL', fiatCurrency: string, cryptoAsset: string, fiatAmountCents: number, cryptoAmountBaseUnits: number, partnerRef?: string, expiresAt?: RFC3339 }`
+  - `GET /api/onramp/orders/:id` — get order
+  - `POST /api/onramp/orders/:id/status` — update status
+    - body: `{ status: 'PENDING_FIAT'|'PROCESSING'|'COMPLETED'|'FAILED', partnerRef?: string }`
+  - `POST /api/onramp/orders/:id/link-transaction` — link existing tx
+    - body: `{ transactionId: string, partnerRef?: string, txHash?: string }`
+  - `POST /api/onramp/orders/:id/settle` — credit account and complete order
+    - body: `{ accountId: string, creditAmount: number, description?: string, partnerRef?: string, txHash?: string }`
 
 ### Mobile Integration Hooks
 

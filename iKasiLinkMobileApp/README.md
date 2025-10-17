@@ -4,6 +4,24 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 >**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
+## Local backend prerequisites
+
+Start the backend stack in the repo root:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Recommended `.env` for Android emulator (put in project root):
+
+```
+API_BASE_URL=http://10.0.2.2:8080
+SOCKET_URL=ws://10.0.2.2:8080
+SENTRY_DSN=
+```
+
+On iOS simulator, replace `10.0.2.2` with `localhost`.
+
 ## Step 1: Start the Metro Server
 
 First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.

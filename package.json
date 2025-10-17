@@ -115,5 +115,8 @@
   "bugs": {
     "url": "https://github.com/Smilo-dev2022/kasi-connect-super-app/issues"
   },
-  "homepage": "https://github.com/Smilo-dev2022/kasi-connect-super-app#readme"
+  "homepage": "https://github.com/Smilo-dev2022/kasi-connect-super-app#readme",
+  "workspaces": [
+    "super-api"
+  ]
 }

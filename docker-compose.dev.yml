@@ -55,8 +55,8 @@ services:
       - '8080:8080'
 
   auth:
-    build:
-      context: ./services/auth
+    image: node:20-alpine
+    working_dir: /app
     environment:
       - NODE_ENV=development
       - PORT=4010
@@ -67,6 +67,9 @@ services:
       - OTP_COOLDOWN_SECONDS=60
       - OTP_MAX_ATTEMPTS=5
       - OTP_PEPPER=dev-otp-pepper-change-me
+    volumes:
+      - ./services/auth:/app
+    command: sh -c "npm i && npm run dev"
     depends_on:
       - redis
     ports:
@@ -95,8 +98,8 @@ services:
       - '4008:4008'
 
   search:
-    build:
-      context: ./agent9-search
+    image: node:20-alpine
+    working_dir: /app
     environment:
       - NODE_ENV=development
       - PORT=4009
@@ -104,6 +107,9 @@ services:
       - TYPESENSE_PORT=8108
       - TYPESENSE_PROTOCOL=http
       - TYPESENSE_API_KEY=xyz
+    volumes:
+      - ./agent9-search:/app
+    command: sh -c "npm i && npm run dev"
     depends_on:
       - typesense
     ports:
@@ -169,6 +175,8 @@ services:
     working_dir: /app
     environment:
       - NODE_ENV=development
+      - VITE_EVENTS_API=http://localhost:8000
+      - VITE_WALLET_API=http://localhost:8000
       - VITE_MSG_API=http://localhost:8080
     volumes:
       - ./:/app

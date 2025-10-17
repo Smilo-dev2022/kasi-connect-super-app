@@ -14,7 +14,10 @@ const MessageStub = z.object({
 export type MessageStub = z.infer<typeof MessageStub>
 
 export function registerRoutes(app: FastifyInstance): void {
+  // Standardized health endpoint
   app.get('/health', async () => ({ ok: true }))
+  // Backward-compatibility for potential legacy checks
+  app.get('/healthz', async () => ({ ok: true }))
 
   app.post('/messages/index', async (request, reply) => {
     const parsed = MessageStub.safeParse(request.body)

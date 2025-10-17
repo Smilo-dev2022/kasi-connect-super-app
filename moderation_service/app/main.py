@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-
 from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
@@ -16,6 +14,7 @@ from prometheus_client import Counter, Histogram, CollectorRegistry, generate_la
 import time
 import json
 import uuid
+import os
 
 
 def create_app() -> FastAPI:

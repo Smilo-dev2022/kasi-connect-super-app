@@ -84,7 +84,7 @@ services:
       subdomain: "auth"
     secrets:
       enabled: true
-      secretName: "kasi-connect-agent7-messaging"
+      secretName: "kasi-connect-backend"
   media:
     enabled: true
     image:

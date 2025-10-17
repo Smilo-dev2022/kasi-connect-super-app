@@ -124,14 +124,29 @@ services:
     working_dir: /app
     environment:
       - NODE_ENV=development
-      - VITE_MSG_API=http://localhost:8080
+      - VITE_MSG_API=http://localhost:8081
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"
     depends_on:
       - agent7-messaging
+      - super-api
     ports:
       - '5173:8080'
+
+  super-api:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=8081
+      - DATABASE_URL=file:/app/super-api/prisma/dev.db
+      - ALLOWED_ORIGINS=*
+    volumes:
+      - ./:/app
+    command: sh -c "cd super-api && npm i && npx prisma migrate dev -n init && npm run dev"
+    ports:
+      - '8081:8081'
 
 volumes:
   redis-data: {}

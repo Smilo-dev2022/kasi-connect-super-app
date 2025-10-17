@@ -11,6 +11,13 @@ const main = async () => {
   const metrics = await fetch(`${base}/metrics`).then((r) => r.text());
   assert(metrics.includes('http_requests_total'));
 
+  const dev = await fetch(`${base}/api/auth/dev-token`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'smoke-user' })
+  }).then(j);
+  assert.ok(dev.token);
+  const me = await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${dev.token}` } }).then(j);
+  assert.equal(me.sub, 'smoke-user');
+
   console.log('smoke ok');
 };
 

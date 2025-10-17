@@ -167,4 +167,50 @@ export default fastifyPlugin(async function authModule(app: FastifyInstance) {
     const user = (req as any).user as { sub: string };
     return { sub: user.sub };
   });
+
+  app.post('/devices', { preHandler: async (req, reply) => {
+    try { await (req as any).jwtVerify(); } catch { return reply.code(401).send({ error: 'Unauthorized' }); }
+  }, schema: {
+    body: {
+      type: 'object', required: ['platform','token'],
+      properties: {
+        platform: { type: 'string', enum: ['ios','android','web'] },
+        token: { type: 'string' }
+      }
+    }
+  }}, async (req, reply) => {
+    const user = (req as any).user as { sub: string };
+    const { platform, token } = (req.body as any) as DevicePayload;
+    const deviceId = ulid();
+    try {
+      await redis.hset(`device:${deviceId}`, {
+        id: deviceId,
+        user_id: user.sub,
+        platform,
+        token,
+        created_at: new Date().toISOString()
+      });
+      await redis.sadd(`user:${user.sub}:devices`, deviceId);
+    } catch {
+      return reply.code(503).send({ error: 'Storage unavailable' });
+    }
+    return reply.code(201).send({ id: deviceId, user_id: user.sub, platform, token });
+  });
+
+  app.delete('/devices/:id', { preHandler: async (req, reply) => {
+    try { await (req as any).jwtVerify(); } catch { return reply.code(401).send({ error: 'Unauthorized' }); }
+  }}, async (req, reply) => {
+    const user = (req as any).user as { sub: string };
+    const { id } = (req.params as any) as { id: string };
+    try {
+      const device = await redis.hgetall(`device:${id}`);
+      if (!device || !device.id) return reply.code(404).send({ error: 'Not found' });
+      if (device.user_id !== user.sub) return reply.code(404).send({ error: 'Not found' });
+      await redis.del(`device:${id}`);
+      await redis.srem(`user:${user.sub}:devices`, id);
+      return reply.code(204).send();
+    } catch {
+      return reply.code(503).send({ error: 'Storage unavailable' });
+    }
+  });
 });

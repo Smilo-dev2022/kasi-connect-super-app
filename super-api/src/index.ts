@@ -14,8 +14,10 @@ async function buildServer() {
   await app.register(health);
   await app.register(swagger);
 
-  // REST modules
-  await app.register(authModule);
+  // REST modules under /api (wrap to ensure prefix applies)
+  await app.register(async (api) => {
+    await api.register(authModule);
+  }, { prefix: '/api' });
 
   // Socket.IO attached to Fastify's underlying Node server
   const io = new IOServer(app.server, { path: '/socket.io' });

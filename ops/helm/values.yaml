@@ -110,6 +110,22 @@ services:
     secrets:
       enabled: true
       secretName: "kasi-connect-agent9-search"
+  superapi:
+    enabled: true
+    image:
+      name: app
+    port: 8000
+    replicas: 1
+    ingress:
+      enabled: true
+      subdomain: "super"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-superapi"
+    migrate:
+      enabled: true
+      command: "alembic"
+      args: ["upgrade", "head"]
   wallet:
     enabled: true
     image:

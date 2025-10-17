@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import client from 'prom-client';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 
@@ -19,6 +20,30 @@ export function createApp() {
 	app.use(helmet());
 	app.use(express.json({ limit: '1mb' }));
 	app.use(morgan('dev'));
+
+	// Prometheus metrics
+	const registry = new client.Registry();
+	client.collectDefaultMetrics({ register: registry });
+	const httpRequestCounter = new client.Counter({
+		name: 'http_requests_total',
+		help: 'Total HTTP requests',
+		labelNames: ['service', 'method', 'route', 'status'] as const,
+		registers: [registry],
+	});
+
+	app.use((req, res, next) => {
+		const start = process.hrtime.bigint();
+		res.on('finish', () => {
+			const route = (req as any).route?.path || req.originalUrl || req.url;
+			httpRequestCounter.labels({ service: 'agent7_messaging', method: req.method, route, status: String(res.statusCode) }).inc();
+		});
+		next();
+	});
+
+	app.get('/metrics', async (_req, res) => {
+		res.setHeader('Content-Type', registry.contentType);
+		res.send(await registry.metrics());
+	});
 
 	app.get('/health', (_req, res) => {
 		res.json({ ok: true, service: 'agent7-messaging' });

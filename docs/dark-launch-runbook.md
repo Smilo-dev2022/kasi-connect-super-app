@@ -38,6 +38,7 @@ Execute a limited-visibility rollout in Ward 48 and Mbombela to validate stabili
    - Confirm dashboards green and alerting armed
 2) Rollout (T+0)
    - Add Ward 48 to allowlist; verify client sees features within 5 minutes
+   - For local/dev: set `FEATURE_FLAGS=dark_launch` and `ALLOWLIST_WARDS="Ward 48"` in `docker-compose.dev.yml` under `agent7-messaging`
    - Smoke test: sign-in, messaging, payments, dashboards
 3) Monitoring (T+0 to T+180)
    - Watch crash/ANR deltas; review logs for spikes

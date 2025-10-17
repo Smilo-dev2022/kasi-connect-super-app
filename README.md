@@ -41,8 +41,85 @@ Then open `http://localhost:8000/` for the UI stub.
 - Models: `Event`, `RSVP` (SQLModel)
 - Minimal static UI lists events and allows RSVP
 
+## Super API (Node.js + Express + Prisma + Socket.IO)
 
+The new `super-api` consolidates compatibility endpoints for Events and Wallet, and provides realtime hooks via Socket.IO.
 
+### Quickstart
+
+```bash
+# Start dev stack (includes super-api on port 8081)
+docker compose -f docker-compose.dev.yml up
+
+# Or run locally
+cd super-api
+npm i
+npx prisma migrate dev -n init
+npm run dev
+```
+
+### Environment
+
+`super-api/.env.example`:
+
+```env
+PORT=8081
+NODE_ENV=development
+DATABASE_URL="file:./dev.db"
+ALLOWED_ORIGINS=*
+# Optional S3 (local MinIO via compose)
+S3_ENDPOINT=http://localhost:9000
+S3_REGION=us-east-1
+S3_ACCESS_KEY_ID=minioadmin
+S3_SECRET_ACCESS_KEY=minioadmin
+S3_BUCKET=media
+S3_FORCE_PATH_STYLE=true
+```
+
+### Endpoints
+
+- Events compatibility
+  - GET `/api/events`
+  - GET `/api/events/:slug`
+  - POST `/api/events/:slug/rsvp` { name, email }
+  - GET `/api/tickets/:ticketId`
+  - GET `/checkin/verify?token=...`
+  - POST `/checkin` { token }
+
+- Wallet
+  - GET `/api/mobile/balance/:userId` — current balance by user
+  - GET `/api/wallet/:accountId/transactions.csv` — CSV export
+  - POST `/api/transactions` { accountId, amount, type: CREDIT|DEBIT, description? }
+
+- Realtime
+  - Socket.IO server on the same port (8081). Emits `wallet:transaction` on new transactions.
+
+### Data model
+
+Prisma models include `Event`, `Rsvp`, `Ticket`, `Account`, and `Transaction` (SQLite in dev).
+
+## Dev environment changes
+
+- Messaging API port updated to 8081. Frontend now reads `VITE_MSG_API=http://localhost:8081` in dev compose.
+- Mobile app `.env` updated:
+  ```env
+  API_BASE_URL=http://localhost:8081
+  SOCKET_URL=ws://localhost:8081
+  ```
+- `docker-compose.dev.yml`:
+  - Removed `agent7-messaging`
+  - Added `super-api` on 8081 (runs Prisma migrate then starts)
+- `docker-compose.prod.yml`:
+  - Standardized Postgres service name to `db`
+  - Updated `DATABASE_URL`/`EVENTS_DATABASE_URL`/`MOD_DB_URL` to use `@db:5432`
+
+## Install/Build updates
+
+- Root workspaces now include `super-api`
+- Installed in `super-api`:
+  - `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner` (S3/MinIO support)
+  - `socket.io` (realtime)
+  - `@prisma/client`/`prisma` (ORM)
 
 ## Project info (iKasiLink)
 

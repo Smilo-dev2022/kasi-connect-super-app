@@ -44,11 +44,15 @@ spec:
               mountPath: "/mnt/secrets"
               readOnly: true
           readinessProbe:
-            httpGet: { path: /health, port: {{ $svc.port }} }
+            httpGet:
+              path: {{ default "/health" $svc.health.path }}
+              port: {{ $svc.port }}
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            httpGet: { path: /health, port: {{ $svc.port }} }
+            httpGet:
+              path: {{ default "/health" $svc.health.path }}
+              port: {{ $svc.port }}
             initialDelaySeconds: 10
             periodSeconds: 20
 ---

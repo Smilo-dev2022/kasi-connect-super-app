@@ -79,6 +79,8 @@ services:
       name: services-auth
     port: 4010
     replicas: 2
+    health:
+      path: "/healthz"
     ingress:
       enabled: true
       subdomain: "auth"
@@ -92,6 +94,8 @@ services:
     port: 4008
     replicas: 2
     serviceAccountName: "kasi-connect-media-service"
+    health:
+      path: "/healthz"
     ingress:
       enabled: true
       subdomain: "media"

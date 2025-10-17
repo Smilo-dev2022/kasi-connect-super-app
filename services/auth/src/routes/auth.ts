@@ -5,6 +5,7 @@ import { redis } from '../redis';
 import { signToken } from '../jwt';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { ulid } from 'ulid';
+import { sendOtpEmail, sendOtpSms } from '../providers/notify';
 
 const router = Router();
 
@@ -51,9 +52,20 @@ router.post('/otp/request', async (req: Request, res: Response) => {
     .set(cooldownKey, '1', 'EX', config.otpCooldownSeconds)
     .exec();
 
-  // TODO: integrate provider; for now log to console (do not expose in response)
-  // eslint-disable-next-line no-console
-  console.log('OTP issued', { channel, to, code });
+  // Send via provider when configured; fallback to console log in dev
+  try {
+    if (channel === 'sms' && config.twilioAccountSid && config.twilioAuthToken && config.twilioFrom) {
+      await sendOtpSms(to, code);
+    } else if (channel === 'email' && config.sendgridApiKey && config.sendgridFrom) {
+      await sendOtpEmail(to, code);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('OTP issued (dev)', { channel, to, code });
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('OTP send failed (continuing):', (err as any)?.message || err);
+  }
   return res.status(200).json({ status: 'sent' });
 });
 

@@ -21,17 +21,7 @@ resources:
 
 services:
   backend:
-    enabled: true
-    image:
-      name: backend
-    port: 4000
-    replicas: 2
-    ingress:
-      enabled: true
-      subdomain: "api"
-    secrets:
-      enabled: true
-      secretName: "kasi-connect-backend"
+    enabled: false
   events:
     enabled: true
     image:
@@ -74,19 +64,9 @@ services:
       enabled: true
       subdomain: "moderation"
   auth:
-    enabled: true
-    image:
-      name: services-auth
-    port: 4010
-    replicas: 2
-    ingress:
-      enabled: true
-      subdomain: "auth"
-    secrets:
-      enabled: true
-      secretName: "kasi-connect-backend"
+    enabled: false
   media:
-    enabled: true
+    enabled: false
     image:
       name: services-media
     port: 4008
@@ -99,7 +79,7 @@ services:
       enabled: true
       secretName: "kasi-connect-services-media"
   search:
-    enabled: true
+    enabled: false
     image:
       name: agent9-search
     port: 4009
@@ -113,39 +93,14 @@ services:
   superapi:
     enabled: true
     image:
-      name: app
-    port: 8000
-    replicas: 1
-    ingress:
-      enabled: true
-      subdomain: "super"
-    secrets:
-      enabled: true
-      secretName: "kasi-connect-superapi"
-    migrate:
-      enabled: true
-      command: "alembic"
-      args: ["upgrade", "head"]
-  wallet:
-    enabled: true
-    image:
-      name: wallet-service
-    port: 3000
+      name: super-api
+    port: 8081
     replicas: 2
     ingress:
       enabled: true
-      subdomain: "wallet"
+      subdomain: "api"
     secrets:
       enabled: true
-      secretName: "kasi-connect-wallet-service"
+      secretName: "kasi-connect-superapi"
   wallet:
-    enabled: true
-    image:
-      name: wallet-service
-    port: 3000
-    replicas: 1
-    ingress:
-      enabled: true
-      subdomain: "wallet"
-    secrets:
-      enabled: false
+    enabled: false

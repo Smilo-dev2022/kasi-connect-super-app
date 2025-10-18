@@ -39,6 +39,7 @@ services:
     volumes:
       - typesense-data:/data
 
+  # agent7-messaging will be accessed via Super API proxy; can be disabled once folded
   agent7-messaging:
     image: node:20-alpine
     working_dir: /app
@@ -54,23 +55,24 @@ services:
     ports:
       - '8080:8080'
 
-  auth:
-    build:
-      context: ./services/auth
-    environment:
-      - NODE_ENV=development
-      - PORT=4010
-      - CORS_ORIGIN=*
-      - JWT_SECRET=dev-secret-change-me
-      - REDIS_URL=redis://redis:6379
-      - OTP_TTL_SECONDS=300
-      - OTP_COOLDOWN_SECONDS=60
-      - OTP_MAX_ATTEMPTS=5
-      - OTP_PEPPER=dev-otp-pepper-change-me
-    depends_on:
-      - redis
-    ports:
-      - '4010:4010'
+  # Deprecated: auth is consolidated under Super API
+  # auth:
+  #   build:
+  #     context: ./services/auth
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=4010
+  #     - CORS_ORIGIN=*
+  #     - JWT_SECRET=dev-secret-change-me
+  #     - REDIS_URL=redis://redis:6379
+  #     - OTP_TTL_SECONDS=300
+  #     - OTP_COOLDOWN_SECONDS=60
+  #     - OTP_MAX_ATTEMPTS=5
+  #     - OTP_PEPPER=dev-otp-pepper-change-me
+  #   depends_on:
+  #     - redis
+  #   ports:
+  #     - '4010:4010'
 
   media:
     build:
@@ -109,19 +111,20 @@ services:
     ports:
       - '4009:4009'
 
-  events:
-    image: python:3.13-slim
-    working_dir: /app
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
-    volumes:
-      - ./:/app
-    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
-    depends_on:
-      - postgres
-    ports:
-      - '8000:8000'
+  # Disable duplicate wallet/events Python app; keep events_py below
+  # events:
+  #   image: python:3.13-slim
+  #   working_dir: /app
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
+  #   volumes:
+  #     - ./:/app
+  #   command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - '8000:8000'
 
   events_py:
     image: python:3.13-slim
@@ -161,8 +164,9 @@ services:
     command: sh -c "npm i && npm run dev"
     depends_on:
       - postgres
-    ports:
-      - '3000:3000'
+    # No external port; Super API proxies to it
+    # ports:
+    #   - '3000:3000'
 
   web:
     image: node:20-alpine
@@ -200,6 +204,7 @@ services:
       - '3000:3000'
 
   # Python FastAPI app exposing wallet + events APIs (port 8000)
+  # Use events_py as the canonical Python service; keep internal-only
   wallet_py:
     image: python:3.13-slim
     working_dir: /app
@@ -208,8 +213,9 @@ services:
     volumes:
       - ./:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-    ports:
-      - '8000:8000'
+    # No external port; Super API proxies to it as /api/events if needed
+    # ports:
+    #   - '8000:8000'
 
 volumes:
   redis-data: {}

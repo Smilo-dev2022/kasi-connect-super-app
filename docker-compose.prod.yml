@@ -17,6 +17,7 @@ services:
       DATABASE_URL: postgres://kasilink:kasilink@postgres:5432/kasilink
     depends_on:
       - postgres
+    # Keep internal-only; expose via Super API proxy
 
   events_py:
     build: ./events_service
@@ -25,12 +26,13 @@ services:
     depends_on:
       - postgres
 
-  events_node:
-    build: ./events-service
-    environment:
-      PORT: 3000
-    depends_on:
-      - postgres
+  # Remove duplicate Node events service in prod
+  # events_node:
+  #   build: ./events-service
+  #   environment:
+  #     PORT: 3000
+  #   depends_on:
+  #     - postgres
 
   moderation:
     build: ./moderation_service

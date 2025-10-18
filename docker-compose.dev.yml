@@ -39,6 +39,37 @@ services:
     volumes:
       - typesense-data:/data
 
+  super-api:
+    build:
+      context: ./super-api
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+      - PORT=8081
+      - HOST=0.0.0.0
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev-secret-change-me
+      - OTP_PEPPER=dev-otp-pepper-change-me
+      - WALLET_URL=http://wallet:3000
+      - MEDIA_URL=http://media:4008
+      - SEARCH_URL=http://search:4009
+      - MODERATION_URL=http://moderation:8002
+      - MESSAGING_URL=http://agent7-messaging:8080
+      - EVENTS_URL=http://events_py:8001
+    depends_on:
+      - postgres
+      - redis
+      - wallet
+      - media
+      - search
+      - moderation
+      - agent7-messaging
+      - events_py
+    ports:
+      - '8081:8081'
+
+  # agent7-messaging will be accessed via Super API proxy; can be disabled once folded
   agent7-messaging:
     image: node:20-alpine
     working_dir: /app
@@ -51,26 +82,28 @@ services:
     volumes:
       - ./agent7-messaging:/app
     command: sh -c "npm i && npm run dev"
-    ports:
-      - '8080:8080'
+    # No public port; accessed via Super API proxy
+    # ports:
+    #   - '8080:8080'
 
-  auth:
-    build:
-      context: ./services/auth
-    environment:
-      - NODE_ENV=development
-      - PORT=4010
-      - CORS_ORIGIN=*
-      - JWT_SECRET=dev-secret-change-me
-      - REDIS_URL=redis://redis:6379
-      - OTP_TTL_SECONDS=300
-      - OTP_COOLDOWN_SECONDS=60
-      - OTP_MAX_ATTEMPTS=5
-      - OTP_PEPPER=dev-otp-pepper-change-me
-    depends_on:
-      - redis
-    ports:
-      - '4010:4010'
+  # Deprecated: auth is consolidated under Super API
+  # auth:
+  #   build:
+  #     context: ./services/auth
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=4010
+  #     - CORS_ORIGIN=*
+  #     - JWT_SECRET=dev-secret-change-me
+  #     - REDIS_URL=redis://redis:6379
+  #     - OTP_TTL_SECONDS=300
+  #     - OTP_COOLDOWN_SECONDS=60
+  #     - OTP_MAX_ATTEMPTS=5
+  #     - OTP_PEPPER=dev-otp-pepper-change-me
+  #   depends_on:
+  #     - redis
+  #   ports:
+  #     - '4010:4010'
 
   media:
     build:
@@ -91,8 +124,9 @@ services:
       - /app/node_modules
     depends_on:
       - minio
-    ports:
-      - '4008:4008'
+    # No public port; accessed via Super API proxy
+    # ports:
+    #   - '4008:4008'
 
   search:
     build:
@@ -106,22 +140,24 @@ services:
       - TYPESENSE_API_KEY=xyz
     depends_on:
       - typesense
-    ports:
-      - '4009:4009'
+    # No public port; accessed via Super API proxy
+    # ports:
+    #   - '4009:4009'
 
-  events:
-    image: python:3.13-slim
-    working_dir: /app
-    environment:
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
-    volumes:
-      - ./:/app
-    command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
-    depends_on:
-      - postgres
-    ports:
-      - '8000:8000'
+  # Disable duplicate wallet/events Python app; keep events_py below
+  # events:
+  #   image: python:3.13-slim
+  #   working_dir: /app
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/app
+  #   volumes:
+  #     - ./:/app
+  #   command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - '8000:8000'
 
   events_py:
     image: python:3.13-slim
@@ -134,8 +170,9 @@ services:
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
     depends_on:
       - postgres
-    ports:
-      - '8001:8001'
+    # No public port; accessed via Super API proxy
+    # ports:
+    #   - '8001:8001'
 
   moderation:
     image: python:3.11-slim
@@ -145,8 +182,9 @@ services:
     volumes:
       - ./moderation_service:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
-    ports:
-      - '8002:8002'
+    # No public port; accessed via Super API proxy
+    # ports:
+    #   - '8002:8002'
 
   wallet:
     image: node:20-alpine
@@ -161,26 +199,23 @@ services:
     command: sh -c "npm i && npm run dev"
     depends_on:
       - postgres
-    ports:
-      - '3000:3000'
+    # No external port; Super API proxies to it
+    # ports:
+    #   - '3000:3000'
 
   web:
     image: node:20-alpine
     working_dir: /app
     environment:
       - NODE_ENV=development
-      - VITE_MSG_API=http://localhost:8080
-      - VITE_EVENTS_API=http://localhost:3000
-      - VITE_WALLET_API=http://localhost:8000
+      - VITE_MSG_API=http://localhost:8081/api/msg
+      - VITE_EVENTS_API=http://localhost:8081/api/events
+      - VITE_WALLET_API=http://localhost:8081/api/wallet
     volumes:
       - ./:/app
     command: sh -c "npm i && npm run dev"
     depends_on:
-      - agent7-messaging
-      - events_node
-      - wallet_py
-      - moderation
-      - media
+      - super-api
     ports:
       - '5173:8080'
 
@@ -200,6 +235,7 @@ services:
       - '3000:3000'
 
   # Python FastAPI app exposing wallet + events APIs (port 8000)
+  # Use events_py as the canonical Python service; keep internal-only
   wallet_py:
     image: python:3.13-slim
     working_dir: /app
@@ -208,8 +244,9 @@ services:
     volumes:
       - ./:/app
     command: bash -lc "pip install -U pip wheel setuptools && pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-    ports:
-      - '8000:8000'
+    # No external port; Super API proxies to it as /api/events if needed
+    # ports:
+    #   - '8000:8000'
 
 volumes:
   redis-data: {}

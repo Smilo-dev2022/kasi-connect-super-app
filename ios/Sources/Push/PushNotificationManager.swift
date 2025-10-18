@@ -19,6 +19,7 @@ final class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate 
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
         print("[Push] APNs token: \(token)")
+        UserDefaults.standard.set(token, forKey: "push.apns")
         // Send token to backend devices endpoint (best-effort)
         if let jwt = UserDefaults.standard.string(forKey: "auth.jwt"),
            let url = URL(string: "https://api.kasilink.example/devices") {

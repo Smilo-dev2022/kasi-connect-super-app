@@ -31,6 +31,12 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/appeals",
+      "regex": "^/appeals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/appeals(?:/)?$"
     }
   ],
   "dataRoutes": [],

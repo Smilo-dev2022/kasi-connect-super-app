@@ -84,7 +84,7 @@ services:
       subdomain: "auth"
     secrets:
       enabled: true
-      secretName: "kasi-connect-agent7-messaging"
+      secretName: "kasi-connect-backend"
   media:
     enabled: true
     image:
@@ -110,3 +110,42 @@ services:
     secrets:
       enabled: true
       secretName: "kasi-connect-agent9-search"
+  superapi:
+    enabled: true
+    image:
+      name: app
+    port: 8000
+    replicas: 1
+    ingress:
+      enabled: true
+      subdomain: "super"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-superapi"
+    migrate:
+      enabled: true
+      command: "alembic"
+      args: ["upgrade", "head"]
+  wallet:
+    enabled: true
+    image:
+      name: wallet-service
+    port: 3000
+    replicas: 2
+    ingress:
+      enabled: true
+      subdomain: "wallet"
+    secrets:
+      enabled: true
+      secretName: "kasi-connect-wallet-service"
+  wallet:
+    enabled: true
+    image:
+      name: wallet-service
+    port: 3000
+    replicas: 1
+    ingress:
+      enabled: true
+      subdomain: "wallet"
+    secrets:
+      enabled: false

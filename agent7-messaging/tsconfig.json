@@ -12,5 +12,6 @@
     "resolveJsonModule": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src", "test", "tests"]
+  "include": ["src"],
+  "exclude": ["test", "tests"]
 }

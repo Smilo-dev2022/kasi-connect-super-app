@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import client from 'prom-client';
 import { config } from './config';
 import authRouter from './routes/auth';
 import devicesRouter from './routes/devices';
@@ -20,8 +21,19 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Health endpoints (both legacy /healthz and standardized /health)
 app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });
+});
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ ok: true, service: 'auth', version: '1.0.0' });
+});
+
+// Prometheus metrics
+client.collectDefaultMetrics();
+app.get('/metrics', async (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', client.register.contentType);
+  res.send(await client.register.metrics());
 });
 
 app.use('/auth', authRouter);
@@ -43,15 +55,21 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 function start() {
+  // Guardrails for production secrets
   if (config.nodeEnv === 'production') {
     if (!process.env.JWT_SECRET || config.jwtSecret === 'dev-secret-change-me') {
       // eslint-disable-next-line no-console
       console.error('JWT_SECRET must be set in production');
       process.exit(1);
     }
-    if (!process.env.OTP_PEPPER || process.env.OTP_PEPPER === 'dev-otp-pepper-change-me') {
+    if (!process.env.OTP_PEPPER || config.otpPepper === 'dev-otp-pepper-change-me') {
       // eslint-disable-next-line no-console
       console.error('OTP_PEPPER must be set in production');
+      process.exit(1);
+    }
+    if (!process.env.REDIS_URL) {
+      // eslint-disable-next-line no-console
+      console.error('REDIS_URL must be set in production');
       process.exit(1);
     }
   }

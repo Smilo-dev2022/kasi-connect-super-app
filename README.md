@@ -87,7 +87,7 @@ Steps:
 3. Configure API base URLs via `react-native-config` (create `.env` in `iKasiLinkMobileApp/`):
 
 ```
-API_BASE_URL=http://10.0.2.2:8080
+API_BASE_URL=http://10.0.2.2:8081
 SOCKET_URL=ws://10.0.2.2:8080
 SENTRY_DSN=
 ```

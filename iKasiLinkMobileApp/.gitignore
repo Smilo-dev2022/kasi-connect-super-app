@@ -51,6 +51,16 @@ yarn-error.log
 **/fastlane/Preview.html
 **/fastlane/screenshots
 **/fastlane/test_output
+**/fastlane/README.md
+
+# Android signing artifacts (do not commit real keys)
+android/app/release.keystore
+android/app/upload.keystore
+android/keystore.properties
+
+# Fastlane sensitive files
+fastlane/*.p12
+fastlane/*.mobileprovision
 
 # Bundle artifact
 *.jsbundle

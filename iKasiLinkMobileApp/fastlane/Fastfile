@@ -1,0 +1,25 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build iOS app for App Store (archive)"
+  lane :build do
+    app_identifier "com.ikasiconnectkc.kasilink"
+    scheme "KasiLinkMobile"
+    build_app(
+      workspace: "ios/KasiLinkMobile.xcworkspace",
+      scheme: scheme,
+      export_method: "app-store"
+    )
+  end
+end
+
+platform :android do
+  desc "Assemble Android release AAB"
+  lane :build do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "android"
+    )
+  end
+end

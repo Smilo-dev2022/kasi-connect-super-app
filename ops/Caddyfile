@@ -11,7 +11,8 @@ example.com {
     @http { protocol http }
     redir @http https://{host}{uri}
 
-    reverse_proxy media:4008
+    # Single external ingress to Super API
+    reverse_proxy super-api:8081
 }
 
 # Local development (self-signed / internal CA) example
@@ -19,6 +20,6 @@ localhost {
     encode gzip
     log
     tls internal
-    reverse_proxy media:4008
+    reverse_proxy super-api:8081
 }
 

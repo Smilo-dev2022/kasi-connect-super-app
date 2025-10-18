@@ -1,6 +1,7 @@
 Super API
 
 - REST base: `/`
+- Unified proxies: `/api/wallet`, `/api/media`, `/api/search`, `/api/mod`, `/api/msg`, `/api/events`
 - WS namespace: `/ws/chat`
 - Docs: `/docs`
 - Health: `/health`

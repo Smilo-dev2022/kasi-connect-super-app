@@ -26,6 +26,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import android.content.Context
@@ -37,6 +38,7 @@ fun OtpLoginScreen(onLoginSuccess: () -> Unit) {
     val phoneNumberState = remember { mutableStateOf("") }
     val otpState = remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val requestPermissionLauncher = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         @Suppress("DEPRECATION")
@@ -79,20 +81,24 @@ fun OtpLoginScreen(onLoginSuccess: () -> Unit) {
                         setRequestProperty("Content-Type", "application/json")
                         doOutput = true
                     }
-                    val prefs = it.context.getSharedPreferences("push", Context.MODE_PRIVATE)
+                    val prefs = context.getSharedPreferences("push", Context.MODE_PRIVATE)
                     val fcm = prefs.getString("fcm", null)
-                    val deviceJson = if (fcm != null) "\"device\":{\"platform\":\"android\",\"token\":\"$fcm\"}," else ""
-                    val body = "{" +
-                        "\"channel\":\"sms\"," +
-                        "\"to\":\"${phoneNumberState.value}\"," +
-                        "\"code\":\"${otpState.value}\"," +
-                        deviceJson.removeSuffix(",") +
-                        "}"
+                    val body = buildString {
+                        append('{')
+                        append("\"channel\":\"sms\",")
+                        append("\"to\":\"${phoneNumberState.value}\",")
+                        append("\"code\":\"${otpState.value}\"")
+                        if (fcm != null) {
+                            append(',')
+                            append("\"device\":{\"platform\":\"android\",\"token\":\"$fcm\"}")
+                        }
+                        append('}')
+                    }
                     conn.outputStream.use { it.write(body.toByteArray()) }
                     val data = conn.inputStream.readBytes().toString(Charsets.UTF_8)
                     val token = Regex("\\\"token\\\":\\\"([^\\\"]+)\\\"").find(data)?.groupValues?.get(1)
                     if (token != null) {
-                        val authPrefs = it.context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                        val authPrefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
                         authPrefs.edit().putString("jwt", token).apply()
                         launch(Dispatchers.Main) { onLoginSuccess() }
                     }

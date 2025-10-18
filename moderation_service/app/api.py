@@ -4,7 +4,6 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from fastapi import APIRouter, HTTPException, Request, status, Depends, Header
-from pydantic import BaseModel
 import os
 import jwt
 from jwt import InvalidTokenError

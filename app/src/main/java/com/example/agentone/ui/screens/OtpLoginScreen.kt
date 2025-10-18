@@ -25,11 +25,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.SideEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import android.content.Context
+import java.net.HttpURLConnection
+import java.net.URL
 
 @Composable
 fun OtpLoginScreen(onLoginSuccess: () -> Unit) {
     val phoneNumberState = remember { mutableStateOf("") }
     val otpState = remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val requestPermissionLauncher = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         @Suppress("DEPRECATION")
@@ -63,7 +72,39 @@ fun OtpLoginScreen(onLoginSuccess: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
         )
 
-        Button(onClick = onLoginSuccess, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
+        Button(onClick = {
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val requestUrl = URL("https://api.kasilink.example/auth/otp/verify")
+                    val conn = (requestUrl.openConnection() as HttpURLConnection).apply {
+                        requestMethod = "POST"
+                        setRequestProperty("Content-Type", "application/json")
+                        doOutput = true
+                    }
+                    val prefs = context.getSharedPreferences("push", Context.MODE_PRIVATE)
+                    val fcm = prefs.getString("fcm", null)
+                    val body = buildString {
+                        append('{')
+                        append("\"channel\":\"sms\",")
+                        append("\"to\":\"${phoneNumberState.value}\",")
+                        append("\"code\":\"${otpState.value}\"")
+                        if (fcm != null) {
+                            append(',')
+                            append("\"device\":{\"platform\":\"android\",\"token\":\"$fcm\"}")
+                        }
+                        append('}')
+                    }
+                    conn.outputStream.use { it.write(body.toByteArray()) }
+                    val data = conn.inputStream.readBytes().toString(Charsets.UTF_8)
+                    val token = Regex("\\\"token\\\":\\\"([^\\\"]+)\\\"").find(data)?.groupValues?.get(1)
+                    if (token != null) {
+                        val authPrefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                        authPrefs.edit().putString("jwt", token).apply()
+                        launch(Dispatchers.Main) { onLoginSuccess() }
+                    }
+                } catch (_: Exception) {}
+            }
+        }, modifier = Modifier.fillMaxWidth().padding(top = 24.dp)) {
             Text("Continue")
         }
     }

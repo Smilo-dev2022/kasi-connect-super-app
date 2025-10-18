@@ -10,7 +10,7 @@ We aim to keep main branch secure. Security fixes are backported on a best-effor
 ## Reporting a Vulnerability
 
 - Email: [security@ikasilink.co.za](mailto:security@ikasilink.co.za)
-- PGP: publish key at `/.well-known/pgp-key.txt` (TBD)
+- PGP: published key at `/.well-known/pgp-key.txt`
 - Please include steps to reproduce and potential impact. We target initial response within 72 hours.
 
 

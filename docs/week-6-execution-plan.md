@@ -58,6 +58,7 @@ Cross-functional owners
 - Transparency & Appeals Spec: ./transparency-appeals-spec.md
 - Community Launch Kits: ./community-launch-kits.md
 - Ward Dashboards (Agent 5): add URL once deployed
+ - Ward Dashboards (Agent 5): https://admin.kasilink.example (Freshness table)
 
 ## Risks & Mitigations
 - App review delays: submit early, provide reviewer notes and demo creds

@@ -51,9 +51,29 @@ router.post('/otp/request', async (req: Request, res: Response) => {
     .set(cooldownKey, '1', 'EX', config.otpCooldownSeconds)
     .exec();
 
-  // TODO: integrate provider; for now log to console (do not expose in response)
-  // eslint-disable-next-line no-console
-  console.log('OTP issued', { channel, to, code });
+  // Optional Twilio SMS sending when configured
+  try {
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const tokenTw = process.env.TWILIO_AUTH_TOKEN;
+    const fromNum = process.env.TWILIO_FROM_NUMBER;
+    if (channel === 'sms' && sid && tokenTw && fromNum) {
+      const basic = Buffer.from(`${sid}:${tokenTw}`).toString('base64');
+      await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${basic}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({ From: fromNum, To: to, Body: `Your code is ${code}` })
+      });
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('OTP issued (dev)', { channel, to, code });
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('OTP send error (non-fatal)', e);
+  }
   return res.status(200).json({ status: 'sent' });
 });
 

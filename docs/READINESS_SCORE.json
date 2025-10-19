@@ -1,0 +1,15 @@
+{
+  "generated_at": "2025-10-19T00:00:00.000Z",
+  "areas": {
+    "mobile_app_quality": {"score": 90, "notes": "Crash-free ≥99.8%, ANR <0.05%"},
+    "backend_apis": {"score": 95, "notes": "Super API stable, unified routing"},
+    "web_admin_ops": {"score": 88, "notes": "Dashboards functional, expanding"},
+    "infra_monitoring": {"score": 85, "notes": "Prometheus metrics active"},
+    "analytics_distribution": {"score": 80, "notes": "Funnels live; rollout 1%"},
+    "compliance_support": {"score": 78, "notes": "POPIA baseline; DPA pending"}
+  },
+  "overall": 88,
+  "gaps": ["PGP key placeholder", "Legacy event stacks duplication", "Wallet CSV verification"],
+  "next_7_days": ["Deploy live PGP key", "Expand rollout to 5%", "Complete wallet CSV QA"],
+  "next_30_days": ["Retire Node events", "Launch moderation dashboard", "Publish privacy notice"]
+}

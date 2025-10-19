@@ -37,12 +37,9 @@ jobs:
           - name: web-admin
             context: web-admin
             dockerfile: web-admin/Dockerfile
-          - name: services-auth
-            context: services/auth
-            dockerfile: services/auth/Dockerfile
-          - name: services-media
-            context: services/media
-            dockerfile: services/media/Dockerfile
+          - name: super-api
+            context: super-api
+            dockerfile: super-api/Dockerfile
           - name: agent9-search
             context: agent9-search
             dockerfile: agent9-search/Dockerfile

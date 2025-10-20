@@ -1,0 +1,100 @@
+%% Mermaid Architecture Overview
+
+%% 1) Container diagram
+flowchart LR
+  subgraph Clients
+    Web[Web App (Vite/React)]
+    Mobile[Mobile App (React Native)]
+  end
+  Web -->|HTTP /api/*| Gateway[Super API (Fastify)]
+  Mobile -->|HTTP /api/*| Gateway
+  Mobile -->|WS /api/msg/ws| Gateway
+
+  Gateway -->|/api/wallet| Wallet[Wallet Service]
+  Gateway -->|/api/media| Media[Media Service]
+  Gateway -->|/api/search| Search[Search Service]
+  Gateway -->|/api/mod| Moderation[Moderation Service]
+  Gateway -->|/api/msg| Messaging[Messaging (WS)]
+  Gateway -->|/api/events| EventsPy[Events Service (Python)]
+
+  subgraph Data Stores
+    PG[(Postgres)]
+    Redis[(Redis)]
+    MinIO[(MinIO S3)]
+    TS[(Typesense)]
+  end
+
+  Wallet --> PG
+  EventsPy --> PG
+  Moderation --> PG
+  Messaging --> Redis
+  Media --> MinIO
+  Search --> TS
+
+%% 2) Auth/OTP -> JWT issuance -> /devices
+sequenceDiagram
+  participant Client
+  participant SuperAPI as Super API
+  participant Redis
+  Client->>SuperAPI: POST /api/auth/otp (phone)
+  SuperAPI->>Redis: Store OTP (TTL)
+  Client->>SuperAPI: POST /api/auth/verify (otp)
+  SuperAPI-->>Client: 200 JWT (HS256)
+  Client->>SuperAPI: GET /api/devices (Authorization: Bearer <JWT>)
+
+%% 3) WS chat -> message relay -> Typesense indexing
+sequenceDiagram
+  participant Client
+  participant Gateway as Super API
+  participant Agent7 as Messaging WS
+  participant Search as Search
+  Client->>Gateway: WS /api/msg/ws (JWT)
+  Gateway->>Agent7: WS proxy
+  Agent7-->>Client: welcome
+  Client->>Agent7: send message (ciphertext)
+  Agent7-->>Client: message delivered
+  Agent7->>Search: POST /messages/index
+
+%% 4) Media presign/upload/thumbnail
+sequenceDiagram
+  participant Client
+  participant SuperAPI as Super API
+  participant Media as Media Service
+  participant MinIO as MinIO
+  Client->>SuperAPI: POST /api/media/uploads/presign
+  SuperAPI->>Media: POST /uploads/presign
+  Media-->>SuperAPI: presigned PUT URL
+  SuperAPI-->>Client: presigned URL
+  Client->>MinIO: PUT object
+  Client->>SuperAPI: GET /api/media/thumb?id=...
+
+%% 5) Event RSVP + reminders
+sequenceDiagram
+  participant Client
+  participant SuperAPI as Super API
+  participant Events as Events (Python)
+  Client->>SuperAPI: POST /api/events/{slug}/rsvp
+  SuperAPI->>Events: forward RSVP
+  Events-->>Client: RSVP + ticket token
+  Events->>Events: Reminder scheduler enqueues reminders
+
+%% 6) Wallet flow + ledger CSV
+sequenceDiagram
+  participant Client
+  participant SuperAPI as Super API
+  participant Wallet as Wallet Service
+  Client->>SuperAPI: POST /api/wallet/transactions
+  SuperAPI->>Wallet: forward
+  Wallet-->>Client: 201 id
+  Client->>SuperAPI: GET /api/wallet/admin/ledger.csv
+
+%% 7) Moderation/report/escalation metrics
+sequenceDiagram
+  participant Client
+  participant SuperAPI as Super API
+  participant Mod as Moderation Service
+  participant Prom as Prometheus
+  Client->>SuperAPI: POST /api/mod/reports
+  SuperAPI->>Mod: forward
+  Mod-->>Client: 201
+  Mod->>Prom: /metrics scraped periodically

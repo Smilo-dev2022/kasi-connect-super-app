@@ -65,3 +65,42 @@ export type MessageEvent =
 	| { type: 'receipt'; id: string; messageId: string; userId: UserId; receipt: 'delivered' | 'read'; timestamp: number };
 
 export const eventLog: MessageEvent[] = [];
+
+// Incident Management
+export type IncidentId = string;
+export type IncidentStatus = 'open' | 'escalated' | 'resolved' | 'closed';
+
+export type Incident = {
+	id: IncidentId;
+	roomId: GroupId;
+	reporterId: UserId;
+	type: string;
+	description: string;
+	status: IncidentStatus;
+	location?: { lat: number; lon: number };
+	createdAt: number;
+	escalatedAt?: number;
+	resolvedAt?: number;
+};
+
+export type IncidentAction = {
+	id: string;
+	incidentId: IncidentId;
+	actorId: UserId;
+	action: 'note' | 'assign' | 'escalate' | 'close';
+	notes?: string;
+	createdAt: number;
+};
+
+export type Evidence = {
+	id: string;
+	incidentId: IncidentId;
+	uploaderId: UserId;
+	mediaId: string;
+	caption?: string;
+	createdAt: number;
+};
+
+export const incidentIdToIncident = new Map<IncidentId, Incident>();
+export const incidentIdToActions = new Map<IncidentId, IncidentAction[]>();
+export const incidentIdToEvidence = new Map<IncidentId, Evidence[]>();

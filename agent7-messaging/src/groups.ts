@@ -71,7 +71,9 @@ groupsRouter.delete('/:groupId/members/:userId', (req: Request, res: Response) =
 	const set = userIdToGroups.get(targetId);
 	if (set) {
 		set.delete(group.groupId);
-		userIdToGroups.set(targetId, set);
+		if (set.size === 0) {
+			userIdToGroups.delete(targetId);
+		}
 	}
 	res.json({ ok: true, members: [...group.memberIds] });
 });

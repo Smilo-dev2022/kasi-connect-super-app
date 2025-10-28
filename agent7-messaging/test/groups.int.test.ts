@@ -3,7 +3,7 @@ import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { createApp } from '../src/app';
 import { attachWebSocketServer } from '../src/ws';
-import { groupIdToGroup, messageLog, eventLog } from '../src/state';
+import { groupIdToGroup, messageLog, eventLog, userIdToGroups } from '../src/state';
 
 const jwtSecret = process.env.JWT_SECRET || 'devsecret';
 
@@ -71,6 +71,33 @@ describe('Groups API', () => {
 
 	it('rejects unauthorized access', async () => {
 		await request(server).post('/groups').send({ name: 'Nope' }).expect(401);
+	});
+
+	it('cleans up userIdToGroups map when user is removed from their last group', async () => {
+		const ownerToken = tokenFor('owner');
+		const userToRemove = 'u_test';
+
+		// Create a group with the user as a member
+		const create = await request(server)
+			.post('/groups')
+			.set('Authorization', `Bearer ${ownerToken}`)
+			.send({ name: 'Test Group', members: [userToRemove] })
+			.expect(200);
+
+		const groupId = create.body.groupId as string;
+
+		// Verify the user is in the reverse index map
+		expect(userIdToGroups.has(userToRemove)).toBe(true);
+		expect(userIdToGroups.get(userToRemove)?.has(groupId)).toBe(true);
+
+		// Remove the user from the group
+		await request(server)
+			.delete(`/groups/${groupId}/members/${userToRemove}`)
+			.set('Authorization', `Bearer ${ownerToken}`)
+			.expect(200);
+
+		// Verify the user is removed from the reverse index map
+		expect(userIdToGroups.has(userToRemove)).toBe(false);
 	});
 });
 

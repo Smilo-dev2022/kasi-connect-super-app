@@ -5,6 +5,8 @@ import { useTheme } from '@theme/ThemeProvider';
 import ChatBubble from '@components/ChatBubble';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Haptic from 'react-native-haptic-feedback';
+import { getSocket } from '@realtime/socket';
+import { api } from '@api/client';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 type ChatMessage = {
@@ -30,6 +32,15 @@ export default function MessagesScreen(): React.JSX.Element {
           { id: '2', text: 'This is a fast FlashList-based chat.', fromMe: true },
         ]);
       }
+      // attempt fetch of missed messages from server (since last persisted ts)
+      try {
+        const since = Number(await AsyncStorage.getItem('chat:last_ts') || '0');
+        const res = await api.get(`/messages/since/${since}`);
+        const serverMessages: any[] = res?.data?.messages ?? [];
+        const mapped: ChatMessage[] = serverMessages.map(m => ({ id: String(m.id), text: String(m.ciphertext || ''), fromMe: false }));
+        if (mapped.length) setMessages(prev => [...prev, ...mapped]);
+        await AsyncStorage.setItem('chat:last_ts', String(Date.now()));
+      } catch {}
     })();
   }, []);
 
@@ -40,10 +51,37 @@ export default function MessagesScreen(): React.JSX.Element {
 
   const data = useMemo(() => messages, [messages]);
 
-  function send() {
+  // Connect WS and receive messages
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
+    (async () => {
+      try {
+        const ws = await getSocket();
+        ws.addEventListener('message', (evt: any) => {
+          try {
+            const payload = JSON.parse(String(evt?.data || ''));
+            if (payload?.type === 'msg') {
+              const isMine = Boolean(payload?.fromMe) || false;
+              setMessages(prev => [...prev, { id: String(payload.id), text: String(payload.ciphertext || ''), fromMe: isMine }]);
+            }
+          } catch {}
+        });
+      } catch {}
+    })();
+    return () => { try { unsub?.(); } catch {} };
+  }, []);
+
+  async function send() {
     if (!input.trim()) return;
-    const newMsg: ChatMessage = { id: String(Date.now()), text: input.trim(), fromMe: true };
-    setMessages(prev => [...prev, newMsg]);
+    const id = String(Date.now());
+    const plaintext = input.trim();
+    const envelope = { type: 'msg', id, to: 'bob', scope: 'direct', ciphertext: plaintext, contentType: 'text/plain', timestamp: Date.now() };
+    try {
+      const ws = await getSocket();
+      ws.send(JSON.stringify(envelope));
+      const newMsg: ChatMessage = { id, text: plaintext, fromMe: true };
+      setMessages(prev => [...prev, newMsg]);
+    } catch {}
     setInput('');
     Haptic.trigger('impactLight');
     // Content is bottom-aligned via contentContainerStyle; no explicit scroll needed

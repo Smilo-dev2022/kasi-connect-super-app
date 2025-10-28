@@ -1,9 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
 import { ENV } from '@api/../config/env';
+import * as Keychain from 'react-native-keychain';
 
 export interface ApiClientOptions {
   baseURL: string;
   getAccessToken?: () => Promise<string | null> | string | null;
+  ward?: string;
 }
 
 export function createApiClient(options: ApiClientOptions): AxiosInstance {
@@ -18,11 +20,27 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
+    if (options.ward) {
+      config.headers = config.headers ?? {};
+      (config.headers as any)['x-ward'] = options.ward;
+    }
     return config;
   });
 
   return instance;
 }
 
-export const api = createApiClient({ baseURL: ENV.apiBaseUrl });
+// Default API instance that automatically pulls the token from secure storage
+export const api = createApiClient({
+  baseURL: ENV.apiBaseUrl,
+  ward: ENV.ward,
+  getAccessToken: async () => {
+    try {
+      const creds = await Keychain.getGenericPassword({ service: 'ikasi-token' });
+      return creds ? creds.password : null;
+    } catch {
+      return null;
+    }
+  },
+});
 

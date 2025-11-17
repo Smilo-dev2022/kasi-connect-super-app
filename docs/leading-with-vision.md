@@ -324,6 +324,52 @@ We acknowledge Council, Senate, the Institutional Advancement Division, Research
 
 ---
 
+## Expanded Chapter Narratives
+
+### Part One: Leadership Transformation
+**Context:** The leadership transition coincided with a national reckoning on public accountability. Prof. LenkaBula responded by convening “courageous conversations” with staff and students in every region, cataloguing over 600 inputs that shaped the first Institutional Renewal Plan.  
+
+**Milestones:** The Strategic Execution Office mapped 47 reform projects, from procurement modernization to academic planning. Council reconstituted four committees, embedded risk specialists, and moved to digital signatures, cutting meeting preparation time by 65%. Executive members signed performance compacts tied to student success, equity, and research targets, creating the most transparent accountability framework in Unisa’s history.  
+
+**Voices:** Student Parliament leaders note the VC’s open-door tradition and her willingness to convene midnight briefings during exam disruptions. Union partners cite the Joint Leadership Forum—now a quarterly fixture—as evidence that “engaged leadership” is more than a slogan.  
+
+### Part Two: Academic & Research Impact
+**Context:** Recovery from pandemic-era disruptions demanded flexible pedagogy and a renewed research agenda. Unisa invested in teaching innovation grants, learning-analytics pilots, and postgraduate funding for niche areas aligned to continental priorities.  
+
+**Milestones:** Academic Portfolio Reviews led to curriculum redesign in teacher education, law, business, and STEM. Cross-college research clusters created “knowledge cities” connecting labs in Pretoria, Florida, and regional centers. The Research and Innovation Directorate launched a pipeline management system tracking 2 300 active projects and their societal outcomes.  
+
+**Impact Stories:** The Heritage Digitization Programme preserved 3 million artefacts, while the Space Science CNA enabled drought monitoring in Limpopo through satellite analytics. Graduate tracer studies revealed improved employability, especially in ICT, education, and public administration.  
+
+### Part Three: Technology, Systems & Infrastructure
+**Context:** Digital transformation underpinned every strategic thrust. The NextGen ODeL Platform combined technology upgrades with change management, ensuring staff embraced new workflows. Facilities teams aligned capital projects with provincial growth plans, strengthening Unisa’s community footprint.  
+
+**Milestones:** Deployment of unified communications tools, zero-trust cybersecurity, and robotic process automation cut operational bottlenecks. Capital programmes delivered hybrid lecture theatres, science labs, student commons, and green energy systems. Infrastructure investments were paired with socio-economic impact assessments demonstrating job creation and local procurement benefits.  
+
+**Voices:** Regional directors describe technology investments as “a lifeline” for remote students, while Facilities cite the Florida modernization as proof that heritage sites can coexist with smart labs.  
+
+### Part Four: Global & Continental Engagement
+**Context:** In an era of geopolitical shifts, Unisa positioned itself as a nexus for African knowledge diplomacy. Partnerships emphasized co-created research, academic mobility, and development impact.  
+
+**Milestones:** More than 80 memoranda of cooperation were signed, spanning African multilateral bodies, BRICS networks, EU consortia, and industry clusters. Global ODeL Week 2024 drew 6 000 delegates and birthed the Pretoria Declaration on Inclusive Digital Learning. Unisa delegations influenced UNESCO, AU, and Vatican forums on ethics, sustainability, and education futures.  
+
+**Impact Stories:** Joint doctorates with West African universities produced policy tools for ethical AI. Industry alliances powered fintech and creative economy incubators, offering students international internships and placement pathways.  
+
+### Part Five: Social Impact & Student Centredness
+**Context:** Social justice anchors Unisa’s identity. The first term prioritized community-responsive research, integrated student support, and firm action on inequity.  
+
+**Milestones:** Community engagement scaled through district-level hubs supporting legal aid, health screening, agricultural extension, and entrepreneurship. Student Affairs introduced a holistic support ecosystem—wellness, financial aid, housing partnerships, and innovation funding. Diversity and Belonging dashboards now track representation, incident response, and campus climate indicators.  
+
+**Impact Stories:** The Student Innovation Fund nurtured enterprises such as agro-tech start-up “SoilSage” and mental-health platform “ThriveLine.” GBV response units resolved cases with survivor-centered protocols, while device libraries and zero-rated data flattened digital divides.  
+
+### Part Six: Building for the Future
+**Context:** Sustained transformation depends on financial health and foresight. The first term balanced fiscal discipline with investment in academic excellence.  
+
+**Milestones:** Zero-based budgeting linked every rand to strategic outcomes, yielding R600 million in redirected spend. Commercialization through Unisa Enterprises, short learning programmes, and IP licensing diversified revenue streams. Scenario-planning exercises informed the 2026–2030 strategy, focusing on lifelong learning ecosystems, climate-positive operations, and ethical governance.  
+
+**Future Outlook:** The next horizon envisions hyper-personalized student journeys, continental knowledge corridors, resilient infrastructure, and innovation pipelines that seed enterprise while serving public good.  
+
+---
+
 ## Closing Reflection
 “Leading with Vision” is both a celebration and a compass. The stories within these pages demonstrate the courage it takes to transform a 150-year-old institution amid rapid societal change. They also remind us that Unisa’s work is never finished. As we prepare for the 2026–2030 strategic cycle, we do so rooted in the values that have guided this first term: ethical stewardship, academic excellence, digital innovation, and unwavering commitment to the communities we serve.  
 
